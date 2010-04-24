@@ -1,0 +1,17 @@
+#!/bin/csh
+
+set echo
+
+set HOST_TO_LISTEN="$1"
+
+rsh $HOST_TO_LISTEN sndrecord -s 80120 am.snd
+ftp $HOST_TO_LISTEN << EOF_FTP
+binary
+get am.snd
+quit
+EOF_FTP
+rsh $HOST_TO_LISTEN rm -f am.snd
+sndplay am.snd 
+
+exit 0
+#END

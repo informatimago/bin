@@ -1,0 +1,4 @@
+#!/bin/sh
+sleep 12
+export TZ=Europe/Madrid
+exec asclock -24 -das 

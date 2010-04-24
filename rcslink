@@ -1,0 +1,1117 @@
+#!/bin/csh -f
+#******************************************************************************
+#FILE:              rcslink, with several symbolic links.
+#LANGUAGE:          /bin/csh
+#SYSTEM:            UNIX
+#USER-INTERFACE:    None
+#TYPE:              COMMAND
+#DESCRIPTION:
+#	Rechercher la chaine DOC_BEGIN, ci-apres.
+#USAGE:
+#	rcslink    --install
+#	                cree les liens symboliques suivant sur rcslink :
+#	rcsconfig   [-h]
+#	rcslink     [-h] [-v] [-R] [-b rcsstore] [-c] rcsmodule srcdir ...
+#	rcsrename   [-h] [-v] [-R] [-b rcsstore] oldrcsmod newrcsmod srcdir ...
+#	rcsmodules  [-h] [-v]      [-b rcsstore]
+#	rcsunlink   [-h] [-v] [-R] srcdir ...
+#	rcswhich    [-h] [-v] [-R] srcdir ...
+#	rcssetvname [-h] [-v] [-R] version_name srcdir ...
+#   rcslsname   [-h] [-v] [-R] file_or_srcdir ...
+#
+#	rcsci       [-h] [-v] [-R] [ci-options]   file_or_srcdir ...  ## not yet
+#	rcsco       [-h] [-v] [-R] [co-options]   file_or_srcdir ...  ## not yet
+#	rcslog      [-h] [-v] [-R] [rlog-options] file_or_srcdir ...  ## otherfile
+#
+#
+# status:
+#	0	ok.
+#	1	programme invoque sous un mauvais nom.
+#	2	option non valide.
+#	3	manque un argument.
+#	4	rcsstore n'est pas specifie.
+#	5	rcsstore n'est pas un repertoire.
+#	6	rcsmodule n'est pas un repertoire.
+#	7	newmodule existe deja.
+#	8	un repertoire source n'existe pas.
+#	33	fonction non implementee.
+#	98	erreur de deboguage.
+#	99	bogue interne signalee a l'auteur par email.
+#	100+	resultat retourne par un programme utilise, + 100.
+#AUTHORS:
+#	<PJB>	Pascal J. Bourguignon
+#MODIFICATIONS:
+#	$Id$
+#	$Log$
+#	1994/07/06	<PJB>	Creation.
+#BUGS:
+#	Les status devraient etre renumerotes pour essayer d'eviter les numeros
+#	utilises par les utilitaires appeles (utiliser 64<status<127).
+#LEGAL:
+#	Copyright Pascal J. Bourguignon 1995 - 1995
+#******************************************************************************
+
+
+#
+#	Pour ajouter une option, chercher la chaine ADDOPT et suivre les 
+#	indications.
+#
+
+	### DEBUT CONFIGURATION
+	# numero de version:
+	set version=3.3
+	
+	# Adresse email ou envoyer les rapports de bogue.
+	set bugemail=pascal	# email address to which bug reports are sent.
+	
+	# Commande a executer pour journaliser les appels.
+	set log=true		# nop. actually, should echo its args to a log file.
+	
+	# Repertoires a ne pas mettre dans RCS (${d} ${d}.*):
+	set notrcsdir=(RCS objects bin libraries sym)
+	
+	# Extension de repertoire a considerer comme des fichiers:
+	set filepackext=(_obj .dir \
+				.adaptor .addresses .anim .anotherone .app .bugreport .bundle \
+				.clr .com .config .dbadaptor .dbmodel .de \
+				.diagram .diagram2 .dpalette2 \
+				.draw .draw~ \
+				.font .fr .fs \
+				.imp .imx \
+				.mbox .msdos .nfold .nib .nib~ .nidb .palette .pkg \
+				.preferences .psdrvr .rtfd .service .simon .win .wn \
+				.world .xmovie .xygraph .xygraph~ .xyzgraph .xyzgraph~ )
+	
+	set lscrust='^............................................'
+	
+	### FIN CONFIGURATION
+
+
+	# self :
+	set pname=$0
+	set selfdir=${pname:h}
+	set selfile=${pname:t}
+	if ( ${selfdir} == ${pname} ) then
+		set selfdir=.
+	endif
+
+
+	# journal des appels rcslink et al.
+	${log} "`date`|${USER}|`pwd`|$0 $*"
+	
+	
+	set files_to_remove=()
+	
+	# options generales :
+	# ADDOPT: Ajouter un nom de programme pour la nouvelle option :
+	set pnames=(rcslink rcsunlink rcsrename rcsmodules rcswhich rcssetvname rcsconfig rcsci rcsco rcslsname)
+	# ADDOPT: Ajouter une entree pour la nouvelle option:
+	set usage=(1 2 3 4 5 6 7 8 9 10)
+
+	
+	if ( ( "${selfile}" == "rcslink" ) && ( "$1" == "--install" ) ) then
+		cd "${selfdir}"
+		foreach f ( ${pnames} ) 
+			if ( "$f" == "rcslink" ) then
+				# skip it
+			else
+				if ( ( "$2" != "--force" ) && ( -e ${f} ) ) then
+					echo "${selfile}: ${f} already exists."
+				else
+					echo "${selfile}: sym-linking ${selfile} to ${selfdir}/${f}"
+					rm -f ${f}
+					ln -s $selfile ${f}
+				endif
+			endif
+		end
+		if ( ${#files_to_remove} != 0 ) then
+			rm -f ${files_to_remove}
+		endif
+		exit 0
+	endif
+	
+	
+
+	# ADDOPT: Ajouter la syntaxe de la nouvelle option :
+	set usage[1]="rcslink     [-h] [-v] [-R] [-b rcsstore] [-c] rcsmod srcdir ..."
+	set usage[2]="rcsunlink   [-h] [-v] [-R]               srcdir ..."
+	set usage[3]="rcsrename   [-h] [-v] [-R] [-b rcsstore] oldrcsmod newrcsmod srcdir ..."
+	set usage[4]="rcsmodules  [-h] [-v] [-R] [-b rcsstore]"
+	set usage[5]="rcswhich    [-h] [-v] [-R]               srcdir ..."
+	set usage[6]="rcssetvname [-h] [-v] [-R]               versname srcdir ..."
+	set usage[7]="rcsconfig   [-h]"
+	set usage[8]="rcsci       [-h] [-v] [-R] [ci-option]   file_or_srcdir ..."
+	set usage[9]="rcsco       [-h] [-v] [-R] [co-option]   file_or_srcdir ..."
+	set usage[10]="rcslsname   [-h] [-v] [-R] file_or_srcdir ..."
+	
+	if ( ! ${?RCSSTORE} ) then
+		set RCSSTORE=""
+	endif
+	
+	# ADDOPT: ajouter deux lignes similaires a celles ci-dessous.
+	#	Dans le cas ou l'option doit etre suivie par un autre argument, 
+	#	ajouter une ligne initialisant la variable correspondante.
+	#	(cas de optionb, suivit de rcsstore).
+	set optionz=--erreurexpres--
+	set z=0
+	set optionb=--disabled--
+	set b=0
+	set rcsstore="${RCSSTORE}"		# base prise par defaut,
+	set optionR=--disabled--
+	set R=0
+	set optionc=--disabled--
+	set c=0
+	set optionv=--enabled--
+	set v=0
+	# ADDOPT: ajouter dans otherargmin le nombre minimum d'arguments
+	#         supplementaires aux options obligatoires :
+	set otheropt=--disabled--	# accumulating other options in otheroptlist.
+	set otherarg=--disabled--	# accumulating other arguments in otherarglist.
+	set otherargmin=(2 1 3 0 1 2 0 1 1 1)
+	set otheroptlist=()
+	set otherarglist=()
+
+	# ADDOPT: ajouter dans le switch suivant une ligne dans chaque cas
+	#         ou l'option est valide, avec :
+	#		--enabled--				option simple (variable lettre mise a 1).
+	#		--disabled--			option invalide.
+	#		--other--				ajouter l'option dans otherarglist.
+	#		--followed--variable	stocker l'argument suivant dans variable.
+	#		
+	# options particulieres :
+	switch ( ${selfile} )
+	case rcslink:
+		set pnum=1
+		set optionb=--followed--rcsstore
+		set optionR=--enabled--
+		set optionc=--enabled--
+		set otheropt=--disabled--
+		set otherarg=--otherarg--
+		breaksw
+	case rcsunlink:
+		set pnum=2
+		set optionR=--enabled--
+		set otheropt=--disabled--
+		set otherarg=--otherarg--
+		breaksw
+	case rcswhich:
+		set pnum=5
+		set optionR=--enabled--
+		set otheropt=--disabled--
+		set otherarg=--otherarg--
+		breaksw
+	case rcsrename:
+		set pnum=3
+		set optionb=--followed--rcsstore
+		set optionR=--enabled--
+		set otheropt=--disabled--
+		set otherarg=--otherarg--
+		breaksw
+	case rcsmodules:
+		set pnum=4
+		set optionb=--followed--rcsstore
+		set otheropt=--disabled--
+		set otherarg=--disabled--
+		breaksw
+	case rcswhich:
+		set pnum=5
+		set optionR=--enabled--
+		set otheropt=--disabled--
+		set otherarg=--otherarg--
+		breaksw
+	case rcssetvname:
+		set pnum=6
+		set optionR=--enabled--
+		set otheropt=--disabled--
+		set otherarg=--otherarg--
+		breaksw
+	case rcsconfig:
+		set pnum=7
+		set otheropt=--disabled--
+		set otherarg=--otherarg--
+		breaksw
+	case rcsci:
+		set pnum=8
+		set otheropt=--otheropt--
+		set otherarg=--otherarg--
+		breaksw
+	case rcsci:
+		set pnum=9
+		set otheropt=--otheropt--
+		set otherarg=--otherarg--
+		breaksw
+	case rcslsname:
+		set pnum=10
+		set optionR=--enabled--
+		set otheropt=--otheropt--
+		set otherarg=--otherarg--
+		breaksw
+	# ADDOPT: Dans le cas d'un nouveau nom de programme, l'ajouter ci-dessus.
+	default:
+		echo "${selfile}: Ce programme doit etre renomme ${pnames[1]}, avec"
+		echo "	les liens symboliques suivant :"
+		test -h ${pname}
+		if ( $status == 1 ) then 
+			echo "	mv ${pname} ${selfdir}/rcslink"
+		endif
+		foreach l ( ${pnames[2-]} )
+			echo "	ln -s ${pnames[1]} ${selfdir}/${l}"
+		end
+		echo "Usages:"
+		@ i=1
+		while ( $i <= ${#usage} )
+			echo "	${usage[$i]}"
+			@ i++
+		end
+		if ( ${#files_to_remove} != 0 ) then
+			rm -f ${files_to_remove}
+		endif
+		exit 1
+		breaksw
+	endsw
+
+	set expect=--nothing--
+	set expectvar=""
+	foreach arg ( ${argv:q} )
+		switch ( ${expect} ) 
+		case --variable--:
+			set ${expectvar}="${arg}"
+			set expect=--nothing--
+			breaksw
+		default:
+			set argletter="`echo ${arg}|sed -e 's/^\-//'`"
+			switch ( "${arg}" )
+			case -z:
+				set option=$optionz
+				breaksw
+			case -b:
+				set option=$optionb
+				breaksw
+			case -c:
+				set option=$optionc
+				breaksw
+			case -R:
+				set option=$optionR
+				breaksw
+			case -v:
+				set option=$optionv
+				breaksw
+	# ADDOPT: Ajouter le traitement de la nouvelle option ci-dessus.
+			case -h*:
+				sed -e '1,/^DOC[_]BEGIN/d' -e '/^DOC[_]END/d' < ${0} | more
+				if ( ${#files_to_remove} != 0 ) then
+					rm -f ${files_to_remove}
+				endif
+				exit 0
+				breaksw
+			case -*:
+				set option="${otheropt}"
+				breaksw
+			default:
+				set option="${otherarg}"
+				breaksw
+			endsw
+
+			switch ( $option )
+			case --disabled--:
+				echo "${selfile}: $arg est une option invalide."
+				echo "${selfile} usage:"
+				echo "	${usage[${pnum}]}"
+				if ( ${#files_to_remove} != 0 ) then
+					rm -f ${files_to_remove}
+				endif
+				exit 2
+				breaksw
+			case --enabled--:
+				set ${argletter}=1
+				breaksw
+			case --followed--*:
+				set expectvar=`echo $option|sed -e 's/--followed--//'`
+				set expect=--variable--
+				breaksw
+			case --otheropt--:
+				set otheroptlist=(${otheroptlist:q} "$arg")
+				breaksw
+			case --otherarg--:
+				set otherarglist=(${otherarglist:q} "$arg")
+				breaksw
+			default:
+				echo "${selfile}: bogue interne."
+				echo "${selfile}: je la signale a : ${bugemail}."
+				echo "Rapport de bogue dans ${selfile}">/tmp/br$$
+				echo "${argv}" >> /tmp/br$$
+				setenv >> /tmp/br$$
+				set >> /tmp/br$$
+				echo cd `pwd` >> /tmp/br$$
+				echo ls -la >> /tmp/br$$
+				mail -s "Rapport de bogue dans ${selfile}" ${bugemail} < /tmp/br$$
+				set files_to_remove=(${files_to_remove} /tmp/br$$)
+				if ( ${#files_to_remove} != 0 ) then
+					rm -f ${files_to_remove}
+				endif
+				if ( ${#files_to_remove} != 0 ) then
+					rm -f ${files_to_remove}
+				endif
+				exit 99
+				breaksw
+			endsw
+			breaksw
+		endsw
+	end	
+
+	switch ( ${expect} )
+	case --nothing--:
+		# tout va bien.
+		breaksw
+	default:
+		echo "${selfile}: il manque un argument."
+		echo "${selfile} usage:"
+		echo "	${usage[${pnum}]}"
+		if ( ${#files_to_remove} != 0 ) then
+			rm -f ${files_to_remove}
+		endif
+		exit 3
+	endsw
+
+	if ( $#otherarglist < $otherargmin[${pnum}] ) then
+		echo "${selfile}: il manque des arguments."
+		echo "${selfile} usage:"
+		echo "	${usage[${pnum}]}"
+		if ( ${#files_to_remove} != 0 ) then
+			rm -f ${files_to_remove}
+		endif
+		exit 3
+	endif
+
+	# ADDOPT: ajouter ici les verifications sur les nouvelles options:
+	#	exclusion mutuelle entre deux options, controle sur l'argument
+	#	d'une option, etc.
+	#
+
+	# verification de la base rcs : rcsstore.
+	if ( ${rcsstore} != "--disabled--" ) then
+		if ( ( ${rcsstore} == "" ) && ( ${RCSSTORE} == "" ) ) then
+			echo "${selfile}: soit la variable d'environnement RCSSTORE"
+			echo "	doit pointer sur un repertoire base rcs, soit l'option"
+			echo "	-b repbase doit etre stipulee."
+			echo "${selfile} usage:"
+			echo "	${usage[${pnum}]}"
+			if ( ${#files_to_remove} != 0 ) then
+				rm -f ${files_to_remove}
+			endif
+			exit 4
+		else
+			if ( ! -d ${rcsstore} ) then
+				echo "${selfile}: la base rcs doit etre un chemin d'acces vers"
+				echo "	un repertoire. ${rcsstore} n'est pas un repertoire."
+				if ( $b != "--enabled--" ) then
+					echo "	Mettez a jour la variable d'environnement RCSSTORE."
+				endif
+				echo "${selfile} usage:"
+				echo "	${usage[${pnum}]}"
+				if ( ${#files_to_remove} != 0 ) then
+					rm -f ${files_to_remove}
+				endif
+				exit 5
+			endif
+		endif
+	endif
+
+
+	# verifications des arguments dans la otherarglist.	
+	switch ( ${selfile} ) 
+	case rcslink:
+		set rcsmodule=${otherarglist[1]}
+		set newmodule=--disabled--
+		set dirlist=(${otherarglist[2-]})
+		breaksw
+	case rcsunlink:
+	case rcswhich:
+		set rcsmodule=--disabled--
+		set newmodule=--disabled--
+		set dirlist=(${otherarglist[*]})
+		breaksw
+	case rcssetvname:
+		set rcsmodule=--disabled--
+		set newmodule=--disabled--
+		set vname=${otherarglist[1]}
+		set dirlist=(${otherarglist[2-]})
+		breaksw
+	case rcsmodules:
+		set rcsmodule=--disabled--
+		set newmodule=--disabled--
+		set dirlist=--disabled--
+		breaksw
+	case rcsrename:
+		set rcsmodule=${otherarglist[1]}
+		set newmodule=${otherarglist[2]}
+		set dirlist=(${otherarglist[3-]})
+		breaksw
+	case rcsconfig:
+		#otherarglist should be empty for this command.
+		set rcsmodule=--disabled--
+		set newmodule=--disabled--
+		set dirlist=--disabled--
+		breaksw
+	case rcslsname:
+		#otherarglist should be empty for this command.
+		set rcsmodule=--disabled--
+		set newmodule=--disabled--
+		set dirlist=--disabled--
+		set list=(${otherarglist})
+		breaksw
+# ADDOPT: Ajouter ici le traitement de otherarglist pour la nouvelle commande.
+	default:
+		echo "DEBUGGUER : La verifications des arguments dans la otherarglist"
+		echo "            pour ${0} n'a pas ete prevue."
+		if ( ${#files_to_remove} != 0 ) then
+			rm -f ${files_to_remove}
+		endif
+		exit 98
+	endsw
+
+
+	# verification de rcsmodule:
+	if ( ${rcsmodule} != --disabled-- ) then
+		switch ( "${rcsmodule}" )
+		case "/*":
+			# chemin absolu : rien a redire.
+			breaksw
+		default:
+			set rcsmodule=${rcsstore}/${rcsmodule}
+			breaksw
+		endsw
+		if ( ( ! ${c} ) && ( ! -d "${rcsmodule}" ) ) then
+			echo "${selfile}: il faut specifier le module en"
+			echo "	question. ${rcsmodule} n'est pas un repertoire."
+			echo "${selfile} usage:"
+			echo "	${usage[${pnum}]}"
+			if ( ${#files_to_remove} != 0 ) then
+				rm -f ${files_to_remove}
+			endif
+			exit 6
+		endif
+	endif
+
+	# verification de newmodule
+	if ( $newmodule != --disabled-- ) then
+		switch ( "$newmodule" )
+		case "/*":
+			# chemin absolu : rien a redire.
+			breaksw
+		default:
+			set newmodule=${rcsstore}/$newmodule
+			breaksw
+		endsw
+		if ( -e "$newmodule" ) then
+			echo "${selfile}: $newmodule existe deja."
+			echo "${selfile} usage:"
+			echo "	${usage[${pnum}]}"
+			if ( ${#files_to_remove} != 0 ) then
+				rm -f ${files_to_remove}
+			endif
+			exit 7
+		endif
+	endif
+
+	# verification des repertoires sources :
+	if ( "${dirlist}" != --disabled-- ) then
+		set result=0
+		foreach d ( ${dirlist} )
+			if ( ! -d ${d} ) then
+				echo "${selfile}: ${d} n'existe pas ou n'est pas un repertoire."
+				set result=8
+			endif
+		end
+		if ( $result != 0 ) then
+			if ( ${#files_to_remove} != 0 ) then
+				rm -f ${files_to_remove}
+			endif
+			exit $result
+		endif
+	endif
+
+	if ( ${R} ) then
+		set RR=-R
+	else
+		set RR=
+	endif
+	if ( ${v} ) then
+		set vv=-v
+	else
+		set vv=
+	endif
+
+	# pretraitement de notrcsdir et de filepackext pour find -d|sed
+	if ( ${R} ) then
+		echo > /tmp/rcslink.sed.$$
+		foreach d ( ${notrcsdir} )
+			echo /\\/${d}\$/d   >> /tmp/rcslink.sed.$$
+			echo /\\/${d}\\./d  >> /tmp/rcslink.sed.$$
+		end
+		foreach d ( ${filepackext} )
+			echo /.\\${d}\$/d   >> /tmp/rcslink.sed.$$
+			echo /.\\${d}\\//d  >> /tmp/rcslink.sed.$$
+		end
+		set files_to_remove=(${files_to_remove} /tmp/rcslink.sed.$$)
+	endif
+	
+	if ( ${v} ) then
+		echo "${selfile}: RcsLink et al. Version $version. "
+		echo "${selfile}: Copyright Pascal J. Bourguignon  1994 - 1997"
+		echo "${selfile}: All rights reserved."
+		echo "${selfile}: mailto:pjb@imaginet.fr"
+		echo "${selfile}:"
+	endif
+	
+	# ADDOPT: ajouter bien sur les options dans le traitement des commandes.
+	# traitement des commandes :
+	switch ( ${selfile} )
+
+### RCSLINK ###################################################################
+	case rcslink: #  [-h] [-v] [-b rcsstore] [-R] [-c] rcsmodule srcdir ...
+#		if ( ${R} && ${c} && ( -e ${rcsmodule} ) ) then
+#			if ( ${v} ) then
+#				echo "${selfile}: Creation des repertoires locaux pour le module ${rcsmodule}"
+#			endif
+#			(cd  ${rcsmodule} ; find . -type d -print ) | xargs -i echo $mkdirs
+#		endif
+		
+		if ( ${v} ) then
+			echo "${selfile}: Creation des liens vers le module RCS ${rcsmodule}:"
+		endif
+		
+		# Suppression anciens liens.
+		if ( ${v} ) then	
+			echo "${selfile}: Suppression des anciens liens RCS..."
+		endif
+		set result=0
+		${selfdir}/rcsunlink ${RR} ${vv} ${dirlist} || set result=$status
+		if ( $result != 0 ) then
+			echo "${selfile}: Aborted."
+			if ( ${#files_to_remove} != 0 ) then
+				rm -f ${files_to_remove}
+			endif
+			exit $result
+		endif
+
+		# Creation module rcs.
+		if ( ${c} && ( ! -e ${rcsmodule} ) ) then
+			if ( ${v} ) then
+				echo "${selfile}: Creation du module rcs : ${rcsmodule}..."
+			endif
+			set result=0
+			makedir ${rcsmodule} || set result=$status
+			if ( $result != 0 ) then
+				@ result+=100
+				echo "${selfile}: Aborted."
+				if ( ${#files_to_remove} != 0 ) then
+					rm -f ${files_to_remove}
+				endif
+				exit $result
+			endif
+		endif
+
+		# Creation des liens.
+		foreach d ( ${dirlist} )
+			if ( ${R} ) then
+				
+				foreach sd ( `find ${d} -type d -print|sed -f /tmp/rcslink.sed.$$` )
+					if ( ! -e ${rcsmodule}/${sd} ) then
+						if ( ${c} ) then
+							makedir ${rcsmodule}/${sd}
+						else 
+							echo "${selfile}: '${rcsmodule}/${sd}' n'existe pas. Pas de lien RCS pour '${sd}'."
+							continue #foreach
+						endif
+					endif
+					if ( ! -e ${sd}/RCS ) then
+						if ( ${v} ) then
+							echo "${selfile}: Creation du lien symbolique RCS dans '${sd}'..."
+						endif
+						ln -s ${rcsmodule}/${sd} ${sd}/RCS
+						pushd ${sd} > /dev/null
+						echo "`pwd`" >> ${rcsmodule}/${sd}/.linkfrom
+						sort -u -o ${rcsmodule}/${sd}/.linkfrom ${rcsmodule}/${sd}/.linkfrom
+						popd > /dev/null
+					else
+						if ( ${v} ) then
+							echo "${selfile}: ${sd}/RCS existe deja; non modifie."
+						endif
+					endif
+				end
+			else
+				set link=1
+				if ( ! -e ${rcsmodule}/${d} ) then
+					if ( ${c} ) then
+						makedir ${rcsmodule}/${d}
+					else 
+						echo "${selfile}: '${rcsmodule}/${d}' n'existe pas. Pas de lien RCS pour '${d}'."
+						set link=0
+					endif
+				endif
+				if ( $link ) then
+					if ( ! -e ${d}/RCS ) then
+						if ( ${v} ) then
+							echo "${selfile}: Creation du lien symbolique RCS dans '${d}'..."
+						endif
+						ln -s ${rcsmodule}/${d} ${d}/RCS
+						pushd ${d} > /dev/null
+						echo "`pwd`" >> ${rcsmodule}/${d}/.linkfrom
+						sort -u -o ${rcsmodule}/${d}/.linkfrom ${rcsmodule}/${d}/.linkfrom
+						popd > /dev/null
+					else
+						if ( ${v} ) then
+							echo "${selfile}: ${d}/RCS existe deja; non modifie."
+						endif
+					endif
+				endif
+			endif
+		end
+		breaksw
+
+### RCSUNLINK #################################################################
+	case rcsunlink: # [-h] [-v] [-R] srcdir ...
+		# si on rencontre un RCS autre que lien symbolique, on abort.exit 2
+		if ( ${v} ) then
+			echo "${selfile}: Suppression des liens vers les modules RCS:"
+		endif
+		foreach d ( ${dirlist} )
+			if ( ${R} ) then
+				foreach sd ( `find ${d} -name RCS -type l -print` )
+					if ( ${v} ) then
+						echo "${selfile}: Suppression du lien symbolique RCS dans '${sd:h}'..."
+					endif
+					if ( -e ${sd}/../.linkfrom ) then
+						pushd ${sd:h} > /dev/null
+#echo xx"`pwd`"xx
+#cat RCS/../.linkfrom
+						fgrep -v -x "`pwd`" < RCS/../.linkfrom |tee /tmp/l$$ |\
+							sort -u > RCS/../.linkfrom~ && \
+							mv RCS/../.linkfrom~ RCS/../.linkfrom
+						popd > /dev/null
+					endif
+					rm ${sd}
+				end
+				set files_to_remove=(${files_to_remove} /tmp/l$$)
+				find ${d} -name RCS -exec echo "${selfile}: "{}" n'est pas un lien symbolique : non supprime." \;
+			else
+				if ( { test -h ${d}/RCS } ) then
+					if ( ${v} ) then
+						echo "${selfile}: Suppression du lien symbolique RCS dans '${d}'..."
+					endif
+					if ( -e ${d}/RCS/../.linkfrom ) then
+						pushd ${d} > /dev/null
+#echo xx"`pwd`"xx
+#cat RCS/../.linkfrom
+						fgrep -v -x "`pwd`" < RCS/../.linkfrom |\
+							sort -u > RCS/../.linkfrom~ && \
+							mv RCS/../.linkfrom~ RCS/../.linkfrom
+						popd > /dev/null
+					endif
+					rm ${d}/RCS
+				else
+					if ( ( -e ${d}/RCS ) && ( ${v} ) ) then
+						echo "${selfile}: ${d}/RCS n'est pas un lien symbolique : non supprime."
+					endif
+				endif
+			endif
+		end
+		breaksw
+
+### RCSRENAME #################################################################
+	case rcsrename: # [-h] [-v] [-b rcsstore] [-R] oldmod newmod srcdir ...
+		if ( ${v} ) then
+			echo "${selfile}: Renommage du module ${rcsmodule} "
+			echo "	vers $newmodule"
+		endif
+
+		${selfdir}/rcsunlink ${RR} ${vv} ${dirlist}
+
+		if ( ${v} ) then
+			echo "${selfile}: changement du nom ..."
+		endif
+		mv ${rcsmodule} $newmodule
+
+		${selfdir}/rcslink -b ${rcsstore} ${newmodule:t} ${RR} ${vv} ${dirlist}
+
+		breaksw
+
+### RCSMODULES ################################################################
+	case rcsmodules: # [-h] [-v] [-b rcsstore]
+		if ( ${v} ) then
+			echo "${selfile}: Liste des modules existants:"
+		endif
+		cd ${rcsstore}
+		/bin/ls -dC `find ./* -type d -prune -print` | sed -e 's/\.\///g' 
+		breaksw
+
+### RCSWHICH ##################################################################
+	case rcswhich: # [-h] [-v] [-R] srcdir ...
+		if ( ${v} ) then
+			echo "${selfile}: Liens vers des modules RCS:"
+		endif
+		if ( ${R} ) then
+			foreach d ( ${dirlist} )
+				find ${d} -type l -name RCS -exec /bin/ls -l {} \; \
+		| sed -e "s/${lscrust}//"
+			end
+		else
+			foreach d ( ${dirlist} )
+				/bin/ls -ld ${d}/RCS \
+		| sed -e "s/${lscrust}//"
+			end
+		endif
+		breaksw
+
+### RCSSETVNAME ###############################################################
+	case rcssetvname: # [-h] [-v] [-R] vname srcdir ...
+		if ( ${v} ) then
+			echo "${selfile}: Preparation des commandes de creation de nom de version..."
+		endif
+		set curdir=`pwd`
+		foreach d ( ${dirlist} )
+			if ( ${R} ) then
+				foreach sd ( `find ${d} -type d -print|sed -f /tmp/rcslink.sed.$$` )
+####
+####
+####
+echo rcssetvname: not implemented.
+exit 33
+####
+####
+####
+cat >/dev/null << EOF
+	SEE also the listing of currently defined names.
+	rlog RCS/* \
+	| grep 'symbolic names:' \
+	| sed -e 's/symbolic names://' \
+	| tr ';' '\012' \
+	| sed -e 's/:.*//' -e 's/^ *//' \
+	| sort -u
+
+EOF
+				end
+			else
+				cd ${d}
+				set rcscmds=/tmp/rcsname.$$
+				( ident * \
+					| grep '$Id: ' \
+					| sed -e 's/.*\$Id: \(.*\),v \([0-9.]*\) .*/rcs -n'${vname}':\2 \1/' \
+					> $rcscmds \
+				) >& /dev/null 
+				set rcscmdstatus=$status
+				if ( $rcscmdstatus == 0 ) then
+					if ( ${v} ) then
+						cat $rcscmds
+					endif 
+					source $rcscmds
+				else
+					echo "${selfile}: La preparation retourne le status $rcscmdstatus : Arret."
+				endif
+			endif
+		end
+		
+		rm $rcscmds
+		breaksw
+	
+### RCSCONFIG #################################################################
+	case rcsconfig:
+		echo ""
+		echo "Configuration pour ${pnames}."|fmt
+		echo ""
+		echo "    Adresse ou sont envoye les rapports de bogue :"
+		echo "        ${bugemail}"
+		echo ""
+		echo "    Commande executee pour journaliser les transactions (true=NOP): "|fmt
+		echo "        ${log}"
+		echo ""
+		echo "    Liste des repertoires qui ne sont pas geres par RCS :"
+		echo "        {`echo ${notrcsdir}|sed -e 's/ /,/g'`}{,.*}"
+		echo ""
+		echo "    Liste des extensions de repertoires qui sont consideres comme des fichiers :"|fmt
+		echo "        ${filepackext}"|fmt
+		echo ""
+		echo "    Motif des caracteres a enlever des lignes sorties par '/bin/ls -l' pour obtenir uniquement le nom du fichier (et du lien si c'en est un) :"|fmt
+		echo "        ${lscrust}"
+		echo ""
+		breaksw
+
+### RCSCI #####################################################################
+### RCSCO #####################################################################
+	case rcsci:
+	case rcsco:
+		echo 'Pas encore implemente.'
+		exit 1
+		breaksw
+### RCSCO #####################################################################
+	case rcslsname:
+		set tmpfile=/tmp/rcslsname.$$
+		set filelist=()
+		set rcslist=()
+		set dirlist=()
+		foreach name ( ${list:q} )
+			if ( -e "$name" ) then
+				if ( -d "$name" ) then
+					switch ( "${name:t}" )
+					case RCS:
+						set rcslist=(${rcslist:q} "$name")
+						breaksw
+					default:
+						set dirlist=(${dirlist:q} "$name")
+						breaksw
+					endsw
+				else
+					set filelist=(${filelist:q} "$name")
+				endif
+			else
+				echo "${selfile}: $name does not exist; skipped."
+			endif
+		end
+		
+		if ( ${v} ) then
+			echo "${selfile}: Recherche des noms symboliques dans fichiers..."
+		endif
+
+		# files:
+		if ( $#filelist > 0 ) then
+			rlog ${filelist:q} |& grep 'symbolic names' > $tmpfile
+		else
+			cp /dev/null $tmpfile
+		endif
+		
+		if ( ${v} ) then
+			echo "${selfile}: Recherche des noms symboliques dans repertoires RCS..."
+		endif
+		
+		# RCS directories:
+		foreach elem ( ${rcslist:q} )
+			if ( ${R} ) then
+				if ( ${v} ) then
+					find "$elem"/. -name '*,v' -print 
+				endif
+				find "$elem"/. -name '*,v' -print \
+				|  xargs -i rlog {} \
+				|& grep 'symbolic names' >>& $tmpfile
+			else
+				if ( ${v} ) then
+					ls "$elem"/*,v 
+				endif
+				rlog "$elem"/*,v \
+				|& grep 'symbolic names' >>& $tmpfile
+			endif
+		end
+		
+		if ( ${v} ) then
+			echo "${selfile}: Recherche des noms symboliques dans autres repertoires..."
+		endif
+		
+		# other directories:		
+		foreach elem ( ${dirlist:q} )
+			if ( ${R} ) then
+				if ( ${v} ) then
+			echo $elem
+					find "$elem" \( -name RCS -prune \) -o \( -type f -print \)
+				endif
+				find "$elem" \( -name RCS -prune \) -o \( -type f -print \) \
+				|  xargs -i rlog {} \
+				|& grep 'symbolic names' >> $tmpfile
+			else
+				if ( ${v} ) then
+					find "$elem"/* \( -name RCS -prune \) \
+						-o \( -type d -prune \) \
+						-o \( -type f -print \) 
+				endif
+				find "$elem"/* \( -name RCS -prune \) \
+					-o \( -type d -prune \) \
+					-o \( -type f -print \) \
+				|  xargs -i rlog {} \
+				|& grep 'symbolic names' >> $tmpfile
+			endif
+		end
+		
+		cat $tmpfile \
+		| sed -e 's/symbolic names: *//' -e 's/:[ 0-9.]*; */;/g' \
+		| tr ';' '\012' \
+		| sort -u \
+		| grep -v '^$' \
+		> ${tmpfile}.out
+		
+		if ( ( ${R} == 0 ) && ( `wc -l ${tmpfile}.out|awk '{print $1}'` < 1 ) ) then
+			echo "${selfile}: Aucun nom trouve. "
+			echo "${selfile}: Puis-je vous suggerer d'utiliser l'option -R ?"
+		endif
+		
+		cat ${tmpfile}.out
+		
+		rm -f $tmpfile ${tmpfile}.out
+		set result=0
+		breaksw
+###############################################################################
+# ADDOPT: Ajouter ici le traitement pour un nouveau nom de programme.
+	endsw	
+	
+	if ( ${#files_to_remove} != 0 ) then
+		rm -f ${files_to_remove}
+	endif
+	exit 0
+#END rcslink.
+# ADDOPT: et ajouter les options dans la documentation ci-dessous.
+DOC_BEGIN
+    
+Commandes RCS supplementaires.
+
+Objectif :
+    
+    L'objectif des commandes RCS supplementaires decrites
+    dans ce document est de centraliser les fichiers RCS dans une
+    base unique.
+
+Notions :
+    - une base rcs (rcsstore), est un repertoire contenant des modules rcs.
+    - un module rcs (rcsmodule), est un repertoire dans une base rcs, 
+      contenant une hierarchie de sous-Repertoires, contenant des fichiers
+      rcs (*,v). 
+      Il existe des liens symboliques entre des repertoires RCS dans les
+      repertoires de sources et ces hierarchies de repertoires modules.
+    - un repertoire de sources (srcdir), est un repertoire contenant des
+      fichiers sources geres par rcs. Un tel repertoire peut contenir des
+      sous-Repertoire de sources, et peu ne pas contenir directement de 
+      fichiers sources.
+
+Les commandes suivantes utilisent par defaut la base rcs indiquee par
+la variable d'environnement RCSSTORE :
+    
+    setenv RCSSTORE /dvptop/general/RCS
+
+(Cette variable est automatiquement definie si vous 
+sourcez dans vos .profile ou .cshrc les profile et cshrc 
+de /dvptop/general/shellscripts/common/).
+
+Voici les commandes permettant de gerer les liens entre les repertoires
+RCS dans les repertoires de sources, et les modules rcs :
+
+    rcsconfig   [-h]
+    rcslink     [-h] [-v] [-R] [-b rcsstore] [-c] rcsmodule srcdir ...
+    rcsrename   [-h] [-v] [-R] [-b rcsstore] oldrcsmod newrcsmod srcdir ...
+    rcsmodules  [-h] [-v]      [-b rcsstore]
+    rcsunlink   [-h] [-v] [-R] srcdir ...
+    rcswhich    [-h] [-v] [-R] srcdir ...
+    rcssetvname [-h] [-v] [-R] version_name srcdir ...
+    rcslsname   [-h] [-v] [-R] file_or_srcdir ...
+    rcslog      [-h] [-v] [-R] [rlog-optiosn] file_or_srcdir ...
+    rcsci       [-h] [-v] [-R] [ci-options]   file_or_srcdir ...
+    rcsco       [-h] [-v] [-R] [co-options]   file_or_srcdir ...
+    
+
+Options generales :
+    
+    -h          affiche ce document, et ne fait rien d'autre.
+
+    -v          demande l'impression de messages decrivant les actions
+                entreprises par l'outil.
+
+    -b rcsstore specifie le chemin d'acces de la base rcs a utiliser, 
+                au lieu de la base par defaut donnee par la variable 
+                d'environnement RCSSTORE.
+
+    -R          traite les repertoires sources recursivement. Par 
+                defaut, un repertoire source est repute 'feuille'
+                dans l'arborescence des repertoires. 
+                Cette option indique que le repertoire source 
+                contient des sous-Repertoires sources a traiter.
+
+    
+rcsconfig   [-h]
+    
+    rcsconfig affiche la configuration de rcslink et ces commandes associees.
+    
+rcslink     --install [--force]
+    
+    Pour l'installation de rcslink: creation dans le meme repertoire que 
+    rcslink de tous les liens symboliques pour les autres commandes (voir 
+    rcsconfig). Si --force est ajoute, alors supprime les anciens fichiers 
+    de meme nom.
+    
+    
+rcslink     [-h] [-v] [-R] [-b rcsstore] [-c] rcsmodule srcdir ...
+    
+    -c          indique que si le module rcs n'existe pas dans la
+                base rcs, alors il faut le creer. Dans ce cas, et 
+                sans cette option, rcslink informe l'utilisateur et
+                ne fait rien.
+
+    rcslink cree des liens symboliques dans les repertoires sources 
+    indiques (srcdir), nommes RCS, et pointant vers le module rcs 
+    indique.
+
+    
+rcsunlink   [-h] [-v] [-R] srcdir ...
+
+    rcsunlink supprime les liens symboliques nommes RCS dans les
+    repertoires sources indiques (srcdir).
+
+    
+rcsrename   [-h] [-v] [-R] [-b rcsstore] oldrcsmod newrcsmod srcdir ...
+
+    rcsrename permet de renommer un module rcs dans une base en
+    conservant les liens venant des repertoires sources.
+    Equivalent a : 
+        rcsunlink srcdir ...
+        mv rcsstore/oldrcsmodule rcsstore/newrcsmodule
+        rcslink -b rcsstore newrcsmodule srcdir ...
+
+
+rcsmodules  [-h] [-v]      [-b rcsstore]
+    
+    rcsmodules donne la liste des modules rcs stockes dans la base rcs.
+
+
+rcswhich    [-h] [-v] [-R] srcdir ...
+    
+    rcswhich donne pour chaque repertoire source indique, la liste
+    des modules rcs vers lesquels les liens symboliques RCS sont
+    etablis.
+
+
+rcssetvname [-h] [-v] [-R] version_name srcdir ...
+
+    rcssetvname enregistre un nom de version pour tous les fichiers qui sont
+    identifies par une ligne '$Id: ...$'. La version nommee est celle indiquee
+    dans cette ligne '$Id: ...$'.
+
+rcslsname   [-h] [-v] [-R] file_or_srcdir ...
+    
+    rcslsname obtient une liste de tous les noms de version assignes a des
+    versions des fichiers indiques ou des fichiers RCS dans les repertoires
+    indiques. Si l'option -R est donnee, rcslsname recherche recursivement 
+    dans les sous-repertoires RCS indiques.
+    
+rcslog      [-h] [-v] [-R] [rlog-optiosn] file_or_srcdir ...
+
+    Presente le resultat de la commande RCS normale rlog sous forme de table.
+    
+    
+rcsci       [-h] [-v] [-R] [ci-options]   file_or_srcdir ...
+rcsco       [-h] [-v] [-R] [co-options]   file_or_srcdir ...
+
+
+
+Rappel des commandes rcs normales :
+
+    ci                check in
+    co                check out
+    ident             identify the file
+    merge             merge 3 files
+    rcs               create new rcs files and change attributes
+    rcsdiff           compare rcs versions
+    rcsmerge          merge 3 files or rcs versions
+    rlog              print rcs log
+
+
+Auteur de rcslink & co. :
+
+    Pascal J. Bourguignon
+
+DOC_END
+

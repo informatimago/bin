@@ -1,0 +1,4 @@
+#!/bin/sh
+sleep 8
+export TZ=Asia/Kabul
+exec asclock -24 -das -led purple

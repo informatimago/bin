@@ -1,0 +1,4 @@
+#!/bin/sh
+sleep 16
+export TZ=America/New_York
+exec asclock -24 -das -led OrangeRed

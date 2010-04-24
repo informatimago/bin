@@ -1,0 +1,89 @@
+#!/bin/csh
+#******************************************************************************
+#FILE
+#	@PlayAll_Random
+#DESCRIPTION
+#	This script plays all .snd files found recursively in its directory.
+#AUTHORS
+#	<PJB> Pascal J. Bourguignon
+#MODIFICATIONS
+#	1992/07/08 <PJB> Creation.
+#	1992/09/18 <PJB> Added playscore playing.
+#	1993/02/16 <PJB> Build the list before starting playing.
+#LEGAL
+#	Copyright Pascal J. Bourguignon 1992 - 1992
+#	All rights reserved.
+#******************************************************************************
+#set echo
+set startdir="`dirname $0`"
+set scoredir="/LocalLibrary/Music/Scores"
+set out=/dev/console
+
+echo 'Playing all sounds from '$startdir  >> $out
+echo '    and all scores from '$scoredir at random. >> $out
+
+if ( -d $startdir ) then
+set filelist=( `find "$startdir" -type f -name '*.snd' -depth -print | grep .snd` )
+endif
+if ( -d $scoredir ) then
+set filelist=( $filelist `find "$scoredir" -type f -name '*.playscore' -depth -print | grep .playscore` ) 
+endif
+
+set sortedlist=($filelist)
+
+@ x=0
+@ n=$#filelist
+@ c=$n
+@ s=1
+while ( $c > 0 )
+	@ l = `random`
+	if ( $l < 0 ) then
+		@ l = - $l
+	endif
+	@ l = ( $l % $n ) + 1
+	set f="$filelist[$l]"
+	while ( $f == "DONE" )
+		@ l = ${l} + 1
+		if ( $l > $n ) then
+			@ l = 1
+		endif
+		set f="$filelist[$l]"
+	end
+	set filelist[$l]="DONE"
+	set sortedlist[$s]="$f"
+	echo "$f" >> /tmp/random_sound_play.$$
+	@ s = ${s} + 1
+	@ c = ${c} - 1
+end 
+#echo $sortedlist
+#set echo
+@ s=1
+while ( $s <= $#sortedlist )
+	echo "$sortedlist[$s]" >> $out
+	switch ( "$sortedlist[$s]" )
+	case "*.playscore":
+		playscore -q "$sortedlist[$s]" >> $out
+		breaksw
+	case "*.snd":
+		sndplay "$sortedlist[$s]" >> $out
+		breaksw
+	default:
+		echo $0: Unknown file extension $sortedlist[$s] >> $out
+		breaksw
+	endsw
+	@ s = ${s} + 1
+end
+exit 0
+
+# for debugging:
+foreach f ( $filelist )
+echo $f
+end
+
+@ x = 1
+foreach z ( $filelist )
+	echo \[$x\] $z
+	@ x = $x + 1
+end
+
+#END

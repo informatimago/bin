@@ -1,0 +1,71 @@
+#!/bin/bash
+#******************************************************************************
+#FILE:              html-access-stat
+#LANGUAGE:          bash,awk
+#SYSTEM:            UNIX
+#USER-INTERFACE:    UNIX
+#DESCRIPTION
+#    This script gather and reports daily statistics from a HTTP access log.
+#USAGE
+#    html-access-report $URL $LOG_FILE $EMAIL ...
+#AUTHORS
+#    <PJB> Pascal J. Bourguignon
+#MODIFICATIONS
+#    2002-10-25 <PJB> Created.
+#BUGS
+#LEGAL
+#    Copyright Pascal J. Bourguignon 2002 - 2002
+#
+#    This script is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU  General Public
+#    License as published by the Free Software Foundation; either
+#    version 2 of the License, or (at your option) any later version.
+#
+#    This script is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public
+#    License along with this library; see the file COPYING.LIB.
+#    If not, write to the Free Software Foundation,
+#    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+#******************************************************************************
+
+tmp=/tmp/har-$$
+trap "/bin/rm -rf $tmp" 0
+mkdir $tmp
+
+url="$1"
+shift
+file="$1"
+shift
+# --ref --req
+/local/bin/html-access-stat  "$file">$tmp/stat
+( 
+egrep '\<hits?\>' $tmp/stat \
+| awk '
+BEGIN {
+    line="---------- ----------- --------- --------- ----------- ----------- -----------"
+    printf "%s\n",line;
+}
+/Summary/{
+    printf "%s\n",line;
+    print $0;
+    printf "%s\n\n\n",line;
+    printf " Les cases IP, ref., req., et bro. sur la ligne Summary sont\n";
+    printf " inférieures à la somme des colonnes correspondantes, car un \n";
+    printf " même élément peut être compté dans plusieurs jours différents.\n";
+    printf "\n";
+    printf "------------------------------------------------------------------------------\n";
+    next;
+}
+{
+    print $0;
+}
+' 
+cat $tmp/stat 
+) | mail -s "Statistics for $url" $@
+exit 0
+
+#### html-access-report               -- 2003-02-02 02:03:00 -- pascal   ####

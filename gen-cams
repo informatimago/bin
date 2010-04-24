@@ -1,0 +1,49 @@
+#!/bin/bash
+dir=/tmp/gen-cams-$$
+#trap "rm -rf $dir" 0
+mkdir $dir
+cams=$dir/cams
+
+i=0
+while IFS=\| read zone name url ; do
+jpeg=$dir/cam-$i.jpg
+i=$(( $i + 1 ))
+wget "$url" -O $jpeg -o /dev/stderr
+rdjpgcom -verbose $jpeg |awk -v zone="$zone" -v name="$name" -v url="$url" --source '/image is/{printf "    \"%-20s %3s  60 %4d %4d  %s\" \\\n",gensub(" ","-","g",name),zone,gensub("w","","",$4),gensub("h,","","",$6),url;}' >> $cams
+done <<EOF
++12|Noumea|http://webcam.kaori.nc/webcam.jpg
++10|Sidney|http://www.lss.com.au/webcam/webcaml.jpg
++9|Tokyo|http://info.nttls.co.jp/webcam/image/p_azabu.gif
++9|Kyoto|http://www3.kyoto-kcg.ac.jp/daimon/current.jpg
++9|Seto-Bridge|http://info-bridge.santec.co.jp/setobridge/setob.jpg
++8|Perth-1|http://www.aceonline.com.au/~livecam/cam1/livecam.jpg
++8|Perth-2|http://www.aceonline.com.au/~livecam/cam2/livecam.jpg
++8|Perth-3|http://www.aceonline.com.au/~livecam/cam3/livecam.jpg
++7|Bangkok|http://www.cyberworksconsulting.com/images/webcam/capture.jpg
++5|Novosibirsk|http://webcam.telefun.ru/cgi-bin/w3cam.cgi
++3|Moscow|http://cards.mnc.ru/image/512/mos32.jpg
++2|Gdansk|http://www.gdansk.gda.pl/um_green/k_kamera/cam2.jpg
++2|Jerusalem|http://aish1.com/wall/thewall92.jpg
++1|Cape-Town|http://images.earthcam.com/affiliates/southafrica/capetown.jpg
++0|Oxford-Circus|http://www.fujiint.co.uk/street/FIP.jpg
+-1|Gran-Canarias|http://www.condor.de/common/webcams/CF150312.jpg
+-1|Ísafjörður|http://www.snerpa.is/vedur/isafjord.jpg
+-2|Isumerit|http://iserit.greennet.gl/sajare/isummeritwebcam/webcam.jpg
+-3|Rio-de-Janeiro|http://www.uol.com.br/aliwebcam2/pao_de_acucar.jpg
+-4|Buenos-Aires|http://www.offspring.com.ar/webcam/buenos_aires01.jpg
+-5|New-York|http://www.abc45online.com/skycpk.jpg
+-5|Bogota|http://192.41.61.84/atractores/kmara/images/trafico.jpg
+-6|Cancun-Norte|http://www.vialidad.telmex.net/fotos/f24.jpg
+-6|Cancun-Sur|http://www.vialidad.telmex.net/fotos/f25.jpg
+-7|Acapulco-1|http://www.vialidad.telmex.net/fotos/f22.jpg
+-8|San-Francisco-Bay|http://webmarin.com/images/wc/Camera.jpg
+-8|San-Francisco-Golden|http://www.mapwest.com/webcam/ggbridgecam.jpg
+-9|Vancouver-Island|http://www.shawniganlakecondo.com/webcam/webcam32.jpg
+-10|Ruby|http://akweathercams.faa.gov/wxdata/Ruby/images/current/hugecam2.jpg
+-10|Kodiak|http://akweathercams.faa.gov/wxdata/kodiak/images/current/hugecam4.jpg
+-11|Honolulu-Small|http://www.hawaii-malinda.com/live/s1.jpg
+-11|Honolulu-Big|http://www.hawaii-malinda.com/live/1.jpg
+-11|Honolulu-Harbor|http://www.hawaiiocean.com/oceanonline/Channel.jpg
+EOF
+
+cat $cams

@@ -1,0 +1,196 @@
+#!/bin/bash
+DIR=${HOME}/.ratpoison
+cmd="$1";shift
+case "$cmd" in
+save)
+    name="$1"
+    if [ -z "$name" ] ; then
+        name=current
+    fi
+    mkdir "${DIR}" 2>/dev/null
+    exec ratpoison -c 'fdump' > "${DIR}/${name}"
+    ;;
+load)
+    name="$1"
+    if [ -z "$name" ] ; then
+        name=current
+    fi
+    exec ratpoison -c "frestore $(cat  "${DIR}/${name}")"
+    ;;
+list)
+    cd ${DIR}
+    rm -rf *~
+    exec /bin/ls -m
+    ;;
+balance)
+    order=order-by-x
+    for arg ; do 
+        case "$arg" in
+        -i) order=order-by-id ;;
+        -x) order=order-by-x ;;
+        *)  echo "Usage:"
+            echo "$(basename $0) balance [-i|-x]"
+            echo "  -i   order the windows from left to right by ID"
+            echo "  -x   order the windows from left to right by original X coordinate"
+            if [ $arg = -h -o $arg = --help ] ; then
+                exit 0
+            else
+                exit 1
+            fi
+            ;;
+        esac 
+    done
+
+    ratpoison -c 'fdump' > ~/.ratpoison/last-balanced
+
+    clisp  -ansi -q -norc  -Kfull  -E ISO-8859-1 -x  '
+
+(defun contents-from-stream (stream &key length (min-size 256) max-extend)
+  "
+STREAM:     May be a binary or character, file or non-file stream.
+LENGTH:     NIL, or the number of stream elements to read.
+MIN-SIZE:   Minimum pre-allocated buffer size. If LENGTH is given, or STREAM
+            has a FILE-LENGTH, then the MIN-SIZE is ignored.
+MAX-EXTEND: NIL ==> double the buffer size, or double the buffer size until
+            it is greater than MAX-EXTEND, and then increment by MAX-EXTEND.
+RETURN:     A vector containing the elements read from the STREAM.
+"
+  (let* ((busize (or length (ignore-errors (file-length stream)) min-size))
+         (eltype (stream-ELEMENT-TYPE stream))
+         (initel (if (subtypep eltype (quote integer)) 0 #\Space))
+         (buffer (make-ARRAY busize 
+                             :ELEMENT-TYPE eltype
+                             :INITIAL-ELEMENT initel
+                             :adjustable t :fill-pointer t))
+         (start 0))
+    (loop
+       (let ((end (read-sequence buffer stream :start start)))
+         (when (or (< end busize) (and length (= length end)))
+           ;; we got eof, or have read enough
+           (setf (fill-pointer buffer) end)
+           (return-from contents-from-stream buffer))
+         ;; no eof; extend the buffer
+         (setf busize
+               (if (or (null max-extend) (<= (* 2 busize) max-extend))
+                   (* 2 busize)
+                   (+ busize max-extend))
+               start end))
+       (adjust-array buffer busize :initial-element initel :fill-pointer t))))
+
+
+(defun TEXT-FILE-CONTENTS (path &key (if-does-not-exist :error)
+                           (external-format :default))
+  "
+RETURN: The contents of the file at PATH as a LIST of STRING lines.
+        or what is specified by IF-DOES-NOT-EXIST if it does not exist.
+"
+  (with-open-file (in path :direction :input
+                      :if-does-not-exist if-does-not-exist
+                      :external-format external-format)
+    (if (streamp in)
+        (contents-from-stream in :min-size 16384)
+        in)))
+
+
+(defun (setf text-file-contents) (new-contents path
+                                  &key (if-does-not-exist :create)
+                                  (if-exists :supersede)
+                                  (external-format :default))
+  "
+RETURN: The NEW-CONTENTS, or if-exists or if-does-not-exist in case of error.
+DO:     Store the NEW-CONTENTS into the file at PATH.  By default,
+        that file is created or superseded; this can be changed with
+        the keyword IF-DOES-NOT-EXIST or IF-EXISTS.
+"
+  (with-open-file (out path :direction :output
+                       :if-does-not-exist if-does-not-exist
+                       :if-exists if-exists
+                       :external-format external-format)
+    (if (streamp out)
+        (write-sequence new-contents out)
+        out)))
+
+
+(defvar *absent* (cons (quote *absent*) nil))
+(defmacro define-plist-field (name field &optional (offset (quote identity))) 
+ "
+OFFSET: must be a symbol naming an accessor to find the plist in the record.
+"
+  `(progn
+     (defun ,name (record)
+       (let* ((value (getf (,offset record) (quote ,field) *absent*)))
+         (if (eq value *absent*)
+             (values nil nil)
+             (values value t))))
+     (defun (setf ,name) (new-value record)
+       (setf (getf (,offset record) (quote ,field)) new-value))))
+
+(define-plist-field frame-number        :number  cdr)
+(define-plist-field frame-x             :x       cdr)
+(define-plist-field frame-y             :y       cdr)
+(define-plist-field frame-width         :width   cdr)
+(define-plist-field frame-height        :height  cdr)
+(define-plist-field frame-screen-width  :screenw cdr)
+(define-plist-field frame-screen-height :screenh cdr)
+
+
+(defun order-by-id (f) (frame-number f))
+(defun order-by-x  (f) (frame-x      f))
+
+(defun balance-frames (frames)         
+  (let* ((frames  (sort frames
+                        (function <)
+                        :key (function '$order')))
+         (screen-width  (frame-screen-width  (first frames)))
+         (screen-height (frame-screen-height (first frames)))
+         (numframes     (length frames)))
+    (loop
+       :with width = (truncate screen-width numframes)
+       :for x :from 0 :by width
+       :for frame :in frames
+       :do (setf (frame-x frame) x
+                 (frame-y frame) 0
+                 (frame-width frame) width
+                 (frame-height frame) screen-height))
+    frames))
+
+
+(defvar *path* "~/.ratpoison/last-balanced")
+(let ((*print-pretty* nil))
+  (setf (text-file-contents *path*)
+        (format nil "~(~{~S~^,~}~)"
+                (balance-frames (read-from-string
+                                (format nil "(~A)"
+                                         (substitute #\space #\,
+                                                     (text-file-contents
+                                                     *path*))))))))
+
+'
+    exec ratpoison -c "frestore $(cat ~/.ratpoison/last-balanced)"
+    ;;
+rm)
+    name="$1"
+    if [ -z "$name" ] ; then
+        name=current
+    fi
+    exec rm  "${DIR}/${name}"
+    ;;
+*)
+    pname="$(basename "$0")"
+    echo "${pname} usage:"
+    echo "    ${pname} load $NAME"
+    echo "    ${pname} save $NAME"
+    echo "    ${pname} balance [-i|-x]"
+    echo "               -i   order the windows from left to right by ID"
+    echo "               -x   order the windows from left to right by original X coordinate"
+    echo "    ${pname} list"
+    echo "    ${pname} rm $NAME"
+    echo "    ${pname} help"
+    if [ "$cmd" = "help" ] ; then
+        exit 0
+    else
+        exit 1
+    fi
+esac
+echo 'How did I came here?'
+exit 2

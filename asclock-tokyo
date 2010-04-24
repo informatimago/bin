@@ -1,0 +1,4 @@
+#!/bin/sh
+sleep 4
+export TZ=Asia/Tokyo
+exec asclock -24 -das -led yellow

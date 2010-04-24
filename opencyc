@@ -1,0 +1,3 @@
+#!/bin/bash
+cd /opt/opencyc-1.0/scripts/
+exec ./run-cyc.sh

@@ -1,0 +1,40 @@
+#!/bin/sh
+pname=$(basename "$0")
+
+function usage () {
+    echo "${pname} usage:"
+    echo "    ${pname} [-h|--help] \$directory..."
+}
+
+declare -a dirs
+
+for arg ; do
+    case "$arg" in
+    -h|--help)
+        usage
+        exit 0
+        ;;
+    -*)
+        echo "${pname}: invalid argument '$arg'."
+        usage
+        exit 1
+        ;;
+    *)
+        dirs[${#dirs}]="$arg"
+        ;;
+    esac
+done
+
+if [ ${#dirs} -le 0 ] ; then
+        echo "${pname}: missing argument."
+        usage
+        exit 1
+fi
+
+exec find ${dirs[@]} \
+            -type f \
+            \! -name PJB-install\* \
+            -exec egrep -n -e '^<<<<<<< |>>>>>>> ' {} /dev/null \;
+
+#END
+

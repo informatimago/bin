@@ -1,0 +1,18 @@
+#!/bin/csh -f
+
+if ( -f xsession ) then
+	mv xsession  .xsession
+	mv xinitrc   .xinitrc
+	mv Xdefaults .Xdefaults
+	mv Xclients  .Xclients
+
+else
+	mv .xsession xsession 
+	mv .xinitrc xinitrc  
+	mv .Xdefaults Xdefaults
+	mv .Xclients Xclients 
+endif
+
+
+
+

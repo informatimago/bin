@@ -1,0 +1,15 @@
+#!/bin/bash
+sum=`ifconfig eth0|awk '{print $5;exit 0;}'|md5sum`
+for IP ; do
+    echo $sum | awk -v IP=$IP '
+BEGIN{
+    split(IP,ipa,".");
+}
+{
+    printf "ifconfig umn %-16s hw ether  %c2:%s:%s:%x:%x:%x  up\n",
+           IP,substr($1,1,1),substr($1,2,2),substr($1,4,2),
+           ipa[2],ipa[3],ipa[4];
+}
+'
+done
+

@@ -1,0 +1,48 @@
+#!/bin/bash
+pname="`basename $0`"
+pblan="`echo $pname|sed -e 's/./ /g'`"
+declare -a list[$#]
+count=0
+
+function usage () {
+    echo "${pname} usage :"
+    echo "    ${pname} [--help|arg...]"
+    echo "Will write out each argument on a different line, randomly ordered."
+}
+# We should add an option to read arguments line bu line from stdin.
+
+for arg  ; do
+
+    case "$arg" in
+    --help)
+        usage
+        exit 0
+        ;;
+    *)
+        count=`expr $count + 1`
+        list[$count]="$arg"
+        ;;
+    esac
+
+done
+
+
+count=`expr $count + 1`
+i=0
+while [ $i -le $count ] ; do
+    a=`random $count`
+    b=`random $count`
+    t=${list[$a]}
+    list[$a]=${list[$b]}
+    list[$b]=$t
+    i=`expr $i + 1`
+done
+
+for elem in ${list[*]} ; do
+    echo $elem
+done
+exit 0
+
+
+
+

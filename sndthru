@@ -1,0 +1,64 @@
+#!/bin/csh
+if ( "x$1" != "x" ) then
+	set length=$1
+else
+	set length=1458000
+endif
+
+set t=/tmp/s_$$_
+
+cd /tmp
+set liste=( `/bin/ls | grep 's_[0-9]*[0-9]_[12].snd'` )
+set pid=($liste)
+set pidset=($liste)
+set cnt=($liste)
+@ i=0
+while ( $i < $#pidset ) 
+	@ i++
+	set pidset[$i]=0
+	set cnt[$i]=0
+end
+set count=0
+foreach f ( $liste )
+	@ count++
+	set pid[$count]=`echo $f | sed -e 's/s_//' -e 's/_[12].snd//'`
+	@ i=1
+	while ( $pidset[$i] != 0 )
+		if ( $pidset[$i] == $pid[$count] ) then
+			@ cnt[$i]++
+			break
+		endif
+		@ i++
+	end
+	if ( $pidset[$i] == 0 ) then
+		set pidset[$i]=$pid[$count]
+		set cnt[$i]=1
+	endif
+end
+
+if ( $count > 0 ) then
+
+	@ i=1
+	while ( $pidset[$i] != 0 ) 
+		if ( $cnt[$i] == 2 ) then
+			set size1=(`ls -l s_$pidset[$i]_1.snd`)
+			if ( $size1[4] == 1458176 ) then
+				mv s_$pidset[$i]_1.snd s_$$_1.snd
+				break
+			endif
+			set size2=(`ls -l s_$pidset[$i]_2.snd`)
+			if ( $size2[4] == 1458176 ) then
+				mv s_$pidset[$i]_2.snd s_$$_1.snd
+				break
+			endif
+		endif
+		@ i++
+	end
+	
+endif
+
+while ( 1 )
+	sndplay ${t}1.snd & sndrecord -s $length ${t}2.snd
+	sndplay ${t}2.snd & sndrecord -s $length ${t}1.snd
+end
+#END

@@ -1,0 +1,584 @@
+#!/usr/bin/perl 
+#******************************************************************************
+#FILE:				mail-to-sms
+#LANGUAGE:			perl
+#SYSTEM:			UNIX
+#USER-INTERFACE:	None
+#DESCRIPTION
+#	This perl script will convert an email to a SMS. 
+#	It currently works 
+#   for the French providers France Télécom,
+#	for the Spanish operator MoviStar/ActivaJoven, 
+#	for the Austria operators MobilKom and MaxMobil,
+#   for the Swedish operator Comviq,
+#   for the Ukranian operator KyivStar.
+#
+#	It can be used on a UNIX system,
+#   by setting up an alias or putting 	a line in your .forward file such as:
+#	   pjb:\pjb,"|/local/etc/mail-to-sms +336xxxxxxxx"
+#   by configuring it in a fetchmail  mda clause, such as:
+#      mda "/local/etc/mail-to-sms +336xxxxxxxx"
+#
+#USAGE
+#	cat email-with-headers | mail-to-sms phone-number optional-parameters...
+#	See usage string below.
+#AUTHORS
+#	<PJB> Pascal J. Bourguignon
+#MODIFICATIONS
+#	1999-07-02 <PJB> Added Austria operators. Added options.
+#   1999-08-13 <PJB> Added Swedish Comviq operator, 
+#                          thanks to Daniel Hedberg.
+#   2000-01-16 <PJB> Added Ukranian KyivStar operator, 
+#                          thanks to Konstantyn Kharchenko.
+#                    Added --original-from option.
+#BUGS
+#LEGAL
+#	Copyright Pascal J. Bourguignon 1999 - 2000
+#	All right reserved
+#	This program may not be included in any commercial product without the 
+#	author written permission. It may be used freely for any non-commercial 
+#	purpose, provided that this header is always included.
+#******************************************************************************
+
+##### CONFIGURATION:
+$mailProgram="/bin/mail";
+$sendmailProgram="/usr/sbin/sendmail";
+$fromemail='pascal';#'postmaster@THIS.DOMAIN';
+
+
+##### CONFIGURATION CHECK.
+
+if($fromemail eq 'postmaster@THIS.DOMAIN'){ ### DO NOT CHANGE THIS LINE!
+	print <<EOPRINT;
+You must configure this script and set the configuration variables:
+
+ - \$fromemail       should be the address of the maintainer of this script
+                    on your site.
+
+ - \$mailProgram     should be the path to the mail program.
+
+ - \$sendmailProgram should be the path to the sendmail program.
+
+EOPRINT
+
+	exit 1;
+}
+
+
+##### USAGE:
+
+$usage= <<EOUSAGE;
+
+mail-to-sms phone-numbe optional_parameters... < message
+
+The parameters may be:
+
+  phone-number    (mandatory)
+                  This must be a GSM phone number, in international 
+                  format (+<country-code>...).
+
+  --multiple      (optional) 
+                  Send big email in several SMS.
+
+  --no-multiple   (optional,default) 
+                  Send only the head of the email.
+
+
+  --compact       (optional,default) 
+                  Remove spaces from the email.
+
+  --no-compact    (optional) 
+                  Send the email as is.
+
+
+  --short-from    (optional) 
+                  Include in the SMS only the email address, 
+                  not the full From:.
+
+  --long-from     (optional,default) 
+                  Include in the SMS the full From: field.
+
+  --no-from       (optional) 
+                  Don't include in the SMS the From: field.
+
+                  --short-from, --long-from and --no-fromm are exclusive.
+
+
+  --original-from (optional) 
+                  Try to send the message keeping the original From: as
+                  sender address on the envelop. This is imply using
+                  sendmail directly.
+
+Optional parameters must follow mandatory parameters.
+
+The message text is expected on stdin.
+
+EOUSAGE
+
+
+$operatorDescription=<<EOOPERDESC;
+The operators supported in this version are:
+
+------------  --------------------  ----------------------------------------
+Country       Operator              Prefixes
+------------  --------------------  ----------------------------------------
+Austria       Max Mobil             +43676.
+Austria       MobilKom              +43664.
+France        Bouygues Télécom      +33667, +33668, +33660 to +33663.
+France        France Télécom        +33607, +33608, +33670, +33680 to +33689.
+France        SFR                   +33604, +33609 to +33620.
+Spain         Movistar ActivaJoven  +34649.
+Sweden        Comviq                +46707, +46739.
+Ukraine       KyivStar              +38067.
+------------  --------------------  ----------------------------------------
+
+EOOPERDESC
+
+
+
+#'
+
+##### OPTIONS:
+$test=0;         # Do not actually send.
+$multiple=0;     # Send multiple SMS for big EMails.
+$compact=1;      # Remove spaces from email (gains between 10 % and 20 %).
+$longFrom=1;     # Include the whole From: field.
+$shortFrom=0;    # Include only the email address.
+                 # (what is between <> of the From: field.
+$originalFrom=0; # Use the From: address as sender on the envelop.
+$help=0;         # Just display usage information.
+
+##### PARAMETERS:
+if($#ARGV<0){
+    printf "Error: Missing phone-number.\n";
+    printf $usage;
+    exit 1;
+}else{
+    $smsaddress='';
+    while($_=$ARGV[0]){
+        if(/^--short-from$/){
+            $longFrom     = 0;
+            $shortFrom    = 1;
+        }elsif(/^--long-from$/){
+            $longFrom     = 1;
+            $shortFrom    = 0;
+        }elsif(/^--no-from$/){
+            $longFrom     = 0;
+            $shortFrom    = 0;
+        }elsif(/^--original-from$/){
+            $originalFrom = 1;
+        }elsif(/^--multiple$/){
+            $multiple     = 1;
+        }elsif(/^--no-multiple$/){
+            $multiple     = 0;
+        }elsif(/^--compact$/){
+            $compact      = 1;
+        }elsif(/^--no-compact$/){
+            $compact      = 0;
+        }elsif(/^--test$/){
+            $test         = 1;
+        }elsif(/^--help$/){
+            $help         = 1;
+        }elsif(/^-.*/){
+            printf "Error: Unknown option '%s'\n",$ARGV[0];
+        }elsif($smsaddress==''){
+            $smsaddress=$ARGV[0];
+        }else{
+            printf "Error: Unexpected parameter: '%s'\n",$ARGV[0];
+            printf $usage;
+            exit 1;
+        }
+        shift;
+    }
+}
+
+if($help){
+    printf $usage;
+    printf $operatorDescription;
+    exit 0;
+}
+
+#DEBUG#printf "numero=%s\n",$smsaddress;
+#DEBUG#printf "short-from=%d long-from=%d\n",$shortFrom,$longFrom;
+
+##### CONSTANTS:
+$nl="\n";
+
+##### GLOBALS:
+$mimeQuotedPrintable=0;
+
+##### SUBROUTINES:
+sub compactSpaces{
+	#
+	# If $compact==0 then do nothing, else:
+	# Transform the message passed as parameter, putting it in lower-case
+	# but the first letter of each word in upper-case, and removing spaces
+	# new-lines and so on. In addition, process '=' escapes of MIME.
+	# (This is a problem when '='<hexdigit><hexdigit> appear in pure text
+	# email though).
+	#
+	local($message)=@_;
+	local($result,$i,$len,$char);
+	if($compact==0){
+		return $message;
+	}
+	#DEBUG#printf "compactSpaces    message=%s\n",$message;
+	($message = $message) =~  tr[A-Z][a-z];
+	#DEBUG#printf "compactSpaces lo message=%s\n",$message;
+	$result='';
+	$len=length($message);
+	$spaces=1;
+	$i=0;
+	$char=substr($message,$i,1);
+	while($i<$len){
+		if($char eq '='){
+			$char=substr($message,++$i,1);
+			if($char eq "\n"){
+				$spaces=1;
+			}elsif($char.substr($message,$i+1,1)=~/[0-9A-Fa-f][0-9A-Fa-f]/){
+				$char=pack("c",hex($char . substr($message,++$i,1)));
+				if($char eq '='){
+					$result .= $char;
+					$spaces=0;
+				}else{
+					redo;
+				}
+			}else{
+				## Output the char.
+				if($spaces){
+					($char = $char) =~ tr/a-z/A-Z/;
+					$result .= $char;
+					$spaces=0;
+				}else{
+					$result .= $char;
+				}
+			}
+		}elsif(($char eq ' ')||($char eq "\n")){
+			$spaces=1;
+		}else{
+			## Output the char.
+			if($spaces){
+				($char = $char) =~ tr/a-z/A-Z/;
+				$result .= $char;
+				$spaces=0;
+			}else{
+				$result .= $char;
+			}
+		}
+		$char=substr($message,++$i,1);
+	}
+	return $result;
+}#compactSpaces;
+
+
+
+sub encodeForHtml{
+	#
+	# Prepare the message for sending it as an URL parameter:
+	# Replace ' ' by '+', and encodeForHtml special characters in hexadecimal.
+	#
+	local($message)=@_;
+	local($result,$i,$len,$char);
+	$result='';
+	$len=length($message);
+	for($i=0;$i<$len;$i++){
+		$char=substr($message,$i,1);
+		if($char eq ' '){
+			$result .= '+';
+		}elsif($char eq "\n"){
+			$result .= '%0D%0A';
+		}elsif(($char lt '*')||($char eq '+')||($char eq ',')||($char eq '/')
+		||(($char ge ';')&&($char le '?'))
+		||(($char ge '[')&&($char le '^'))
+		||($char eq '@')||($char ge '{')){
+			$result .= '%' . sprintf("%02X",ord($char));
+		}else{
+			$result .= $char;
+		}
+	}
+	$result;
+}#encodeForHtml;
+
+
+sub prepareForTelnet{
+	#
+	# Replace all occurences of new-line by CR-LF.
+	#
+	local($message)=@_;
+	local($result,$i,$len,$char);
+	$result='';
+	$len=length($message);
+	for($i=0;$i<$len;$i++){
+		$char=substr($message,$i,1);
+		if($char eq "\n"){
+			$result .= pack("cc",13,10);
+		}else{
+			$result .= $char;
+		}
+	}
+	$result;
+}#prepareForTelnet;
+
+
+sub sendToHtmlServer{
+	local($posthost,$message)=@_;
+	$message=&prepareForTelnet($message);
+printf "message=------------------\n%s\n--------------------------\n",$message;
+	$them=$posthost;
+	$port=$postport;
+
+	$SIG{'INT'} = 'dokill';
+	sub dokill { kill 9,$child if $child; }
+
+	require 'sys/socket.ph';
+
+	$sockaddr = 'SCCa4x8';
+	chop($hostname = `hostname`);
+
+	($name, $aliases, $proto) = getprotobyname('tcp');
+	($name, $aliases, $port) = getservbyname($port, 'tcp') 
+				unless $port =~ /^\d+$/;
+	($name, $aliases, $type, $len, $thisaddr) = gethostbyname($hostname);
+	($name, $aliases, $type, $len, $thataddr) = gethostbyname($them);
+
+	$this = pack($sockaddr, &AF_INET, 0,0,  $thisaddr);
+	$that = pack($sockaddr, &AF_INET, $port/256,$port%256, $thataddr);
+
+$|=1;printf "proto=%s port=%s \nthis=%s thisaddr=%s \nthat=%s thataddr=%s \n",
+$proto,$port,unpack("H16",$this),unpack("H8",$thisaddr),
+unpack("H16",$that),unpack("H8",$thataddr);
+
+	socket(S, &PF_INET, &SOCK_STREAM, $proto) || die "socket: $!";
+printf "socketed------------------\n";
+	bind(S, $this)                            || die "bind: $!";
+printf "binded--------------------\n";
+	connect(S, $that)                         || die "connect: $!";
+printf "connected-----------------\n";
+
+	select(S); $| = 1; select(stdout);
+
+	if ($child = fork) {
+		printf S "%s\n\n",$message;
+		sleep 10;
+		do dokill();
+	}else {
+		sleep 2;
+		while (<S>) {
+			printf "%s",$_;
+		}
+	}
+}#sendToHtmlServer;
+
+
+
+
+sub sendToSFR{
+	local($smsaddress,$message)=@_;
+
+	$posthost='sfr.smartcode.fr';
+	$postport=80;
+	$postcgi='/cgi-bin/SendSMS.exe';
+	$useragent='mail-to-sms/1.0';
+	
+	
+	#DEBUG#printf "avant encodeForHtml message=%s\n",$message;
+	$message=&encodeForHtml($message);
+	#DEBUG#printf "apres encodeForHtml message=%s\n",$message;
+	
+	$content='Recipient=' . $smsaddress . '&Content=' . $message . 
+		'&JourDelivery=&MoisDelivery=&AnneeDelivery=&HeureDelivery=' . 
+		'&MinuteDelivery=&ValidityPeriod=4&DeferredDelivery=';
+	$contentlength=length($content);
+	$post='POST ' . $postcgi .' HTTP/1.0' . $nl 
+		. 'Accept: www/source' . $nl
+		. 'Accept: text/html' . $nl
+		. 'User-Agent:  ' . $useragent . $nl
+		. 'From: ' . $fromemail . $nl
+		. 'Content-type: application/x-www-form-urlencoded' . $nl
+		. 'Content-length: ' . $contentlength . $nl 
+		. $nl 
+		. $content;
+	
+	if($test){
+		printf "sendToHtmlServer(%s,%s)\n",$posthost,$post;
+	}else{
+		&sendToHtmlServer($posthost,$post);
+	}
+}#sendToSFR;
+
+
+
+
+
+
+sub sendToEMail{
+	local($from,$email,$message,$maxChunkSize)=@_;
+	
+	if(length($message)>$maxChunkSize){
+		if($multiple==0){
+			$message=substr($message,0,$maxChunkSize);
+		}
+	}
+
+	while(length($message)>0){
+		$chunk=substr($message,0,$maxChunkSize);
+		$message=substr($message,$maxChunkSize);
+		open(smsmail,">>/tmp/smsmail".$$);
+        if($originalFrom){
+            printf smsmail 
+                   "%s -f '%s' '%s' << EOF\nFrom: %s\nTo: %s\n\n%s\nEOF\n",
+                   $sendmailProgram,$from,$email,$from,$email,$chunk;
+        }else{
+            printf smsmail 
+                   "%s '%s' << EOF\n%s\nEOF\n",
+                   $mailProgram,$email,$chunk;
+        }
+		close(smsmail);
+		if($test){
+			system("/bin/cat /tmp/smsmail".$$);
+		}else{
+			system("/bin/sh  /tmp/smsmail".$$);
+		}
+		system("/bin/rm -f /tmp/smsmail".$$);
+	}
+}#sendToEMail
+
+
+sub extractEmail{
+	local($from)=@_;
+	local();
+	if($from =~ /.*\<.*\>.*/){
+		($email)=( $from =~ /.*\<(.*)\>.*/ );
+	}else{
+		$email=$from;
+	}
+	return $email;
+}#extractEmail;
+
+
+
+##### MAIN:
+
+$from='';
+$message='';
+while(<>){
+	chop;
+	if($_ eq ''){
+		last;
+	}elsif(/^From: /){
+		if ( $longFrom != 0 ) {
+			$message .= &compactSpaces(substr($_,6)) . '/';
+		}elsif( $shortFrom != 0) {
+			$email = &extractEmail(substr($_,6));
+			$message .= &compactSpaces($email) . '/';
+		}#else forget it!
+        $from=substr($_,6);
+	}elsif(/^Subject: /){
+		$message .= &compactSpaces(substr($_,9)) . '/';
+	}elsif(/Content-Transfer-Encoding: quoted-printable/){
+		$mimeQuotedPrintable=1;
+	}
+}
+#DEBUG# printf "%s\n", $message;
+
+while(<>){
+	$message=$message.$_;
+}
+
+$message=&compactSpaces($message);
+
+
+
+
+
+if(($smsaddress =~ /\+33603.*/)
+ ||($smsaddress =~ /\+33609.*/)
+ ||($smsaddress =~ /\+3361..*/)
+ ||($smsaddress =~ /\+33620.*/)){
+
+	## France - SFR operator ##
+
+	($smsaddress) =  ( $smsaddress =~ /\+33(.*)/ );
+	$smsaddress= "0" . $smsaddress;
+ 	&sendToSFR($smsaddress,$message,160);
+
+
+#}elsif(($smsaddress =~ /\+33667.*/)    # Bouygues Télécom Nomad
+#     ||($smsaddress =~ /\+33668.*/)    # Bouygues Télécom Nomad
+#     ||($smsaddress =~ /\+33660.*/)    # Bouygues Télécom 
+#     ||($smsaddress =~ /\+33661.*/)    # Bouygues Télécom 
+#     ||($smsaddress =~ /\+33662.*/)    # Bouygues Télécom 
+#     ||($smsaddress =~ /\+33663.*/)){  # Bouygues Télécom 
+
+    ## France - Bouygues Télécom Nomad ##
+    ## France - Bouygues Télécom 
+
+
+}elsif(($smsaddress =~ /\+33607.*/)
+     ||($smsaddress =~ /\+33608.*/)
+     ||($smsaddress =~ /\+33670.*/)
+     ||($smsaddress =~ /\+3368..*/)){
+
+	## France - France Telecom operator ##
+
+	($smsaddress) =  ( $smsaddress =~ /\+33(.*)/ );
+	$smsaddress= "0" . $smsaddress;
+	&sendToEMail($from,$smsaddress.'@sms.itineris.tm.fr',$message,160);
+
+
+}elsif($smsaddress =~ /\+34649.*/){
+	
+	## Spain - MoviStar ActivaJoven (Telefonica) ##
+	## Note: I filter on 649, but I don't really know if this is correct.
+	##       Moreover, ActivaJoven is far from being the whole MoviStar,
+	##       they have probably other email for other kind of subscribtion.
+
+	($smsaddress) =  ( $smsaddress =~ /\+34(.*)/ );
+	&sendToEMail($from,$smsaddress.'@activajoven.tsm.es',$message,120);
+
+
+}elsif($smsaddress =~ /\+38067.*/){
+
+    ## Ukraine - KyivStar ##
+
+	($smsaddress) =  ( $smsaddress =~ /\+(.*)/ );
+	&sendToEMail($from,$smsaddress.'@sms.kyivstar.net',$message,160);
+
+
+}elsif($smsaddress =~ /\+43664.*/){
+
+	## Austria - MobilKom operator ##
+
+	($smsaddress) =  ( $smsaddress =~ /\+(.*)/ );
+	&sendToEMail($from,$smsaddress.'@text.mobilkom.at',$message,160);
+
+
+}elsif($smsaddress =~ /\+43676.*/){
+
+	## Austria - Max Mobil ##
+
+	($smsaddress) =  ( $smsaddress =~ /\+(.*)/ );
+	&sendToEMail($from,$smsaddress.'@max.mail.at',$message,160);
+
+
+
+}elsif(($smsaddress =~ /\+46739.*/)
+     ||($smsaddress =~ /\+46707.*/)){
+
+    ## Sweden - Comviq ##
+
+	($smsaddress) =  ( $smsaddress =~ /\+46(.*)/ );
+	&sendToEMail($from,$smsaddress.'@sms.comviq.es',$message,160);
+
+
+}else{
+    printf "I don't know how to send a SMS to this number : '%s'.\n",
+           $smsaddress;
+    printf $operatorDescription;
+	exit 1
+}
+
+
+__END__
+
+#### mail-to-sms                      --                     --          ####

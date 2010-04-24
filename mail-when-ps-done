@@ -1,0 +1,33 @@
+#!/bin/sh
+pname=`basename "$0"`
+email="$1"
+pid="$2"
+
+case "$email" in
+*@*)
+    ;;
+*)
+    if egrep -s -q "^${email}:" /etc/passwd ; then
+        true
+    else
+	echo "${pname}: Invalid email address: '${email}'."
+	usage
+	exit 1
+    fi
+    ;;
+esac
+
+process="`ps lww $pid|tail -1|sed -e 's/^.....................................................................//'`"
+while ps $pid>/dev/null ; do
+    sleep 60
+done
+
+mail -s "Process $pid complete" "$email" <<EOF
+The process $pid on host `hostname`, command:
+$process
+has terminated.
+
+`df`
+EOF
+
+exit 0

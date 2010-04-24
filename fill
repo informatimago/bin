@@ -1,0 +1,22 @@
+#!/bin/bash
+src="$1"
+dst="$2"
+max="$3"
+if [ ! -d "$src" ] ; then
+    echo "$src is not a directory."
+    exit 1
+fi
+if [ ! -d "$dst" ] ; then
+    echo "$dst is not a directory."
+    exit 1
+fi
+while [ $(/usr/bin/du -s "$dst"|awk '{print $1}') -lt $max ] ; do
+    file="$(/bin/ls -1 "$src"|head -1)"
+    if [ -z "$file" ] ; then
+        echo "No more files."
+        exit 0
+    fi
+    echo "Moving $file"
+    mv "$src/$file" "$dst"
+done
+#### fill                             --                     --          ####

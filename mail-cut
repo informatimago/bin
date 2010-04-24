@@ -1,0 +1,14 @@
+#!/bin/bash
+for mbox ; do
+    num=0
+    fnum=head
+    while read line ; do
+         case "$line" in
+         'From '*)
+             fnum=$(echo 0000$num|sed -e 's/.*\(....\)$/\1/')
+             num=$(( $num + 1 ))
+             ;;
+         esac
+         echo "$line" >> "${file}.${fnum}"
+    done < "$mbox"
+done

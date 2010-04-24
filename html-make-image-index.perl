@@ -1,0 +1,130 @@
+#!/usr/bin/perl
+
+sub imgToHtml{
+	local($img)=@_;
+	local($position,$result);
+	$position=rindex($img,"/");
+	if($position<0){
+		$result="img-".$img.".html";
+	}else{
+		$result="img-".substr($img,$position+1,length($img)).".html";
+	}
+	$result;
+}#imgToHtml
+
+sub previousAndNext{
+	local($previous,$next)=@_;
+	local($result);
+	if($previous eq ''){
+		if($next eq ''){
+			$result=sprintf(<<EOF
+<p><a href="index.html">Index</a> | Previous | Next
+EOF
+			);
+		}else{
+			$result=sprintf(<<EOF
+<p><a href="index.html">Index</a> | Previous | <a href="%s">Next</a>
+EOF
+			,&imgToHtml($next));
+		}
+	}else{
+		if($next eq ''){
+			$result=sprintf(<<EOF
+<p><a href="index.html">Index</a> | <a href="%s">Previous</a> | Next
+EOF
+			,&imgToHtml($previous));
+		}else{
+			$result=sprintf(<<EOF
+<p><a href="index.html">Index</a> | <a href="%s">Previous</a> | <a href="%s">Next</a>
+EOF
+			,&imgToHtml($previous),&imgToHtml($next));
+		}
+	}
+	#printf "previousAndNext %s %s -> \n%s\n",$previous,$next,$result;
+	$result;
+}#previousAndNext
+
+sub doimg{
+	local($previous,$img,$next)=@_;
+	printf "Processing %s...\n",$img;
+	$imghtml=&imgToHtml($img);
+	open(IMG,">".$imghtml);
+	printf IMG <<EOF
+<!doctype HTML PUBLIC "-//IEFT//DTD HTML//EN//2.0">
+<html>
+<head>
+<title>%s</title>
+</head>
+<body>
+<center><p><font size="4">%s</font></p></center>
+EOF
+,$img,$img;
+	$pan=&previousAndNext($previous,$next);
+	printf IMG "%s\n",$pan;
+	printf IMG <<EOF
+<p align=center><!-- <a href="%s"> --> <img src="%s"> <!-- </a> -->\n
+EOF
+,&imgToHtml($next),$img;
+	printf IMG "%s\n",$pan;
+	printf IMG <<EOF
+<br><br>
+<hr><small>
+If you have suggestions, comments or feedback, please send mail to <a href = "mailto:pjb\@imaginet.fr">Webmaster</a>.
+</body>
+</html>
+EOF
+;
+	close IMG;
+	printf INDEX <<EOF
+<li><a href="%s">%s</a>.
+EOF
+	,$imghtml ,$img;
+}#doimg;
+
+
+
+open(INDEX,">index.html");
+printf INDEX <<EOF
+<!doctype HTML PUBLIC "-//IEFT//DTD HTML//EN//2.0">
+<html>
+<head>
+<title>INDEX</title>
+</head>
+<body>
+<h1>Index</h1>
+<p>Please browse these documents:
+<p><ul>
+EOF
+	;
+
+$previous='';
+$img='';
+foreach $next ( @ARGV ){
+	if($img ne ''){
+		&doimg($previous,$img,$next);
+	}
+	$previous=$img;
+	$img=$next;
+	$next='';
+}
+if($img ne ''){
+	&doimg($previous,$img,$next);
+}
+
+
+printf INDEX <<EOF
+</ul>
+<br><br>
+<hr><small>
+If you have suggestions, comments or feedback, please send mail to <a href = "mailto:pjb\@imaginet.fr">Webmaster</a> .
+</body>
+</html>
+EOF
+	;
+
+close INDEX;
+
+
+
+
+#### html-make-image-index            -- 2004-02-11 11:53:10 -- pascal   ####

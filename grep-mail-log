@@ -1,0 +1,22 @@
+#!/bin/bash
+
+addr="$1"
+shift
+egrep "postfix.*$addr"  $@ \
+| awk '
+BEGIN{
+    sep="";
+    reg="";
+}
+{
+    reg=reg sep  substr($6,0,length($6)-1);
+    sep="|";
+}
+END{
+    if(reg!=""){
+        system(sprintf("egrep %c%s%c /var/log/mail\n",34,reg,34));
+    }
+}'
+
+
+#### mail-with                        -- 2004-01-07 19:26:16 -- pascal   ####

@@ -1,0 +1,51 @@
+#!/bin/csh -f
+
+	set ANormal="[0m"
+	set AHilite="[1m"
+	set AUnderline="[4m"
+	set ABlink="[5m"
+	set AInvert="[7m"
+
+	foreach h ( 0 1 )
+	foreach u ( 0 1 )
+	foreach b ( 0 1 )
+	foreach i ( 0 1 )
+		if ( $h ) then 
+			set s="$AHilite"
+			set l="hilite "
+		else
+			set s=""
+			set l="       "
+		endif
+		if ( $u ) then 
+			set s="$s$AUnderline"
+			set l="${l}underline  "
+		else
+			set l="${l}           "
+		endif
+		if ( $b ) then 
+			set s="$s$ABlink"
+			set l="${l}blink  "
+		else
+			set l="${l}       "
+		endif
+		if ( $i ) then 
+			set s="$s$AInvert"
+			set l="${l}invert  "
+		else
+			set l="${l}        "
+		endif
+		echo "$s${l}$ANormal"
+	end
+	end
+	end
+	end
+
+	cat << EOF
+[0m Normal [0m
+[1m Surintensite [0m
+[4m Souligne [0m
+[5m Clignotement [0m
+[7m Inversion de fond [0m
+
+EOF

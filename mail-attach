@@ -1,0 +1,45 @@
+#!/bin/bash
+tmp=/tmp/$(basename $0)-$$
+trap "rm -rf $tmp" 0
+mkdir "$tmp"
+
+cmd=( metasend -b -z -o "$tmp/capsule" -s SUBJECT -t RECIPIENT -F "$REPLYTO" )
+i=${#cmd[@]}
+n=''
+
+for file ; do
+# metasend does not understand 8bit (it converts it to quoted-printable).
+#    if file $file | grep -s -q text ; then
+#        encoding=8bit
+#        mimetype=text/iso8859-1
+#        append=cat
+#    else
+        encoding=base64
+        mimetype=application/x-octetstream
+        append=mmencode
+#    fi
+    attachment="$tmp/file-$i"
+    $append < "$file" > "$attachment"
+
+    if [ -n "$n" ] ; then
+        cmd[$i]="$n"              ; i=$(( $i + 1 ))
+    else
+        n='-n'
+    fi
+    cmd[$i]="-D"                  ; i=$(( $i + 1 ))
+    cmd[$i]="DESCRIPTION"         ; i=$(( $i + 1 ))
+    cmd[$i]="-e"                  ; i=$(( $i + 1 ))
+    cmd[$i]="$encoding"           ; i=$(( $i + 1 ))
+    cmd[$i]="-m"                  ; i=$(( $i + 1 ))
+    cmd[$i]="$mimetype"           ; i=$(( $i + 1 ))
+    cmd[$i]="-f"                  ; i=$(( $i + 1 ))
+    cmd[$i]="$attachment"         ; i=$(( $i + 1 ))
+    
+done
+
+"${cmd[@]}"
+cat "$tmp/capsule"
+echo "${cmd[@]}"
+
+exit 0
+

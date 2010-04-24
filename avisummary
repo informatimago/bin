@@ -1,0 +1,50 @@
+#!/bin/bash
+if [ -s "$(which avitype 2>/dev/null)" -a -x "$(which avitype 2>/dev/null)" ] ; then
+    for arg ; do
+        ( /bin/ls -lh "$arg" ; avitype "$arg" )\
+   | awk '
+BEGIN{mus_per_f=0;}
+{if(NR==1){size=$5;next;}}
+function get_field(name){
+  start=index($0,name)+length(name);
+  rest=substr($0 " ",start);
+  return(substr(rest,1,index(rest," ")-1));}
+/MicroSecPerFrame/{mus_per_f=get_field("MicroSecPerFrame=");next;}
+/TotalFrames/{totf=get_field("TotalFrames=");next;}
+/checking:/{name=substr($0,22);printf "%s\n",name;next;}
+/WxH/{
+if(mus_per_f==0){
+  printf "                %s  TotalFrames=%s            %s\n",
+         $4,totf,size;next;}
+else{
+  dur=1.0*totf*mus_per_f/1000000.0;
+print "totf",totf,"mus_per_f",mus_per_f,"dur",dur;
+  s=dur%60; dur=dur/60;
+  m=dur%60; dur=dur/60;
+  h=dur; 
+  printf "                %s  TotalFrames=%s  %2d:%02d:%02d  %s\n",
+         $4,totf,h,m,s,size;next;}}
+/Stream /{print substr($0,16);next;}
+END{printf "\n";}
+'
+    done
+elif [ -s "$(which mplayer 2>/dev/null)" -a -x "$(which mplayer 2>/dev/null)" ] ; then
+    tmp=/tmp/avisummary.$$
+    trap 'rm $tmp' 0
+    for arg ; do
+        /bin/ls -lh "$arg"
+        mplayer -identify -frames 0 "$arg" -vo null -ao null 2>/dev/null \
+            | awk -F= '/=[^=]/{printf "%s=\"%s\"\n",$1,$2;}' > $tmp
+        . $tmp
+        printf "%s \n" "$ID_FILENAME" 
+        printf "video:  %dx%d  %d bit/s %f f/s  (%s %s)\n" \
+            "$ID_VIDEO_WIDTH" "$ID_VIDEO_HEIGHT" "$ID_VIDEO_BITRATE" "$ID_VIDEO_FPS" \
+            "$ID_VIDEO_FORMAT" "$ID_DEMUXER"
+        printf "audio:  %d channels  %d b/s  %d B/s  (%s)\n" \
+            "$ID_AUDIO_NCH" "$ID_AUDIO_BITRATE" "$ID_AUDIO_RATE" "$ID_AUDIO_CODEC"
+        printf "\n"
+    done
+else
+    echo "Neither avitype nor mplayer are available."
+    exit 1
+fi

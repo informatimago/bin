@@ -1,0 +1,6 @@
+#!/bin/bash
+URL=http://www.cadena100.es/directo/directo.asx
+POSITION=+512-0
+export WRITE_ASF=1
+exec aviplay  -geometry $POSITION  $URL  /dev/null > /tmp/aviplay.log 2>&1
+#### radio-cadena-100                 --                     --          ####

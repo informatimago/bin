@@ -1,0 +1,12 @@
+#!/bin/bash
+URL="http://mp3.live.tv-radio.com/courtoisie/all/courtoisie.mp3"
+URL="http://www.tv-radio.com/station/courtoisie/courtoisie.m3u"
+exec mplayer "$URL"
+########################################################################
+
+export WRITE_ASF=1
+POSITION=+512-0
+exec aviplay  -geometry $POSITION  $URL # /dev/null > /tmp/aviplay.log 2>&1
+
+#### radio-courtoisie                 --                     --          ####
+

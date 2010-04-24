@@ -1,0 +1,76 @@
+#!/bin/bash
+#*****************************************************************************
+#FILE:               update-license
+#LANGUAGE:           sh
+#SYSTEM:             posix
+#USER-INTERFACE:     posix
+#DESCRIPTION
+#    
+#    Update the license in the headers of source files.
+#    
+#AUTHORS
+#    <PJB> Pascal Bourguignon
+#MODIFICATIONS
+#    2003-05-22 <PJB> Created
+#BUGS
+#LEGAL
+#    GPL
+#    
+#    Copyright Pascal Bourguignon 2003 - 2003
+#    mailto:pjb@informatimago.com
+#    
+#    This program is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU General Public License
+#    as published by the Free Software Foundation; either version
+#    2 of the License, or (at your option) any later version.
+#    
+#    This program is distributed in the hope that it will be
+#    useful, but WITHOUT ANY WARRANTY; without even the implied
+#    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#    PURPOSE.  See the GNU General Public License for more details.
+#    
+#    You should have received a copy of the GNU General Public
+#    License along with this program; if not, write to the Free
+#    Software Foundation, Inc., 59 Temple Place, Suite 330,
+#    Boston, MA 02111-1307 USA
+#*****************************************************************************
+
+licenses=( GPL LGPL BSD Reserved "Public Domain" )
+license="$1"
+shift
+ok=0
+for valid in "${licenses[@]}" ; do
+    if [ "$valid" = "$license" ] ; then
+        ok=1
+        break
+    fi
+done
+if [ $ok -eq 0 ] ; then
+    echo "$(basename $0): $license is not a valid license; please choose from:"
+    echo -n "    "
+    for arg in "${licenses[@]}" ; do echo -n "\"$arg\" " ; done
+    echo ""
+    exit 1
+fi
+
+emacs -batch -eval "(progn 
+    (add-to-list 'load-path \"$HOME/src/common/lisp/emacs\")
+    (require 'pjb-sources) 
+    (dolist (file '($(for arg ; do echo \"$arg\"\  ; done))) 
+       (if (file-exists-p file) 
+         (progn  
+            (message \"\nProcessing %s...\" file) 
+            (find-file file) 
+            (condition-case err 
+                (progn
+                    (pjb-change-license \"$license\")
+                    (pjb-reformat-change-log-dates))
+              (error (message (cadr err))))
+            (pjb-update-eof t)
+            (save-buffer 0) 
+            (kill-buffer (current-buffer))) 
+         (message \"%s does not exist.\n\" file))))"
+
+exit 0
+
+#### update-license                   -- 2003-05-22 06:23:12 -- pascal   ####

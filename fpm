@@ -1,0 +1,253 @@
+#!/usr/local/bin/clisp -ansi -q   -Kfull
+;; -*- mode:lisp -*-
+
+(defparameter *program-name*    (file-namestring *load-pathname*))
+(defparameter *program-version* "0.0.0")
+
+(defparameter *usage*
+  "
+~A~:* version
+ 
+    Report the version of this script and the underlying package system.
+
+~A~:* install     <package-name>
+
+    Install the package named <package-name>.  
+    <package-name> may include some specific version according to the 
+    underlying package system syntax.
+
+
+~A~:* update      <package-name>
+
+    Updates the package named <package-name>.  
+    <package-name> may include some specific version or version constraint
+    according to the underlying package system syntax.
+
+
+~A~:* remove      <package-name>
+
+    Uninstalls the package named <package-name>.  
+    <package-name> may include some specific version or version constraint
+    according to the underlying package system syntax.
+
+
+~A~:* [show] info <package-name>
+
+    Displays information about the package named <package-name>.  
+    <package-name> may include some specific version or version constraint
+    according to the underlying package system syntax.
+    This package may be installed or not.
+
+
+~A~:* [list] [installed|available|all|not installed] packages [<package-pattern>]
+
+    Lists the packages and versions matching the <package-pattern> or
+    all the packages if omited.   The keywords installed, available,
+    all or not installed restrict the listing to the correponding
+    package.  available and all are synonyms and the default.
+    
+
+~A~:* [list] files [in] <package-name>
+
+    Lists the full pathnames of the files in the package named <package-name>.
+    <package-name> may include some specific version or version constraint
+    according to the underlying package system syntax.
+    This package may be installed or not.
+
+
+~A~:* package [containing] [file] <file-path>
+
+    Lists the package(s) containing the file <file-path>.  If file path
+    is not an absolute pathname, then it's taken as a pattern for the
+    file paths.
+
+
+~A~:* search [package] [info] <pattern>
+
+    Lists the packages that have the <pattern> in their package information.
+
+
+~A~:* [show] dependencies [of] [package] <package-name>
+
+    List the packages on which the package named <package-name> depends.
+    <package-name> may include some specific version according to the 
+    underlying package system syntax.  
+    [installed|newest]
+
+
+
+~A~:* [who] depends [on] [package] <package-name>
+
+    List the packages who depend on the package named <package-name>.
+    <package-name> may include some specific version according to the 
+    underlying package system syntax.  
+
+
+~A~:* lowly cleanup
+
+    Some package managers need some cleanup.
+
+")
+
+(defun print-usage ()
+  (format t *usage* *program-name*))
+
+
+(defmacro alt (&body body)
+  #+ (or) (mapcar (lambda (item)
+            (typecase item
+              (null)
+              (symbol)
+              (cons))
+            )
+          body)
+  '(progn))
+
+
+
+
+;;;------------------------------------------------------------
+(defclass package-manager ()
+  ((name :accessor package-manager-name :initarg :name :type string)))
+
+
+(defgeneric pm-version (pm))
+(defgeneric pm-install (pm package-designator))
+(defgeneric pm-update  (pm package-designator))
+(defgeneric pm-remove  (pm package-designator))
+(defgeneric pm-info    (pm package-designator))
+
+(defgeneric pm-list-packages (pm &key installed all available not-installed
+                                 packages pattern))
+
+(defgeneric pm-list-files                    (pm package-designator))
+(defgeneric pm-find-package-containing-file  (pm file-path))
+(defgeneric pm-find-package-with-info        (pm pattern))
+(defgeneric pm-dependencies                  (pm package-designator))
+(defgeneric pm-dependants                    (pm package-designator))
+
+
+
+;;;------------------------------------------------------------
+(defclass rpm (package-manager)
+  ())
+
+;;;------------------------------------------------------------
+(defclass apt (package-manager)
+  ())
+  ;; http://www.debian-administration.org/articles/249
+;; apt-cache search pound
+;; pound - reverse proxy, load balancer and https front-end for web-servers
+
+;; snowball:534$ dpkg -S /bin/cp
+;; coreutils: /bin/cp
+;; snowball:535$ apt-get source coreutils
+
+
+
+;;;------------------------------------------------------------
+(defclass portage (package-manager)
+  ())
+
+(defun s (&rest args)
+  (ext:shell (format nil "~{~A ~}" args)))
+
+(defmethod pm-version ((self portage))
+  (s "emerge --version"))
+
+(defmethod pm-install ((self portage) package-designator)
+  (s "emerge" package-designator))
+
+(defmethod pm-update  ((self portage) package-designator)
+  (s "emerge --update" package-designator))
+
+(defmethod pm-remove  ((self portage) package-designator)
+  (s "emerge --unmerge" package-designator))
+
+(defmethod pm-info    ((self portage) package-designator)
+  (s "echo 'I do not know how to get info about packages in gentoo'"))
+
+
+(defmethod pm-list-packages ((self portage) &key installed all available
+                             not-installed packages pattern))
+
+(defmethod pm-list-files                    ((self portage) package-designator)
+  (s "equery files" package-designator))
+
+(defmethod pm-find-package-containing-file  ((self portage) file-path)
+  (s "equery belongs" file-path))
+
+(defmethod pm-find-package-with-info        ((self portage) pattern)
+  (s "echo 'This is not good.'")
+  (s "equery list" pattern))
+
+(defmethod pm-dependencies                  ((self portage) package-designator)
+  (s "equery depgraph" package-designator))
+
+(defmethod pm-dependants                    ((self portage) package-designator)
+  (s "equery depends" package-designator))
+
+
+
+
+;;;------------------------------------------------------------
+
+(defun distribution ()
+  (cond
+    ((ignore-errors (probe-file "/etc/gentoo-release"))     :gentoo)
+    ((ignore-errors (probe-file "/etc/SuSE-release"))       :suse)
+    ((ignore-errors (probe-file "/etc/mandrake-release"))   :mandrake)
+    ((ignore-errors (probe-file "/etc/redhat-release"))     :redhat)
+    ((ignore-errors (probe-file "/etc/debian_version"))     :debian)
+    (t                                                      :unknown)))
+
+
+(defun distribution-default-package-management-system (distribution)
+  (case distribution
+    ((:suse :mandrake :redhat) 'rpm)
+    ((:gentoo)                 'portage)
+    ((:debian)                 'apt)
+    (otherwise
+     (error "I don't know the package management system used in distribution ~A"
+            distribution))))
+
+(defparameter *package-management-system*
+  (make-instance
+      (distribution-default-package-management-system (distribution))))
+
+
+(defun fpm-operate (key &rest arguments)
+  (if (member key '(version install update remove info
+                    list-packages list-files
+                    find-package-containing-file find-package-with-info
+                    dependencies dependants))
+      (apply (intern (format nil "PM-~A" key))
+             *package-management-system* arguments)
+      (error "Invalid key ~A" key)))
+
+
+(defmacro fpm (key &rest arguments)
+  `(fpm-operate (quote ,key) ,@arguments))
+
+
+;;;------------------------------------------------------------
+
+(alt
+ (seq (function print-version)  version)
+ (seq (function pkg-install)    install     <package-name>)
+ (seq (function pkg-update)     update      <package-name>)
+ (seq (function pkg-remove)     remove      <package-name>)
+ (seq (function pkg-info)       (opt show) info <package-name>)
+ (seq (function pkg-list-packages)
+      (opt list) (opt (alt installed available all (seq not installed)))
+      packages (opt <package-pattern>))
+ (seq (function pkg-list-files) (opt list) files (opt in) <package-name>)
+ (seq (function pkg-find-file) package (opt containing) (opt file) <file-path>)
+ (seq (function pkg-find-info) search (opt package) (opt info) <pattern>)
+ (seq (function pkg-dependencies)
+      (opt show) dependencies (opt of) (opt package) <package-name>)
+ (seq (function pkg-dependants)
+      (opt who) depends (opt on) (opt package) <package-name>))
+
+(format t "~&Not implemented yet~%")
+;; (ext:exit 1)

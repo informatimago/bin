@@ -1,0 +1,12 @@
+#!/bin/bash
+/local/bin/gkrellm &
+ssh larissa.informatimago.com  /local/bin/gkrellm &
+ssh galatea.informatimago.com  /local/bin/gkrellm &
+# ssh hermes.afaa.asso.fr        /local/bin/gkrellm &
+# ssh janus-1.janus.afaa.asso.fr /local/bin/gkrellm &
+# ssh janus-2.janus.afaa.asso.fr /local/bin/gkrellm &
+# ssh janus-3.janus.afaa.asso.fr /local/bin/gkrellm &
+# ssh janus-4.janus.afaa.asso.fr /local/bin/gkrellm &
+wait
+
+#### surveille-temps                  -- 2003-08-19 17:01:01 -- pascal   ####

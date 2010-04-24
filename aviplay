@@ -1,0 +1,20 @@
+#!/bin/bash
+AVIPLAY=/opt/aviplay-0.7/bin/aviplay
+LD_LIBRARY_PATH=/usr/lib/win32:$LD_LIBRARY_PATH
+fn='-adobe-new century schoolbook-bold-r-normal-*-20-*-*-*-*-*-*-*'
+fn="-adobe-helvetica-medium-r-normal-*-*-180-*-*-p-*-iso8859-*"
+fn='-adobe-helvetica-medium-r-normal-*-18-*--*-*-*-*-*'
+fn='-*-times-bold-r-normal-*-18-*-*-*-*-*-*-*'
+args=(-s x=0:y=600 -geometry +300-0 --quality 4 )
+exec $AVIPLAY --subtitle_font "$fn" ${args[@]}  $@
+exit 1
+#-----------------------------------------------------------------------
+
+if [ $# -eq 1 ] ; then
+    echo ONE
+    exec $AVIPLAY "$1" /dev/null  ${args[@]} -fn "$fn"  
+else
+    echo SEVERAL
+    exec $AVIPLAY  "$@"           ${args[@]} -fn "$fn"  
+fi
+#### aviplay                          --                     --          ####

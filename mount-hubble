@@ -1,0 +1,24 @@
+#!/bin/bash
+hubble=hubble
+options=( -o nolockd  )
+if [ "$1" = "umount"  -o  "$1" = "unmount" ] ; then
+    umount                ${hubble}:/a3
+    umount                ${hubble}:/b1
+    umount                ${hubble}:/d0
+    umount                ${hubble}:/d4
+    umount                ${hubble}:/d5
+    umount                ${hubble}:/data
+    umount                ${hubble}:/home
+    umount                ${hubble}:/movies
+    umount                ${hubble}:/srv
+else
+    mount "${options[@]}" ${hubble}:/a3     /a3
+    mount "${options[@]}" ${hubble}:/b1     /b1
+    mount "${options[@]}" ${hubble}:/d0     /d0
+    mount "${options[@]}" ${hubble}:/d4     /d4
+    mount "${options[@]}" ${hubble}:/d5     /d5
+    mount "${options[@]}" ${hubble}:/data   /data
+    mount "${options[@]}" ${hubble}:/home   /home
+    mount "${options[@]}" ${hubble}:/movies /movies
+    mount "${options[@]}" ${hubble}:/srv    /srv
+fi

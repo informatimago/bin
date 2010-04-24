@@ -1,0 +1,305 @@
+#!/bin/bash
+#******************************************************************************
+#FILE:              html-access-stat
+#LANGUAGE:          bash,awk
+#SYSTEM:            UNIX
+#USER-INTERFACE:    UNIX
+#DESCRIPTION
+#    This script gather daily statistics from a HTTP access log.
+#USAGE
+#    html-access-stat --help
+#AUTHORS
+#    <PJB> Pascal J. Bourguignon
+#MODIFICATIONS
+#    2002-10-24 <PJB> Created.
+#BUGS
+#LEGAL
+#    Copyright Pascal J. Bourguignon 2002 - 2002
+#
+#    This script is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU  General Public
+#    License as published by the Free Software Foundation; either
+#    version 2 of the License, or (at your option) any later version.
+#
+#    This script is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public
+#    License along with this library; see the file COPYING.LIB.
+#    If not, write to the Free Software Foundation,
+#    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+#******************************************************************************
+
+export _SYSEXITS_H=1
+export EX_OK=0
+export EX__BASE=64
+export EX_USAGE=64
+export EX_DATAERR=65
+export EX_NOINPUT=66
+export EX_NOUSER=67
+export EX_NOHOST=68
+export EX_UNAVAILABLE=69
+export EX_SOFTWARE=70
+export EX_OSERR=71
+export EX_OSFILE=72
+export EX_CANTCREAT=73
+export EX_IOERR=74
+export EX_TEMPFAIL=75
+export EX_PROTOCOL=76
+export EX_NOPERM=77
+export EX_CONFIG=78
+export EX__MAX=78
+
+pname=$(basename $0)
+pblan="${pname//?/ }"
+show_ip=0
+show_req=0
+show_ref=0
+show_bro=0
+access=/dev/stdin
+
+for arg ; do
+    case "$arg" in 
+    --ref|--show-references)
+        show_ref=1
+        ;;
+    --ip|--show-ip-addresses)
+        show_ip=1
+        ;;
+    --req|--show-requests)
+        show_req=1
+        ;;
+    --bro|--show-browser)
+        show_bro=1
+        ;;
+    -h|--help)
+        echo "$pname usage:"
+        echo ""
+        echo "     $pname  [-h|--help|-v|--version|--ref|--show-references\\"
+        echo "     $pblan  |--ip|--show-ip-addresses|--req|--show-requests\\"
+        echo "     $pblan  |--bro|--show-browser]...   access_log_file"
+        echo ""
+        exit $EX_OK
+        ;;
+    -v|--version)
+        echo html-access-stat version 1.0
+        exit $EX_OK
+        ;;
+    -*)
+        echo "${pname}: invalid option '$arg'." >/dev/stderr
+        usage>/dev/stderr
+        exit $EX_USAGE
+        ;;
+    *)
+        access="$arg"
+        ;;
+    esac
+done
+        
+
+cat "$access" \
+| sed -e 's-\[\([^:]*\):[^]]*\]-\1-' \
+| awk '
+BEGIN{
+    TAB=sprintf("%c",9);
+}
+{
+    split($0,line,"");
+    len=length($0);
+    in_quote=0;
+    out="";
+    for(i=1;i<=len;i++){
+        if(in_quote){
+            if(line[i]=="\""){
+                in_quote=0;
+            }
+            out=out line[i];
+        }else{
+            if(line[i]=="\""){
+                in_quote=1;
+                out=out line[i];
+            }else if(line[i]==" "){
+                out=out TAB;
+            }else{
+                out=out line[i];
+            }
+        }
+    }
+    printf "%s\n",out;
+}
+' \
+| awk \
+    -v show_ip=$show_ip    \
+    -v show_req=$show_req  \
+    -v show_ref=$show_ref  \
+    -v show_bro=$show_bro  \
+'
+BEGIN {
+    FS=sprintf("%c",9);
+    cur_date="";
+    skip_null_activity=1;
+    sort_count=0;
+    sort_item=1;
+
+    string_to_month["Jan"]=1;
+    string_to_month["Feb"]=2;
+    string_to_month["Mar"]=3;
+    string_to_month["Apr"]=4;
+    string_to_month["May"]=5;
+    string_to_month["Jun"]=6;
+    string_to_month["Jul"]=7;
+    string_to_month["Aug"]=8;
+    string_to_month["Sep"]=9;
+    string_to_month["Oct"]=10;
+    string_to_month["Nov"]=11;
+    string_to_month["Dec"]=12;
+}
+
+function array_count(array,LOCALS,count,element) {
+    for(element in array){
+        count++;
+    }
+    return(count);
+}
+
+function array_split(array,iarray,varray,LOCALS,item,count){
+    # stores the indices of array into iarray, and the values into varray.
+    # return count, the number of elements in the array.
+    count=0;
+    for(item in array){
+        iarray[count]=item;
+        varray[count]=array[item];
+        count++;
+    }
+    return(count);
+}
+
+function array_sort(array,sorted,LOCALS,count,k,i,j){
+    # key["a"]="MMM"         sorted[0]="c"
+    # key["b"]="ZZZ"    -->  sorted[1]="d"
+    # key["c"]="AAA"         sorted[2]="a"
+    # key["d"]="BBB"         sorted[3]="b"
+
+    # -1- fill the sorted array to initial state
+    count=0;
+    for(k in array){
+        sorted[count]=k;
+        count++;
+    }
+
+    # -2- bubble sort it.  Latter we will implement a quicksort.
+    for(i=0;i<count-1;i++){
+        for(j=i+1;j<count;j++){
+            if(array[sorted[j]]<array[sorted[i]]){
+                temp=sorted[j];
+                sorted[j]=sorted[i];
+                sorted[i]=temp;
+            }
+        }
+    }
+
+    return(count);
+}
+
+function table_split_and_sort(table,sort_key,items,values,sorted,LOCALS,count){
+    array_split(table,items,values);
+
+    if(sort_key==sort_item){
+        # sort the indices
+        count=array_sort(items,sorted);
+    }else{
+        # sort the values
+        count=array_sort(values,sorted);
+    }
+    return(count);
+}
+
+
+function array_print(name,names,count,array,show_items,sort_key,LOCALS,item,items,values,sorted,i) {
+    printf("%6d %s%s%s\n",count,(2<=count)?"different ":"",(2<=count)?names:name,show_items?":":".");
+    if(show_items){
+        table_split_and_sort(array,sort_key,items,values,sorted);
+        for(i=0;i<count;i++){
+            printf("%12d times %s\n",values[sorted[i]],items[sorted[i]]);
+        }   
+    } 
+}
+
+
+function print_stat(label,hits,ip_seen,total_size,reference_seen,request_seen,browser_seen,LOCALS,n_ip,n_req,n_ref,n_bro) {
+    if(skip_null_activity&&(hits==0)){
+        return;
+    }
+    n_ip=array_count(ip_seen);
+    n_ref=array_count(reference_seen);
+    n_req=array_count(request_seen);
+    n_bro=array_count(browser_seen);
+
+    printf("\n%-10s%7d hits%7d Ko%7d IP%7d ref.%7d req.%7d bro.\n\n",label,hits,total_size/1024,n_ip,n_ref,n_req,n_bro);
+
+    array_print("IP address","IP addresses",n_ip, ip_seen,       show_ip, sort_item);
+    array_print("request",   "requests",    n_req,request_seen,  show_req,sort_item);
+    array_print("reference", "references",  n_ref,reference_seen,show_ref,sort_item);
+    array_print("browser",   "browsers",    n_bro,browser_seen,  show_bro,sort_item);
+    printf("\n");
+}
+
+
+#   212.87.205.57   -       -       17/May/2002     "GET /images/countries/france.jpg HTTP/1.1"     200     1004    "http://www.informatimago.com/" "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:0.9.4) Gecko/20011025"
+
+{
+    ip=$1;
+    split($4,adate,"/");
+    date=sprintf("%04d-%02d-%02d",adate[3],string_to_month[adate[2]],adate[1]);
+    request=$5;
+    return_code=$6;
+    size=$7;
+    reference=$8;
+    browser=$9;
+
+
+
+#print size " " request;
+#print ip,date,size,request,reference,browser;
+
+
+    hits++;
+    ip_seen[ip]++;
+    if(size!="-"){
+        total_size+=size;
+    }
+    reference_seen[reference]++;
+    request_seen[request]++;
+    browser_seen[browser]++;
+
+    if(date==cur_date){
+        day_hits++;
+        day_ip_seen[ip]++;
+        if(size!="-"){
+            day_total_size+=size;
+        }
+        day_reference_seen[reference]++;
+        day_request_seen[request]++;
+        day_browser_seen[browser]++;
+    }else{
+        print_stat(date,day_hits,day_ip_seen,day_total_size,day_reference_seen,day_request_seen,day_browser_seen);
+        day_hits=0;
+        delete day_ip_seen;
+        day_total_size=0;
+        delete day_reference_seen;
+        delete day_request_seen;
+        delete day_browser_seen;
+        cur_date=date;
+    }
+}
+
+END {
+    print_stat(date,day_hits,day_ip_seen,day_total_size,day_reference_seen,day_request_seen,day_browser_seen);
+    print_stat("Summary",hits,ip_seen,total_size,reference_seen,request_seen,browser_seen);
+}
+
+' \
+| cat
+#| awk '{print $5;}'

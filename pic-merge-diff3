@@ -1,0 +1,109 @@
+#!/bin/sh
+#******************************************************************************
+#FILE:				pic-merge-diff3
+#LANGUAGE:			sh
+#SYSTEM:			UNIX
+#USER-INTERFACE:	None
+#DESCRIPTION
+#	This script is a driver for the GIMP scheme script pic-mere-diff3.scm.
+#USAGE
+#	pic-merge-diff3 [-h|--help] [-] original edit1 edit2 merge
+#
+#AUTHORS
+#	<PJB> Pascal J. Bourguignon
+#MODIFICATIONS
+#	2001-07-13 <PJB> Creation.
+#BUGS
+#LEGAL
+#    LGPL
+#    Copyright Pascal J. Bourguignon 2001 - 2001
+#
+#    This  library is  free software;  you can  redistribute  it and/or
+#    modify  it under  the  terms  of the  GNU  Library General  Public
+#    License  as  published by  the  Free  Software Foundation;  either
+#    version 2 of the License, or (at your option) any later version.
+#
+#    This library  is distributed in the  hope that it  will be useful,
+#    but  WITHOUT ANY WARRANTY;  without even  the implied  warranty of
+#    MERCHANTABILITY or FITNESS FOR  A PARTICULAR PURPOSE.  See the GNU
+#    Library General Public License for more details.
+#
+#    You should have received a  copy of the GNU Library General Public
+#    License  along with this  library; see  the file  COPYING.LIB.  If
+#    not,  write to  the Free  Software Foundation,  59 Temple  Place -
+#    Suite 330, Boston, MA 02111-1307, USA.
+#******************************************************************************
+pname=`basename $0`
+
+files=0
+pic1=
+pic2=
+pic3=
+merge=
+
+function usage () {
+    echo "${pname} usage:"
+    echo "     ${pname} [-h|--help] [-] picture1 picture2 picture3 merge"
+}
+
+
+function addfile () {
+    if [ "$pic1" = "" ] ; then
+        pic1="$1"
+    elif [ "$pic2" = "" ] ; then
+        pic2="$1"
+    elif [ "$pic3" = "" ] ; then
+        pic3="$1"
+    elif [ "$merge" = "" ] ; then
+        merge="$1"
+    else
+        echo "${pname}: Too many parameter '${arg}'."
+        usage
+        exit 2
+    fi
+}
+
+
+for arg ; do
+
+    case "$arg" in
+    -h|--help)
+        usage
+        exit 0
+        ;;
+    -)
+        files=1
+        ;;
+    -*)
+        if [ $files -eq 0 ] ; then
+           echo "${pname}: Invalid option '${arg}'."
+           usage
+           exit 1
+        fi
+        addfile "${arg}"
+        ;;
+    *)
+        addfile "${arg}"
+        ;;
+    esac
+
+done
+
+
+if [ "$merge" = "" ] ; then
+    echo "${pname}: Missing parameter."
+    usage
+    exit 3
+fi
+
+
+
+# (gimp-message-set-handler [012]) does not seem effective.
+
+gimp  --no-data  --console-messages  --no-interface  --batch \
+    "(gimp-message-set-handler 1)" \
+    "(pic-merge-diff3-internal RUN-NONINTERACTIVE \"$pic1\" \"$pic2\" \"$pic3\" \"$merge\")" \
+    "(gimp-quit 0)"
+
+#   
+#END#

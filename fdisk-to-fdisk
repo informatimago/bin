@@ -1,0 +1,133 @@
+#!/bin/bash
+# usage: fdisk-to-fdisk /dev/hd?
+# prints out fdisk commands to build the same partition table
+# example: fdisk-to-fdisk /dev/hdx | fdisk /dev/hdy
+
+sed -e '1,/Device Boot/d' -e 's/[+*]//g'\
+|awk '
+BEGIN { 
+    np=0; 
+}
+
+{
+    pn=0+substr($1,9);
+    partnums[np++]=pn;
+    exists[pn]=1;
+    start[pn]=$2;
+    end[pn]=$3;
+    blocks[pn]=$4;
+    type[pn]=$5;
+    #printf "part %d [%d,%d] (%s)\n",pn,start[pn],end[pn],type[pn];
+}
+
+function emit(string){
+    printf("%s\n",string);
+}
+
+function emit_send_line(string){
+    printf("    send \"%s\\r\"\n",string);
+}
+
+function emit_cmd(string){
+    emit("expect {");
+    emit("  \"Command (m for help):\" {");
+    emit_send_line(string);
+    emit("  } timeout {");
+    emit_send_line("w");
+    emit("    send_user \"fdisk timed out; expected command prompt.\\n\"");
+    emit("    exit 1");
+    emit("  }");
+    emit("}");
+}
+function emit_partition_class(string){
+    emit("expect {");
+    emit("  \"primary partition\" {");
+    emit_send_line(string);
+    emit("  } timeout {");
+    emit_send_line("w");
+    emit("    send_user \"fdisk timed out; expected partition class menu.\\n\"");
+    emit("    exit 1");
+    emit("  }");
+    emit("}");
+}
+
+function emit_number(string){
+    emit("expect {");
+    emit("  \"): \" {");
+    emit_send_line(string);
+    emit("  } timeout {");
+    emit_send_line("w");
+    emit("    send_user \"fdisk timed out; expected number prompt.\\n\"");
+    emit("    exit 1");
+    emit("  }");
+    emit("}");
+}
+
+END{
+    emit("#!/usr/bin/expect");
+    emit("if { \"\" == [lindex $argv 0] } {")
+    emit("  send_user \"usage: \"");
+    emit("  send_user \"  fdisk -l /dev/hd\\$s|fdisk-to-fdisk /dev/hd\\$d\\n\"");
+    emit("  exit");
+    emit("}");
+    emit("spawn \"fdisk\" [lindex $argv 0]");
+    emit_cmd("o");
+    npp=0;
+    for(pn=1;pn<=32;pn++){
+        if(pn<=4){
+            npp++;
+        }
+        if(exists[pn]){
+            emit(sprintf("send_user \"npp=%s %s\"",npp,sprintf("part %d (%d,%d) (%s)",pn,start[pn],end[pn],type[pn])));
+            if(type[pn]==5){        # extended partition:
+                emit_cmd("n");
+                emit_partition_class("e");
+                if((pn==4)||(npp<4)){
+                    emit_number(pn);
+                }
+                emit_number(start[pn]);
+                emit_number(end[pn]);
+            }else if(pn<=4){         # normal partitions:
+                emit_cmd("n");
+                emit_partition_class("p");
+                if((pn==4)||(npp<4)){
+                    emit_number(pn);
+                }
+                emit_number(start[pn]);
+                emit_number(end[pn]);
+                emit_cmd("t");
+                if(1<npp){
+                    emit_number(pn);
+                }
+                emit_number(type[pn]);
+            }else{                  # extended subpartitions:
+                emit_cmd("n");
+                if(npp<4){
+                     emit_partition_class("l");
+                }
+                emit_number(start[pn]);
+                emit_number(end[pn]);
+                emit_cmd("t");
+                emit_number(pn);
+                emit_number(type[pn]);
+            }
+        }
+    }
+    emit_cmd("w");
+    emit("expect eof {")
+    emit("  send_user \"Done.\"")
+    emit("}")
+}
+'
+exit 0
+
+Disk /dev/sdb: 255 heads, 63 sectors, 4462 cylinders
+Units = cylinders of 16065 * 512 bytes
+
+   Device Boot    Start       End    Blocks   Id  System
+/dev/sdb1             1         5     40131   fd  Linux raid autodetect
+/dev/sdb2             6      1535  12289725   fd  Linux raid autodetect
+/dev/sdb3          1536      1663   1028160   82  Linux swap
+/dev/sdb4          1664      4462  22482967+   5  Extended
+/dev/sdb5          1664      3193  12289693+  fd  Linux raid autodetect
+/dev/sdb6          3194      4462  10193211   fd  Linux raid autodetect

@@ -1,0 +1,9 @@
+#!/bin/bash
+for dir ; do
+    find $dir \
+        \( -type d -name CVS -prune -o -true \) \
+        -type d -exec cvs add {} \;
+    find $dir \
+        \( -type d -name CVS -prune -o -true \) \
+        -type f -print | xargs -i{}  cvs add {} \;
+done

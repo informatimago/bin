@@ -1,0 +1,21 @@
+#!/bin/bash
+host="$1"
+next="$2"
+if [ "$next" = "" ] ; then
+    next=system.0
+fi
+while true ; do
+    answ=`snmpgetnext $host public $next`
+    echo "$answ"
+    next=`echo "$answ" | sed  -e 's/ .*//'` 
+    case "$next" in
+    Timeout:|sub-identifier|Error)
+        exit 0
+        ;;
+    *)
+        ;;
+    esac
+done
+
+
+

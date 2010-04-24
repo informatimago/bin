@@ -1,0 +1,11 @@
+#!/bin/sh 
+
+cd $HOME
+sed -e 's-:-!-' < .newsrc > .newsrc.sub
+( cd /usr/spool/news ; find [a-z]* -type f -print ) | sed -e 's-^\./--' -e 's-/[0-9][0-9]*--' -e 's-/-.-g' | sort -u | while read group ; do
+echo $group
+	sed -e "s/${group}\!/${group}\:/" < .newsrc.sub > .newsrc.sub~
+	mv .newsrc.sub~ .newsrc.sub
+done
+
+#END

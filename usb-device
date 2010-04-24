@@ -1,0 +1,10 @@
+#!/bin/bash
+awk '
+BEGIN{line="======================================";line=line line;}
+/^T/{printf "\n%s\n",line;print $0;next;}
+/^[IC]/{printf "\n";print $0;next;}
+{print $0;}
+END{printf "\n%s\n",line;}
+' < /proc/bus/usb/devices 
+
+

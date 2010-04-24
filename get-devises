@@ -1,0 +1,133 @@
+#!/bin/sh 
+source="$1"
+result=0
+
+tmp=/tmp/$$
+mkdir $tmp
+cd $tmp
+
+case "$source" in
+yahoo)
+    wget -q http://finance.yahoo.com/m3?u
+    mv 'm3?u' input
+
+html-get-tables input \
+| sed \
+    -e '1,/Currency Last/d' \
+    -e 's/^\([^0-9][^0-9]*\)\([0-9]\)/\1|\2/' \
+    -e '/Select a Symbol/,$d' \
+| awk '
+BEGIN {
+    FS="|";
+}
+function htmlchar(s) { 
+    gsub("&#163;","£",s); 
+    gsub("&#165;","¥",s); 
+    gsub("U.S. \\$","USD",s); 
+    gsub("Aust \\$","AUD",s); 
+    gsub("Can \\$","CAD",s); 
+    gsub("U.K. £","UKL",s); 
+    gsub("¥en","YEN",s); 
+    gsub("SFranc","FRS",s); 
+    gsub("Euro","ignore",s); 
+    gsub("FFranc","ignore",s); 
+    gsub("DMark","ignore",s); 
+    return(s);
+} 
+{ 
+    devise=htmlchar($1); 
+    if(devise!="ignore"){ 
+        printf "(euro-update-devise %12f %c%s)\n",$10,39,devise;
+    } 
+} 
+'
+
+    ;;
+
+boursorama)
+    wget -q http://www.boursorama.com/devises/devises.phtml
+    html-get-tables devises.phtml \
+    | sed -e '1,/Devises|FRF/d' \
+          -e '/Ex: 1 EUR/,$d' \
+    | awk '
+BEGIN {
+    FS="|";
+}
+function htmlchar(s,  LOCALS, res) { 
+    if(s=="E.U.(USD)"){ res="USD";  
+    }else if(s=="Japon(JPY)"){ res="JPY";  
+    }else if(s=="GB(GBP)"){ res="UKL";  
+    }else if(s=="Suisse(CHF)"){ res="FRS";  
+    }else if(s=="EURO(EUR)"){ res="ignore";  
+    }else if(s=="France(FRF)"){ res="ignore";  
+    }else if(s=="Espagne(ESP)"){ res="ignore";  
+    }else if(s=="Italie(ITL)"){ res="ignore";  
+    }else if(s=="Allemagne(DEM)"){ res="ignore";  
+    }else{ res="ignore";
+    }
+    return(res);
+}
+{ 
+    devise=htmlchar($1); 
+    if(devise!="ignore"){ 
+        if(devise=="JPY"){
+            printf "(euro-update-devise %12f :%s)\n",$3/100.0,devise;
+        }else{
+            printf "(euro-update-devise %12f :%s)\n",$3,devise;
+        }
+    } 
+} 
+'
+    ;;
+*)
+    echo "$0: Unknown source"
+    echo "$0 usage:"
+    echo "    $0 [yahoo|boursorama]"
+    result=1
+    ;;
+esac
+
+cd /
+rm -rf $tmp
+
+exit $result
+########################################################################
+cat input \
+| sed \
+    -e '1,/Last Trade/d' \
+    -e 's/<th[^>]*>//' \
+    -e 's/<\/th[^>]*>//' \
+    -e 's/<\/td[^>]*>//' \
+    -e 's/<\/tr[^>]*>//' \
+    -e 's/<tr[^>]*>/N|/' \
+    -e 's/<td[^>]*>/C|/' \
+    -e '/<\/table>/,$d' \
+| awk '
+BEGIN {
+    FS="|";
+}
+function htmlchar(s) { 
+    gsub("&#163;","£",s); 
+    gsub("&#165;","¥",s); 
+    gsub("U.S. \\$","USD",s); 
+    gsub("Aust \\$","AUD",s); 
+    gsub("Can \\$","CAD",s); 
+    gsub("U.K. £","UKL",s); 
+    gsub("¥en","YEN",s); 
+    gsub("SFranc","FRS",s); 
+    gsub("Euro","ignore",s); 
+    gsub("FFranc","ignore",s); 
+    gsub("DMark","ignore",s); 
+    return(s);
+} 
+/^N/ { 
+    devise=htmlchar($2); 
+    i=0; 
+} 
+/^C/ { 
+    i++; 
+    if((i==9)&&(devise!="ignore")){ 
+        printf "(euro-update-devise %12f :%s)\n",$2,devise;
+    } 
+}'
+

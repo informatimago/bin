@@ -1,0 +1,3 @@
+#!/bin/bash
+unset LC_CTYPE
+exec /home/pjb/jobs/free-lance/aeat/2007/IVA2007/aeat390j

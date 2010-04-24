@@ -1,0 +1,8 @@
+#!/bin/sh
+cd ~
+[ -d backups ] || mkdir backups
+STAMP=`date +%Y%m%d%H%M%S`
+tar zcf  backups/dot-files-$STAMP-$$.tar.gz   .??*
+rm -f .??*~
+find backups/dot-files-* -mtime 7 -exec rm -f {} \;
+exit 0

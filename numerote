@@ -1,0 +1,41 @@
+#!/bin/csh
+
+	set tr=/tmp/numerote.$$
+	set tl=/tmp/numelist.$$
+
+	sed -e '1,/NUMEROTE_\DEBUT/d' -e '/NUMEROTE_\FIN/,$d' < $0 > $tr
+	chmod 755 $tr
+
+	if ( $#argv != 2 ) then
+		echo usage: $0 source_dir destination_dir
+		exit 1
+	endif
+
+	set source=$1
+	set destination=$2
+
+	if ( ! -r $destination ) then
+		mkdir $destination
+	endif
+
+	find $source -type f -print > $tl
+	echo EOF >> $tl
+	$tr $destination < $tl > $destination.liste
+
+	exit 0
+
+NUMEROTE_DEBUT
+#!/bin/csh
+	set destination=$1
+	set n=1000
+	set f=$<
+	while ( $f != "EOF" )
+		echo $n $f
+		ln $f $destination/$n
+		@ n++
+		set f=$<
+	end
+	exit 0
+
+NUMEROTE_FIN
+

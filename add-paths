@@ -1,0 +1,26 @@
+#!/usr/bin/env clisp -q -ansi
+;; -*- mode: common-lisp -*-
+
+(defun split (separator string)
+  (delete ""
+	  (loop
+	   :for start = 0 :then (and next (1+ next))
+	   :for next = (and start (position separator string :start start))
+	   :while start
+	   :collect (subseq string start next))
+	  :test (function string=)))
+
+
+(let ((old-paths (split #\: (pop ext:*args*)))
+      (new-paths (reverse ext:*args*)))
+  (if (endp old-paths)
+      (setf old-paths new-paths)
+    (dolist (new-path new-paths)
+      (unless (member new-path old-paths :test (function string=))
+	(push new-path old-paths))))
+  (format t "~{~A~^:~}~%" old-paths))
+
+(ext:exit 0)
+
+	   
+	 	

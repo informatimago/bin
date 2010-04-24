@@ -1,0 +1,2 @@
+#!/bin/bash
+sudo ssh -L 119:news.free.fr:119 pjb@free.informatimago.com

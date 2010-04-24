@@ -1,0 +1,35 @@
+#!/bin/bash
+
+function du {
+    /usr/bin/du -s -b $@
+}
+
+directory="$1"
+shift
+if [ ${directory} = . ] ; then
+	directory="`pwd`"
+fi
+
+size=`du ${directory} | sed -e "s:${directory}::"`
+oldsize=-1
+
+while [ $size -ne $oldsize  ] ; do
+    while [ $size -ne $oldsize ] ; do
+        echo `date` --- $size
+        sleep 60
+        oldsize=${size}
+        sync
+        size=`du ${directory} | sed -e "s:${directory}::"`
+    done
+    echo `date` --- $size
+
+    # let's confirm.
+    sleep 300
+    size=`du ${directory} | sed -e "s:${directory}::"`
+done
+
+# execute the remainder command
+$@
+
+
+#END

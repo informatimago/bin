@@ -1,0 +1,9 @@
+#!/bin/sh 
+while read word ; do
+	echo '	<dt><a name="dict/'$word'"><b>'$word'</b></a>'
+	echo "	<dd>Xxxx."
+	echo "	<p>"
+	echo "	"
+done
+
+

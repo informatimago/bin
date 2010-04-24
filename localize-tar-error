@@ -1,0 +1,37 @@
+#!/bin/sh
+echo 'Initializing...'
+
+pname=`basename "$0"`
+awkscript=/tmp/$pname.$$.awk
+
+cat >$awkscript <<EOF
+BEGIN{
+	position=0;
+	nbfiles=0;
+}
+
+{
+	printf "%9d %s\n",\$3,\$6;
+	size=\$3;
+	if(size%512==0){
+		position+=512+size;
+	}else{
+		position+=512*(1+((size+511)/512));
+	}
+	nbfiles++;
+}
+
+END{
+	printf "nbfiles=  %8d\n",nbfiles;
+	printf "position= %8d\n",position;
+	printf "block=    %8d\n",position/512;
+}
+
+EOF
+
+echo 'Starting...'
+
+exec awk -f $awkscript
+
+
+

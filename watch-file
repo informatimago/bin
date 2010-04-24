@@ -1,0 +1,19 @@
+#!/bin/csh -f
+
+if ( $#argv != 2 ) then
+	echo usage: $0 file command
+	exit 1
+endif
+
+
+set file="$1"
+set command="$2"
+set oldls="`/bin/ls -l $file`"
+set newls="`/bin/ls -l $file`"
+while ( "$newls" == "$oldls" )
+	sleep 60
+	set newls="`/bin/ls -l $file`"
+end
+$command
+
+#END

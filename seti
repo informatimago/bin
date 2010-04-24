@@ -1,0 +1,38 @@
+#!/bin/bash
+
+SETIATHOME=$HOME/bin/LINUX-i386/setiathome-3.08
+
+cd $HOME/setiathome/1
+$SETIATHOME -nice 20 </dev/null >/dev/null 2>&1 &
+disown > /dev/null 2>&1 || true
+
+cd $HOME/setiathome/2
+$SETIATHOME -nice 20 </dev/null >/dev/null 2>&1 & 
+disown > /dev/null 2>&1 || true
+
+exit 0
+#END#
+
+
+cat >~/bin/seti <<'EOF'
+#!/bin/bash
+cd $HOME/setiathome
+$HOME/bin/setiathome -nice 20 </dev/null >/dev/null 2>&1 &
+disown > /dev/null 2>&1 || true
+EOF
+cat >>~/.crontab <<'EOF'
+12,42 *  *  *  *  $HOME/bin/seti
+EOF
+crontab ~/.crontab
+
+
+cat >~/bin/kernel-start<<EOF
+#!/bin/bash
+cd $HOME/.kernel
+PATH=.:$PATH
+kernel -nice 20 </dev/null >/dev/null 2>&1 &
+disown >/dev/null 2>&1 || true
+#END#
+EOF
+
+#### seti                             --                     --          ####

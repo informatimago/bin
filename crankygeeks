@@ -1,0 +1,17 @@
+#!/bin/bash
+dir=/alternate/movies/crankygeeks
+download_only=0
+if [ $1 = "--download-only" ] ; then
+    download_only=1
+    shift
+fi
+n=$1 ; shift
+nnn=$(printf "%03d" $n)
+cd $dir
+if [ -s "$dir/crankygeeks.${nnn}.wmv" ] ; then
+    mplayer -ontop -af volume=+6db $dir/crankygeeks.${nnn}.wmv
+else
+    wget http://zdpub.vo.llnwd.net/o2/crankygeeks/episode${nnn}/crankygeeks.${nnn}.wmv -O  "$dir/crankygeeks.${nnn}.wmv" \
+    && [ $download_only -eq 0 ] \
+    && mplayer -ontop -af volume=+6db "$dir/crankygeeks.${nnn}.wmv"
+fi

@@ -1,0 +1,107 @@
+#!/bin/bash
+# -*- coding:utf-8 -*-
+#*****************************************************************************
+#FILE:               clall
+#LANGUAGE:           sh
+#SYSTEM:             POSIX
+#USER-INTERFACE:     NONE
+#DESCRIPTION
+#    
+#    Executes a form in various Common Lisp implementations.
+#    
+#AUTHORS
+#    <PJB> Pascal Bourguignon <pjb@informatimago.com>
+#MODIFICATIONS
+#    2007-07-05 <PJB> Added this header.
+#BUGS
+#LEGAL
+#    GPL
+#    
+#    Copyright Pascal Bourguignon 2007 - 2007
+#    
+#    This program is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU General Public License
+#    as published by the Free Software Foundation; either version
+#    2 of the License, or (at your option) any later version.
+#    
+#    This program is distributed in the hope that it will be
+#    useful, but WITHOUT ANY WARRANTY; without even the implied
+#    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#    PURPOSE.  See the GNU General Public License for more details.
+#    
+#    You should have received a copy of the GNU General Public
+#    License along with this program; if not, write to the Free
+#    Software Foundation, Inc., 59 Temple Place, Suite 330,
+#    Boston, MA 02111-1307 USA
+#*****************************************************************************
+
+script=/tmp/clall-$$.lisp
+trap 'rm $script' 0
+version='(list (lisp-implementation-type) (lisp-implementation-version))'
+
+show='
+#+gcl (defmacro ignore-errors (&body body) `(progn ,@body))
+
+(defmacro show (&body expressions)
+  (let ((width (reduce (function max)
+                       (mapcar (lambda (expr) (length (format nil "~S" expr)))
+                               expressions)
+                       :initial-value 0)))
+    (declare (ignorable width))
+    `(progn
+       ,@(mapcar
+          (lambda (expr) 
+            `(let (vals condi output error)
+               (setf output (with-output-to-string (*standard-output*)
+                  (setf error (with-output-to-string (*error-output*)
+                     (multiple-value-setq (vals condi)
+                            (ignore-errors (multiple-value-list ,expr)))))))
+               (format t "~%Evaluation of~%~S~%" (quote ,expr))
+               (if (string= "" output)
+                 (format t "produced nothing on *STANDARD-OUTPUT*~%")
+                 (progn
+                    (format t "produced the following *STANDARD-OUTPUT* (lines excluded):")
+                    (format t "~&~V,,,'\''-A~%" 72 "")
+                    (format t "~A" output)
+                    (format t "~&~V,,,'\''-A~%" 72 "")))
+               (if (string= "" error)
+                 (format t "produced nothing on *ERROR-OUTPUT*~%")
+                 (progn
+                    (format t "produced the following *ERROR-OUTPUT* (lines excluded):")
+                    (format t "~&~V,,,'\''-A~%" 72 "")
+                    (format t "~A" error)
+                    (format t "~&~V,,,'\''-A~%" 72 "")))
+              (if (null condi)
+                (format t "produced no error~%")
+                (format t "produced the following error:~%  ~S~%  ~:*~A~%" condi))
+              (format t "produced the following values:~%--> ~{~S~^ ;~%    ~}~2%" 
+                      vals)))
+          expressions)
+       (values))))
+'
+
+
+echo "(format t \"~%~V,,,'=A~%\" 72 \"\")" >  $script
+echo "(format t \"~{~A ~}~2%\" $version)"  >> $script
+echo "$show"                               >> $script
+#echo "(ignore-errors (show $@))"           >> $script
+for arg ; do echo "(show $arg)" ; done     >> $script
+echo "#+clisp (ext:quit) #+sbcl (sb-ext:quit) #+cmu (ext:quit) #+gcl (lisp:quit) #+ecl (si:quit) " >> $script
+#  #+allegro (excl:exit) ;; This dumps an "; Exiting" message...
+
+
+echo ''
+type -p clisp >/dev/null && clisp -ansi  -q  -norc                                   $script
+type -p sbcl  >/dev/null && sbcl  --noinform --no-userinit                   --load  $script
+type -p lisp  >/dev/null && lisp   -noinit -eval '(setq *load-verbose* nil)'  -load  $script
+type -p gcl   >/dev/null && gcl   -batch                                      -load  $script
+type -p ecl   >/dev/null && ecl              -norc                            -shell $script
+type -p alisp >/dev/null && alisp -batch -q                                   -L     $script -kill
+echo ''
+echo '========================================================================'
+echo ''
+exit 0
+
+# clall \
+# '(let ((*read-suppress* nil)) (read-from-string "#.(values) 42"))' \
+# '(let ((*read-suppress* t  )) (read-from-string "#.(values) 42"))'

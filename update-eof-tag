@@ -1,0 +1,112 @@
+#!/usr/bin/perl -w
+use strict;
+
+
+### UTILITIES:
+
+sub basename{
+    my ($name)=@_;
+    my ($basename);
+    if($name=~/\//){
+        ($basename)=($name=~/.*\/([^\/][^\/]*)$/);
+    }else{
+        $basename=$name;
+    }
+    return($basename);
+}#basename;
+
+
+sub date{
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)
+        =localtime(time());
+    return(sprintf("%04d-%02d-%02d %02d:%02d:%02d",
+                   1900+$year,1+$mon,$mday,$hour,$min,$sec));
+}#date;
+
+
+my($kind_c_comment,$kind_hash_comment)=(0,1);
+sub fileKind{
+    my($name)=@_;
+    my($line,$kind);
+
+    # first, let's see the name.
+    if(($name=~/.*\.[hcm]/i)
+       ||($name=~/.*\.[hc]\+\+/i)
+       ||($name=~/.*\.[hc]pp/i)){
+        return($kind_c_comment);
+    }elsif(($name=~/.*makefile.*/i)
+           ||($name=~/.*\.mak$/i)
+           ||($name=~/.*\.make$/i)){
+        return($kind_hash_comment);
+    }else{
+        ### Here we could work some more to add more kinds of comments. 
+    }
+
+    # then, let's see what file(1) think of it.
+    open RESULT,"file $name|";
+    $line=<RESULT>;
+    close RESULT;
+    ($kind)=($line=~/.*: (.*)/);
+    if(($kind=~/.* shell .*/)
+       ||($kind=~/.*perl.*/)
+       ||($kind=~/.*awk.*/)){
+        return($kind_hash_comment);
+    }else{
+        ### Here we could work some more to add more kinds of comments. 
+    }
+
+    # finaly, let's return a default kind.
+    return($kind_c_comment);
+}#fileKind;
+
+
+
+### SUBROUTINES:
+
+sub processSourceFile{
+    my($name,$date,$user)=@_;
+    my($position,$tagpos)=(0,-1);
+    my $kind=&fileKind($name);
+
+    open SOURCE,"+< $name";
+    $position=tell SOURCE;
+    while(<SOURCE>){
+        my $line=$_;
+        chomp($line);
+        if(($tagpos>=0)&&($line ne '')){
+            $tagpos=-2;
+        }
+        if($kind==$kind_hash_comment){
+            if($line =~ /^\#\#\#\# .* \-\- .* \-\- .* \#\#\#\#$/){
+                $tagpos=$position;
+            }
+        }else{#}elsif($kind==$kind_c_comment){
+            if($line =~ /^\/\*\*\* .* \-\- .* \-\- .*\*\*\*\/$/){
+                $tagpos=$position;
+            }
+        }
+        $position=tell SOURCE;
+    }
+
+    seek SOURCE,$tagpos,0;
+    my $basename=&basename($name);
+    if($kind==$kind_hash_comment){
+        printf SOURCE "#### %-32s -- %s -- %s ####\n",$basename,$date,$user;
+    }else{#}elsif($kind==$kind_c_comment){
+        printf SOURCE "/*** %-32s -- %s -- %s ***/\n",$basename,$date,$user;
+    }
+    truncate SOURCE,tell SOURCE;
+    close SOURCE;
+}#processSourceFile;
+
+
+
+my $file;
+foreach $file (@ARGV) {
+    printf "Processing %s...\n",$file;
+    &processSourceFile($file,&date(),'PJB');
+}
+printf "Done.\n";
+
+__END__
+

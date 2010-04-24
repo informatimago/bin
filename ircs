@@ -1,0 +1,13 @@
+#!/bin/bash
+i=0
+for channel in \#gnustep \#scsh \#scheme \#macdev \#emacs \#MacOSX \#lisp ; do
+    (echo "/nick pjb-$i";echo "/server irc.freenode.net";echo "/join $channel")\
+    > /tmp/${USER}.irc.$i
+    pjb-xterm -geometry 100x24+0+$(($i*40)) \
+        -e "irc -q pjb-$i irc.freenode.net -c $channel" &
+    i=$(($i+1))
+done
+exit 
+pjb-xterm -geometry 100x24 -e "irc -q pjb irc.freenode.net -c #gnustep" &
+
+#### ircs                             -- 2003-12-24 00:28:45 -- pascal   ####

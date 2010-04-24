@@ -1,0 +1,21 @@
+#!/bin/bash
+for t in \
+    root@thalassa \
+    root@larissa \
+    root@hermes \
+    \
+    root@janus-1 \
+    root@janus-2 \
+    root@janus-3 \
+    root@janus-4 \
+    \
+    pascal@janus-4 \
+    pascal@sirius \
+    pascal@despina \
+    pascal@naiad \
+    pascal@hyacinte.dyndns.org
+do
+    pjb-xterm $t -e ssh $t 
+done
+
+#### xterms                           -- 2004-01-24 01:19:08 -- pascal   ####

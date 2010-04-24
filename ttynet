@@ -1,0 +1,27 @@
+#!/bin/bash
+delay=5
+while sleep $delay ; do
+    ifconfig eth0
+done \
+| awk -v delay=$delay '
+BEGIN{ 
+    rx=0;
+    tx=0;
+    FS="[\t :]+"; 
+    count=1;
+}
+/RX bytes:/{
+    count--;
+    if(count==0){
+        printf "---------- ----------\n";
+        printf "RX bytes/s TX bytes/s\n";
+        printf "---------- ----------\n";
+        count=20;
+    }
+    nrx=$4;
+    ntx=$9; 
+    printf "%10d %10d\n",(nrx-rx)/delay,(ntx-tx)/delay;
+    rx=nrx;
+    tx=ntx;
+}
+'

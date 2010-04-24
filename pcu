@@ -1,0 +1,20 @@
+#!/bin/bash
+
+alias man='echo PCU: Please use "person" instead. #'
+alias person='command man'
+
+alias no='command yes n #'
+
+alias mail='echo PCU: Please use "gendre" instead. #'
+alias gendre='command mail'
+
+alias touch='echo PCU: To "touch" is inappropriate in a PC environment. #'
+
+alias more='echo PCU: More, more, always "more"!  Can'\\\''t you try "less" for once? #'
+
+alias latex='echo PCU: Please use "kleenex" instead. #'
+alias kleenex='command latext'
+
+alias kill='echo PCU: How retrograde!  Please use "euthanise" instead. #'
+alias euthanise='command kill'
+

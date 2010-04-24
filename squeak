@@ -1,0 +1,43 @@
+#!/bin/sh
+
+if [ "$DISPLAY" = :0.0 ] ; then
+	DISPLAY=unix:0
+	XSHM=-xshm
+else
+	XSHM=
+fi
+
+ARCH=`uname -m`-`uname -s|tr '[A-Z]' '[a-z]'`-`uname -r`
+VAR=
+#VAR=-udp
+squeak=/usr/local/languages/squeak-2.0
+
+if [ $# -eq 0 ] ; then
+    # SqueakVM-2.0-$ARCH$VAR 
+	exec $squeak/bin/squeak \
+		-display $DISPLAY $XSHM -lazy -memory 16m \
+        $squeak/image/Squeak2.0.image
+else
+    #SqueakVM-2.0-$ARCH$OPT
+	exec $squeak/bin/squeak $*
+fi
+
+exit 
+
+<options> are:
+-display <dpy>       display on <dpy> (default: $DISPLAY)
+-xshm                enable X shared memory extensions
+-notitle             turn off the Squeak window title bar
+-fullscreen          occupy the entire screen
+-lazy                go to sleep when main window unmapped
+-memory <size>[mk]   set initial memory size (default: 5m)
+-version             print version information, then exit
+
+Notes:
+<imageName> defaults to 'squeak.image'.
+Using 'unix:0' for <dpy> may improve local display performance.
+-xshm only works when Squeak is running on the X server host.
+
+
+
+#### squeak                           --                     --          ####

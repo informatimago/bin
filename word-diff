@@ -1,0 +1,19 @@
+#!/bin/bash
+tmp=/tmp/word-diff-$$
+trap "/bin/rm -rf $tmp" 0
+mkdir "$tmp"
+options=""
+for arg ; do
+    if [ -f "$arg" ] ; then
+        base="$(basename $arg)"
+        sed -e 's/[ ][ ]*/ /g' -e 's/^ *//' -e 's/ *$//' < "$arg" \
+            | tr ' ' '\012' > "$tmp/$base"
+    else
+        options="$options $arg"
+    fi
+done
+diff $options "$tmp/"*
+#END#
+
+
+    

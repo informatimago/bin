@@ -1,0 +1,7 @@
+#!/bin/bash
+mv ~/torrent/queue/* ~/torrent/processing/
+find ~/torrent/processing/ -print \
+| while read f ; do
+    bittorrent-console --display_interval 60 --save_in ~/torrent/incoming/ "$f" &
+done
+

@@ -1,0 +1,49 @@
+#!/bin/csh -f
+	set usage=("$0 usage:" "	$0 [ -only_full_upper_case ] pathname")
+	set fl=()
+	set ofuc=0
+	foreach op ( $* )
+		switch ( $op )
+		case -only_full_upper_case:
+			set ofuc=1
+			breaksw
+		case -*:
+			foreach l ( $usage )
+				echo $l
+			end
+			exit 1
+		default:
+			set fl=($fl $op)
+			breaksw
+		endsw
+	end
+	if ( $#fl == 0 ) then
+		foreach l ( $usage )
+			echo $l
+		end
+		exit 1
+	endif
+	foreach fn ( $fl )
+		set h=${fn:h}
+		if ( "$h" == "$fn" ) then
+			set h=
+		else
+			set h=${h}/
+		endif
+		if ( $ofuc ) then
+			if ( `echo ${fn:t}|tr -cd 'a-z'` == "" ) then
+				set ln="${h}`echo ${fn:t}|tr 'A-Z' 'a-z'`"
+			else
+				set ln="$fn"
+			endif
+		else
+			set ln="${h}`echo ${fn:t}|tr 'A-Z' 'a-z'`"
+		endif
+		if ( "$fn" != "$ln" ) then
+			mv $fn $ln
+		endif
+	end
+
+#end
+
+

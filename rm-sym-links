@@ -1,0 +1,3 @@
+#!/bin/bash
+ls -l |grep -e '->'|awk '{print $9}'|xargs rm
+

@@ -1,0 +1,23 @@
+#!/bin/sh
+
+if [ $# -ne 2 ] ; then
+    echo usage: $0 clear-text-isolatin1-message pgp-message-from-macintosh
+    exit 1
+fi
+
+if [ ! -r "$2" ] ; then
+    echo "$0 error: '$2' should be a readable PGP encrypted file."
+    exit 2
+fi
+if [ -e "$1" ] ; then
+    echo "$0 error: the output file '$1' should not exist."
+    exit 3
+fi
+
+
+tmp=/tmp/m$$
+pgp "$2" -o $tmp
+lc -u < $tmp | nema -from macintosh -to isolatin1  > "$1"
+rm -f $tmp
+exit 0
+

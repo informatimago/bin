@@ -1,0 +1,27 @@
+#!/bin/bash
+pname=`basename $0`
+prefix=/usr/local
+
+if [ $# -ne 2 ] ; then
+    echo "${pname} usage:"
+    echo "    ${pname} /tmp/rvplayer5.0/ /local/app/netscape/"
+    exit 1
+fi
+
+src="$1"
+dst="$2"
+
+if [ ! -x "${src}/libra28_8.so" ] ; then
+    echo "${pname}: First directory '${src}' does not contain 'libra28_8.so'!"
+    exit 2
+fi
+
+if [ ! -d "${dst}/plugins" ] ; then
+    echo "${pname}: Second directory '${dst}' does not contain 'plugins/'!"
+    exit 2
+fi
+
+umask 022
+cd "${src}"
+cp RAObserver.class RAPlayer.class "${dst}/plugins/"
+

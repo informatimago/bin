@@ -1,0 +1,54 @@
+#!/bin/bash
+
+usage () {
+    echo "$0 usage:"
+    echo ""
+    echo "    cd /usr/src/linux ; $0 [-h|--help|<TAG>]"
+    echo ""
+    echo "  Copies the following files from the current directory to /boot,"
+    echo "  appending -<TAG> to the names."
+    echo "      vmlinux" #arch/i386/boot/bzImage
+    echo "      System.map"
+    echo "      .config"
+    echo "      include/linux/autoconf.h"
+    echo "      include/linux/version.h"
+}
+
+
+for arg ; do
+    case "$arg" in
+    -h|--help)
+        usage
+        exit 0
+        ;;
+    -*)
+        echo "$0: Invalid option '$arg'."
+        usage 
+        exit 1
+        ;;
+    *)
+        if [ -n "$tag" ] ; then
+            echo "$0: Tag '$tag' already given. '$arg' is supperfluous."
+            usage
+            exit 1
+        fi
+        tag="$arg"
+        ;;
+    esac
+done
+
+if [ -z "$tag" ] ; then
+    echo "$0: Missing a tag argument"
+    usage
+    exit 1
+fi
+
+cp arch/i386/boot/bzImage         /boot/vmlinuz-${tag}
+cp System.map                     /boot/System.map-${tag}
+tar zcf /boot/config-${tag}.tar.gz \
+    .config \
+    include/linux/autoconf.h \
+    include/linux/version.h 
+ln -sf System.map-${tag}           /boot/System.map
+
+#END#

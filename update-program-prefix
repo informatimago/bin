@@ -1,0 +1,80 @@
+#!/bin/sh
+
+pname="$0"
+pname="`basename $pname`"
+
+function usage {
+    echo "Usage: $pname prefix bindir"
+    echo "bindir should be the binary installation directory,"
+    echo ''
+    echo 'This command was created to setup correctly the path used in '
+    echo 'scripts that launch some other program with exec, like for '
+    echo 'Java programs.'
+    echo ''
+	echo 'Usage: update-program-prefix $prefix $bindir'
+	echo 'Usage: check-program-prefix          $bindir'
+    echo ''
+}
+
+
+
+
+case "$pname" in
+
+update-program-prefix)
+	if [ $# != 2 ] ; then
+        usage
+		exit 1
+	fi
+	
+	prefix="$1"
+	bindir="$2"
+	
+	if [ ! -d $bindir ] ; then
+		echo "$pname error: $bindir is not a directory."
+        usage
+		exit 2
+	fi
+	
+	for script in `file "$bindir"/*|grep script|sed -e 's/:.*//'` ; do
+		mv "$script" "${script}~" \
+		&& sed -e 's/exec[     ]\([^     ]*\)[     ]/exec '"${prefix}"'\1 /' \
+			< "${script}~" > "$script" \
+		&& rm "${script}~"
+		chmod 755 "${script}"
+	done
+	
+	exit 0
+    ;;
+	
+check-program-prefix)
+	if [ $# != 1 ] ; then
+        usage
+		exit 1
+	fi
+	
+	bindir="$1"
+	
+	if [ ! -d $bindir ] ; then
+		echo "$pname error: $bindir is not a directory."
+        usage
+		exit 2
+    fi
+	
+	for script in `file "$bindir"/*|grep script|sed -e 's/:.*//'` ; do
+		echo "`basename ${script}`	`grep 'exec ' "$script"|sed -e 's/exec[     ]\([^     ]*\)[     ].*/\1/'`"
+	done
+	
+	exit 0
+	;;
+
+*)
+	echo "${pname} error: Please update your sym-links..."
+    usage
+	exit 1
+	;;
+esac
+exit 0
+
+
+

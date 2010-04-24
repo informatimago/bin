@@ -1,0 +1,24 @@
+#!/bin/csh
+
+pft << FIN
+
+0 currentwindowbounds Nonretained window
+dup frontwindow currentwindowlevel exch setwindowlevel
+dup windowdeviceround
+setexposurecolor
+obscurecursor
+Above 0 2 index orderwindow
+0 currentmouse
+{ buttondown { exit } { yield
+    0 currentmouse 2 index eq exch 3 index eq and not
+    { 500 { yield buttondown { exit } if } repeat obscurecursor } if
+  } ifelse } loop
+pop pop
+{ buttondown { yield } { exit } ifelse } loop
+Out 0 2 index orderwindow
+termwindow
+
+FIN
+
+exit 0
+#end

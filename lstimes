@@ -1,0 +1,26 @@
+#!/bin/csh -f
+
+echo '--creation--	modification	---access---	----name----'
+if ( "$*" == "" ) then
+	set arguments=(-d *)
+else
+	set arguments=($*)
+endif
+ls -lc $arguments \
+| sed -e 's/...............................\(............\) \(.*\)/\1/' \
+> /tmp/lstime.$$.c
+ls -l $arguments \
+| sed -e 's/...............................\(............\) \(.*\)/\1/' \
+> /tmp/lstime.$$.m
+ls -lu $arguments \
+| sed -e 's/...............................\(............\) \(.*\)/\1	\2/' \
+> /tmp/lstime.$$.a
+lcat -T  /tmp/lstime.$$.c /tmp/lstime.$$.m /tmp/lstime.$$.a
+rm /tmp/lstime.$$.[cma] 
+
+#end
+
+
+
+
+

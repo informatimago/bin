@@ -1,0 +1,27 @@
+#!/usr/local/bin/clisp -ansi -q   -Kfull  -E iso-8859-1
+;; -*- mode: lisp -*-
+
+(defparameter *cookie-file* "/usr/local/lib/cookies/bopcs.cookies")
+
+(case (length ext:*args*)
+  ((0))
+  ((1) (setf *cookie-file* (first ext:*args*)))
+  (otherwise
+   (format t "~&Usage: ~A [ cookie-file ] < cookie-data ~&"  
+	   (FILE-NAMESTRING *load-pathname*))
+   (format t "Default cookie file is ~A~&"
+	   *cookie-file*)
+   (ext:quit 1)))
+
+(handler-case
+ (with-open-file (out *cookie-file*
+			 :direction :output
+			 :if-does-not-exist :error
+			 :if-exists :append)
+		    (loop
+		     :for line = (read-line *standard-input* nil nil)
+		     :while line 
+		     :do (format out "~A~%" line)
+		     :finally  (format out "~%#~%")))
+ (error (err) (format t "~%~A~%" err)))
+(ext:quit 0)

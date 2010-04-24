@@ -1,0 +1,139 @@
+#!/local/bin/perl
+
+sub main{
+	&generateIndexHeader();	
+
+	@prev=();
+	@current=();
+	@next=();
+	
+	while(<>){
+		chop;
+		if($_ =~ /^#/){
+			next;
+		}
+		($date,$title,@list)=split(/\*/);
+		($month=$date)=~s/(....)(..)/$2/;
+		($year=$date)=~s/(....)(..)/$1/;
+		$file='';
+		foreach $element (@list){
+			if($element=~/.*TXT/){		
+				($element=$element)=~tr[A-Z][a-z];
+				if($file eq ''){
+					$file=$element;
+				}
+			}
+		}
+		$basename=&basename($file);
+		printf "%s	%s	%s	%s\n",$file,$basename,$month."/".$year,$title;
+		@prev=@current;
+		@current=@next;
+		@next=($basename,$month,$year,$title);
+		if($#current>0){
+			&generateIndex(@current);
+			&generateHtml(@current,$prev[0],$next[0]);
+		}
+	}
+	@prev=@current;
+	@current=@next;
+	&generateIndex(@current);
+	&generateHtml(@current,$prev[0],'');
+	&generateIndexTrailer();	
+}#main
+
+
+sub basename{
+	local($name)=@_;
+	local($result);
+	($result=$name)=~s/\.[^\.]*$//;
+	($result=$result)=~s:/.*::;
+	$result;
+}#basename
+
+
+sub generateIndexHeader{
+	open(INDEX,">../html/unes.html");
+	printf INDEX <<EOF
+<html>
+<head>
+<title>30 Ans : Les Unes</title>
+</head>
+<body>
+EOF
+;
+}#generateIndexHeader;
+
+
+sub generateIndex{
+	local($name,$month,$year,$title)=@_;
+	
+	printf INDEX <<EOF
+	<p><code>$month/$year</code> <a href="$name.html">$title</a>
+EOF
+;
+}#generateIndex
+
+
+sub generateIndexTrailer{
+	printf INDEX <<EOF
+<hr>
+<p><center>| <a href="index.html">Index</a> |
+</body>
+</html>
+EOF
+;
+	close(INDEX);
+}#generateIndexTrailer;
+
+
+sub generateHtml{
+	local($name,$month,$year,$title,$prev,$next)=@_;
+
+	open(PAGE,">../html/$name.html");
+	printf PAGE <<EOF
+<html>
+<head>
+<title>30 Ans : $month/$year : $title</title>
+</head>
+<body>
+<h2 align=center>$title</h2>
+<h3 align=center>$month/$year</h3>
+<p>
+EOF
+;
+
+	open(TEXT,"<../txt/$name.txt");
+	while(<TEXT>){
+		($line=$_)=~s/\@([^\@]*)\@([^\@]*)\@/$1/g;
+		printf PAGE "$line";
+	}
+	close(TEXT);
+
+
+	printf PAGE "<br>\n<p align=center>";
+	if($prev ne ''){
+		printf PAGE 
+		"| <a href=\"%s.html\">Pr&eacute;c&eacute;dant</a> \n",$prev;
+	}
+	printf PAGE "| <a href=\"unes.html\">Index</a> \n";
+	if($next ne ''){
+		printf PAGE "| <a href=\"%s.html\">Suivant</a> \n",$next;
+	}
+	printf PAGE "|\n</body>\n</html>\n";
+	close(PAGE);
+}#generateHtml
+
+
+
+
+&main;
+__END__
+
+
+
+
+
+
+
+
+

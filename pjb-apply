@@ -1,0 +1,24 @@
+#!/bin/csh
+#******************************************************************************
+#FILE
+#	apply
+#DESCRIPTION
+#	This script applies a command to a list of files
+#AUTHORS
+#	<PJB> Pascal J. Bourguignon
+#MODIFICATIONS
+#	1992/07/08 <PJB> Creation.
+#LEGAL
+#	Copyright Pascal J. Bourguignon 1992 - 1992
+#	All rights reserved.
+#******************************************************************************
+
+set command="$1"
+shift
+foreach file ( $* )
+	echo $command $file > /dev/tty
+	$command $file
+	echo ""
+end
+
+#END

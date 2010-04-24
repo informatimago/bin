@@ -1,0 +1,36 @@
+#!/bin/bash
+tty=/dev/tty
+phone=2125550690
+while [ $# -gt 0 ] ; do
+    case "$1" in
+    -tty)
+        shift
+        tty="$1"
+        ;;
+    -trace)
+        ;;
+    -phone)
+        shift
+        phone="$1"
+        ;;
+     -*)
+        ;;
+     *)
+        ;;
+     esac
+     shift
+done
+
+CLEAR="c"
+HOME="[H"
+CR=""
+NL="\
+"
+BS=""
+FOURTY_SPACES='                                        '
+
+echo $CLEAR > $tty
+while true ; do
+    echo "$HOME$GREEN$BLACK_BACK$FOURTY_SPACES$FOURTY_SPACES$CR$phone" >$tty
+    randchar -w 80 -l 22 -r 48 57 >$tty
+done

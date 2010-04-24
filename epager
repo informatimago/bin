@@ -1,0 +1,20 @@
+#!/bin/bash
+HEIGHT=${HEIGHT:=25}
+eof=0
+while [ $eof -eq 0 ] ; do
+    i=0
+    while [ $i -lt $HEIGHT -a $eof -eq 0 ] ; do
+        line=''
+        read line 
+        if [ $? -eq 0 ] ; then
+            printf "%s\n" "$line" 
+        else
+            eof=1
+        fi
+        i=$(( $i + 1 ))
+    done
+    read -p 'Press RET to continue, q RET to abort:' rep < /dev/tty
+    if [ "$rep" = 'q' ] ; then
+        eof=1
+    fi
+done

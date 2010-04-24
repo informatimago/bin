@@ -1,0 +1,4 @@
+#!/bin/bash
+cd /local/ComSwiki
+./squeak -headless squeak.image &
+exit 0

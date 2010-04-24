@@ -1,0 +1,4 @@
+#!/bin/sh
+(cat;echo '')|sed -e 's:\(.*\):<b>\1</b><a href="#dict/\1"><img src="../images/d.tiff" alt=" definition"></a>:'|tr -d '\012'
+#(cat;echo '')|sed -e 's:\(.*\):<a href="#dict/\1"><b>\1</b></a>:'|tr -d '\012'
+

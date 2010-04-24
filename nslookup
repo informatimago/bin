@@ -1,0 +1,22 @@
+#!/bin/bash
+case "$1" in
+-query=*) type=${1/-query=} ; shift ;;
+*)        type=A ;;
+esac
+name="$1"
+shift
+if [ $# -gt 0 ] ; then
+   server="$1"
+   shift
+else
+    server=
+fi
+if [ "x$name" = "x-" ] ; then
+    /usr/bin/nslookup -silent  $server
+else
+    echo name=$name server=$server
+    (echo set type=$type ; echo $name ) \
+    | /usr/bin/nslookup -silent $server \
+    | sed -e 's/> //g'
+fi
+

@@ -1,0 +1,74 @@
+#!/bin/bash
+
+cd /tmp
+
+#ADDRESS=`snmpget router public ip.ipRouteTable.ipRouteEntry.ipRouteNextHop.62.0.0.0 |tr ' ' '\012' | tail -1`
+ADDRESS=`snmptable router public ip.ipRouteTable|grep 'direct        local'|grep -v 10.1.0.1|awk '{print $7;}'`
+
+sed -e "s/ADDRESS/$ADDRESS/g" \
+    -e "s/DATESERIAL/`date +%Y%m%d%H`/g" \
+    < zone.com.informatimago.in > zone.com.informatimago
+
+MAKE_NCFTPPUT='
+BEGIN{
+    h="";
+    u="";
+    p=""; 
+    s=0;
+}
+
+/^machine/{ 
+    if($2==host){
+        h=host;
+        s=1;
+    }
+}
+
+/^login/{
+    if(s==1){
+        u=$2;
+        s=2;
+    }
+}
+/^password/{
+    if(s==2){
+        p=$2;
+        s=3;
+    }
+}
+END{
+    printf "host %s\nuser %s\npass %s\n",h,u,p;
+}
+'
+
+randchar -w 60 -l 1 -r 65 90 > token.txt
+
+
+umask 077
+
+awk -v "host=triton.informatimago.com" "$MAKE_NCFTPPUT" < ~/.netrc > ~/.ncftpput
+ncftpput -f ~/.ncftpput -m -v -r 5 -z -y -R -S .tmp -U 022 /local/html token.txt
+
+mv token.txt token.key
+awk -v "host=hermes.afaa.asso.fr" "$MAKE_NCFTPPUT" < ~/.netrc > ~/.ncftpput
+ncftpput -f ~/.ncftpput -m -v -r 5 -z -y -R -S .tmp -U 022 /tmp zone.com.informatimago.com  token.key
+
+ssh root@hermes.afaa.asso.fr \( cp  /tmp/zone.com.informatimago /var/named/ \; make -C /var/named \)
+
+exit 0
+
+
+cd /tmp
+if [ -r token.key ] ; then
+    wget http://triton.neptune.informatimago.com/token.txt
+    if diff token.key token.txt > /dev/null 2>&1 ; then
+        rm token.txt
+    else
+        cp /var/named/db.neptune.informatimago.com.export /var/named/db.neptune.informatimago.com
+        make -C /var/named
+        rm token.txt token.key
+    fi
+fi
+
+   
+

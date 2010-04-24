@@ -1,0 +1,9 @@
+#!/bin/bash
+DATE=$(date +%Y%m%dT%H%M%S)
+fetch-pop -t ~/NEWMAIL-${DATE}.informatimago -s pop.informatimago.com -P 110 -u pjb -p g1ekquar
+fetch-pop -t ~/NEWMAIL-${DATE}.voyager       -s pop.intergruas.com    -P 110 -u pjb -p g1ekquar
+fetch-pop -t ~/NEWMAIL-${DATE}.ogamita       -s pop.ogamita.com       -P 110 -u pjb -p '2dollars!'
+cat ~/NEWMAIL-${DATE}.{informatimago,voyager,ogamita} >> ~/NEWMAIL-${DATE}
+cp ~/NEWMAIL-${DATE}  ~/NEWMAIL-${DATE}.duplicate
+cat ~/NEWMAIL-${DATE} >> /var/spool/mail/pjb && echo 'Appended new mail to your mailbox.'
+

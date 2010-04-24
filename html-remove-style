@@ -1,0 +1,18 @@
+#!/bin/sh
+
+for f in $@ ; do
+    
+    echo "Processing $f..."
+    mv "$f" "$f~"
+    sed \
+        -e '/<STYLE>/,/<\/STYLE>/d' \
+        -e 's:</*[Ff][Oo][Nn][Tt][^<]*>::g' \
+        -e '/<!-- Advert banner-->/,/<!-- \/Advert banner-->/d' \
+        -e 's:<[Ll][Ii][Nn][Kk][^>]*[Hh][Rr][Re][Ff]="[^>"]*css"[^>]*>::g' \
+        < "$f~" > "$f"
+
+done
+echo "Complete."
+exit
+        -e 's/<link href="style.css"[^>]*>//g' \
+

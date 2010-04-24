@@ -1,0 +1,121 @@
+#!/bin/bash
+
+# Localize these. The -G option does nothing before Postfix 2.3.
+SENDMAIL="/usr/sbin/sendmail -G -i"
+EGREP="/bin/egrep"
+AWK="/usr/bin/awk"
+
+SPAMD_USER=amavis
+
+SPOOL_DIR="/var/spool/mail-filter"
+VIRUS_DIR="/var/spool/mail-filter/virus"
+SPAM_DIR="/var/spool/mail-filter/spam"
+MSG1="$SPOOL_DIR/message.$$.input"
+MSG3="$SPOOL_DIR/message.$$.output"
+
+# Number of *'s in X-Spam-level header needed to sideline message:
+# (Eg. Score of 5.5 = "*****" )
+SPAMLIMIT=7
+
+
+# Exit codes from <sysexits.h>
+EX_TEMPFAIL=75
+EX_UNAVAILABLE=69
+
+#!/bin/bash
+
+state=init
+sender=''
+recipients=()
+for arg ; do 
+    case $state in
+    init)
+        case $arg in
+        -f) state=sender ;;
+        --) state=recipient ;;
+        -*) true ;;
+        *) state=recipient ; recipients[${#recipients}]="$arg" ;;
+        esac
+        ;;
+    sender)
+        sender="$arg" 
+        state=init
+        ;;
+    recipient)
+        recipients[${#recipients}]="$arg" 
+        ;;
+    esac
+done
+
+# Start processing.
+cd "$SPOOL_DIR" || { echo "$SPOOL_DIR does not exist" ; exit $EX_TEMPFAIL ; }
+
+# Clean up when done or when aborting.
+trap "rm -f $MSG1 $MSG3" 0 1 2 3 15
+
+( echo "X-Envelope-From: $sender"
+  for recipient in ${recipients[@]} ; do
+    echo "X-Envelope-To:   $recipient"
+  done
+  cat) >"$MSG1" || { echo "Cannot save mail to file" ; exit $EX_TEMPFAIL ; }
+
+# $AWK 'BEGIN{IGNORECASE=1}/^$/{exit 0}/^Message-ID:/{print $0;exit 0}' <"$MSG1"
+#mid="$(grep -i -e '^Message-ID *:' "$MSG1"|head -1)"
+mid="message-id=$( $AWK 'BEGIN{IGNORECASE=1}/^$/{exit 0}/^Message-ID:/{print $2;exit 0}' <"$MSG1" )"
+
+#------------#
+# Anti Virus #
+#------------#
+
+if /usr/local/bin/clamdscan --config-file=/etc/mail/clamd.conf "$MSG1" ; then
+    # no virus
+    logger -p mail.info -t mail-filter -- "NO VIRUS in $mid, file=<$MSG1>"
+else
+    # mid="$(grep -i -e '^Message-ID *:' "$MSG1"|head -1)"
+    logger -p mail.info -t mail-filter -- "VIRUS in $mid, file=<$MSG1>"
+    mv "$MSG1" "$VIRUS_DIR/$(date +%Y%m%d-%H%M%S)-$$"
+    echo VIRUS
+    exit $EX_UNAVAILABLE
+fi
+
+#------------#
+# Anti Spam  #
+#------------#
+
+# Pipe message to spamc
+(echo 'X-ClamAV: No Virus detected' ; cat "$MSG1")\
+| /usr/bin/spamc -p 2527 -u $SPAMD_USER >"$MSG3"
+
+# Are there more than $SPAMLIMIT stars in X-Spam-Level header? :
+REGEXP="^X-Spam-Level[	 ]*:[	 ]*$(for (( i = $SPAMLIMIT ; i-- ; i==0 )) ; do echo -n '\*' ; done )"
+if $AWK "BEGIN{IGNORECASE=1;res=0;} \
+        /$REGEXP/{res=1;exit(res);} \
+        /^\$/{exit(res);} \
+        END{exit(res);}" < "$MSG3" ; then
+    # no spam
+    logger -p mail.info -t mail-filter -- "NO SPAM in $mid, file=<$MSG1>"
+    $SENDMAIL "$@" <"$MSG3" ; status=$?
+    if [ $status = 0 ] ; then
+        logger -p mail.info -t mail-filter -- "Message $mid forwarded successfully, file=<$MSG1>"
+     else
+        logger -p mail.info -t mail-filter -- "Failed to forward message $mid, status=$status, file=<$MSG1>"
+    fi
+else
+    echo Detected SPAM.
+    logger -p mail.info -t mail-filter -- "SPAM in $mid, file=<$MSG1>"
+  # Option 1: Move high scoring messages to sideline dir so
+  # a human can look at them later:
+    mv "$MSG3" "$SPAM_DIR/$(date +%Y%m%d-%H%M%S)-$$"
+    status=$?
+
+  # Option 2: Divert to an alternate e-mail address:
+  # $SENDMAIL xyz@xxxx.xx <"$MSG3"
+  # status=$?
+
+  # Option 3: Delete the message
+  # rm -f "$MSG3"
+fi
+
+# Postfix returns the exit status of the Postfix sendmail command.
+exit $status
+

@@ -1,0 +1,118 @@
+#!/usr/bin/perl
+
+while(<>){
+	s/&/&amp;/g;
+	s/</&lt;/g;
+	s/>/&gt;/g;
+	s/Á/&Aacute;/g;
+	s/À/&Agrave;/g;
+	s/Â/&Acirc;/g;
+	s/Ã/&Atilde;/g;
+	s/Å/&Aring;/g;
+	s/Ä/&Auml;/g;
+	s/Æ/&AElig;/g;
+	s/Ç/&Ccedil;/g;
+	s/É/&Eacute;/g;
+	s/È/&Egrave;/g;
+	s/Ê/&Ecirc;/g;
+	s/Ë/&Euml;/g;
+	s/Í/&Iacute;/g;
+	s/Ì/&Igrave;/g;
+	s/Î/&Icirc;/g;
+	s/Ï/&Iuml;/g;
+	s/Ğ/&ETH;/g;
+	s/Ñ/&Ntilde;/g;
+	s/Ó/&Oacute;/g;
+	s/Ò/&Ograve;/g;
+	s/Ô/&Ocirc;/g;
+	s/Õ/&Otilde;/g;
+	s/Ö/&Ouml;/g;
+	s/Ø/&Oslash;/g;
+	s/Ú/&Uacute;/g;
+	s/Ù/&Ugrave;/g;
+	s/Û/&Ucirc;/g;
+	s/Ü/&Uuml;/g;
+	s/İ/&Yacute;/g;
+	s/Ş/&THORN;/g;
+	s/ß/&szlig;/g;
+	s/á/&aacute;/g;
+	s/à/&agrave;/g;
+	s/â/&acirc;/g;
+	s/ã/&atilde;/g;
+	s/ä/&auml;/g;
+	s/æ/&aelig;/g;
+	s/ç/&ccedil;/g;
+	s/é/&eacute;/g;
+	s/è/&egrave;/g;
+	s/ê/&ecirc;/g;
+	s/ë/&euml;/g;
+	s/í/&iacute;/g;
+	s/ì/&igrave;/g;
+	s/î/&icirc;/g;
+	s/ï/&iuml;/g;
+	s/ğ/&eth;/g;
+	s/ñ/&ntilde;/g;
+	s/ó/&oacute;/g;
+	s/ò/&ograve;/g;
+	s/ô/&ocirc;/g;
+	s/õ/&otilde;/g;
+	s/ö/&ouml;/g;
+	s/ø/&oslash;/g;
+	s/ú/&uacute;/g;
+	s/ù/&ugrave;/g;
+	s/û/&ucirc;/g;
+	s/ü/&uuml;/g;
+	s/ı/&yacute;/g;
+	s/ş/&thorn;/g;
+	s/ÿ/&yuml;/g;
+
+	s/\240/&nbsp;/g;
+
+	s/¡/&#161;/g;   #Inverted exclamation
+	s/¢/&#162;/g;   #Cent sign
+	s/£/&#163;/g;   #Pound sterling
+	s/¤/&#164;/g;   #General currency sign
+	s/¥/&#165;/g;   #Yen sign
+	s/¦/&#166;/g;   #Broken vertical bar
+	s/§/&#167;/g;   #Section sign
+	s/˜/&#168;/g;   #Umlaut (dieresis)
+	s/©/&#169;/g;   #Copyright
+	s/ª/&#170;/g;   #Feminine ordinal
+	s/«/&#171;/g;   #Left angle quote, guillemotleft
+	s/¬/&#172;/g;   #Not sign
+	s/­/&#173;/g;   #Soft hyphen
+	s/®/&#174;/g;   #Registered trademark
+	s/•/&#175;/g;   #Macron accent
+	s/š/&#176;/g;   #Degree sign
+	s/±/&#177;/g;   #Plus or minus
+	s/²/&#178;/g;   #Superscript two
+	s/³/&#179;/g;   #Superscript three
+	s/’/&#180;/g;   #Acute accent
+	s/µ/&#181;/g;   #Micro sign
+	s/¶/&#182;/g;   #Paragraph sign
+	s/·/&#183;/g;   #Middle dot
+	s/›/&#184;/g;   #Cedilla
+	s/¹/&#185;/g;   #Superscript one
+	s/º/&#186;/g;   #Masculine ordinal
+	s/»/&#187;/g;   #Right angle quote, guillemotright
+	s/¼/&#188;/g;   #Fraction one­fourth
+	s/½/&#189;/g;   #Fraction one­half
+	s/¾/&#190;/g;   #Fraction three­fourths
+	s/¿/&#191;/g;   #Inverted question mark
+	s/×/&#215;/g;   #Multiply sign
+	s/÷/&#247;/g;   #Division sign
+
+	s//<kbd>dotlessi<\/kbd>/g;
+	s/‘/&grave;/g;
+	s/“/&circ;/g;
+	s/”/&tilde;/g;
+	s/–/<kbd>breve<\/kbd>/g;
+	s/—/<kbd>dotaccent<\/kbd>/g;
+	s//<kbd>hungarumlaut<\/kbd>/g;
+	s//<kbd>ogonek<\/kbd>/g;
+	s/Ÿ/<kbd>caron<\/kbd>/g;
+	s/å/<kbd>aring<\/kbd>/g;
+
+	print;
+}
+

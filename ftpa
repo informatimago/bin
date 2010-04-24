@@ -1,0 +1,61 @@
+#!/bin/csh -f
+
+
+set ftphosts=(`grep  machine ~/.netrc | sed -e 's/machine *//'`)
+switch ( $#argv ) 
+case 0:
+	echo 'Please, choose a ftp host:' > /tmp/ftpa.$$
+	echo "0	ABORT" >> /tmp/ftpa.$$
+	set i=1
+	while ( $i <= $#ftphosts ) 
+		echo "$i	$ftphosts[$i]" >> /tmp/ftpa.$$
+		@ i++
+	end
+	while ( 1 )
+		clear
+		more < /tmp/ftpa.$$
+		echo -n 'Enter the number of your choice:'
+		set n="$<"
+		switch ( "$n" )
+		case 0:
+		case 00:
+		case 000:
+			exit 2
+		case [1-9]:
+		case [1-9][0-9]:
+		case [1-9][0-9][0-9]:
+			if ( ( 0 < $n ) && ( $n <= $#ftphosts ) ) then
+				set ftphost=$ftphosts[$n]
+				break # loop
+			endif
+		default:
+			if ( `nslookup -query=a "$n"|egrep 'answers = [^0]'|wc -l` > 0 ) then
+				set ftphost="$n"
+				break # loop
+			endif
+			breaksw
+		endsw
+	end
+	breaksw
+case 1:
+	set ftphost=$1
+	breaksw
+default:
+	echo "usage: $0 [ftp-host-name]"
+	exit 1
+endsw
+
+if ( ! { egrep -s "machine.*$ftphost" ~/.netrc } ) then
+	echo ''                               > /tmp/ftpa.$$
+	echo machine $ftphost                >> /tmp/ftpa.$$
+	echo login anonymous                 >> /tmp/ftpa.$$
+	echo password $USERNAME@`domainname` >> /tmp/ftpa.$$
+	cat /tmp/ftpa.$$ >> ~/.netrc
+endif
+rm -f /tmp/ftpa.$$
+echo ftp $ftphost
+exec ftp $ftphost
+
+
+
+

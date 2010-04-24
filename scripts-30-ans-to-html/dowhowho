@@ -1,0 +1,128 @@
+#!/local/bin/perl
+
+sub main{
+	&generateIndexHeader();	
+
+	@prev=();
+	@current=();
+	@next=();
+	
+	while(<>){
+		chop;
+		if($_ =~ /^#/){
+			next;
+		}
+		($name,$pct,$wapct,$txt,$remainder)=split(/\,/);
+		($txt=$txt)=~tr[A-Z][a-z];
+		$basename=&basename($txt);
+		printf "%s	%s\n",$basename,$name;
+		@prev=@current;
+		@current=@next;
+		@next=($basename,$name);
+		if($#current>0){
+			&generateIndex(@current);
+			&generateHtml(@current,$prev[0],$next[0]);
+		}
+	}
+	@prev=@current;
+	@current=@next;
+	&generateIndex(@current);
+	&generateHtml(@current,$prev[0],'');
+	&generateIndexTrailer();	
+}#main
+
+
+sub basename{
+	local($name)=@_;
+	local($result);
+	($result=$name)=~s/\.[^\.]*$//;
+	($result=$result)=~s:/.*::;
+	$result;
+}#basename
+
+
+sub generateIndexHeader{
+	open(INDEX,">../html/hommes.html");
+	printf INDEX <<EOF
+<html>
+<head>
+<title>30 Ans : Les hommes</title>
+</head>
+<body>
+EOF
+;
+}#generateIndexHeader;
+
+
+sub generateIndex{
+	local($basename,$name)=@_;
+	
+	printf INDEX <<EOF
+	<p><a href="$basename.html">$name</a>
+EOF
+;
+}#generateIndex
+
+
+sub generateIndexTrailer{
+	printf INDEX <<EOF
+<hr>
+<p><center>| <a href="index.html">Index</a> |
+</body>
+</html>
+EOF
+;
+	close(INDEX);
+}#generateIndexTrailer;
+
+
+sub generateHtml{
+	local($basename,$name,$prev,$next)=@_;
+
+	open(PAGE,">../html/$basename.html");
+	printf PAGE <<EOF
+<html>
+<head>
+<title>30 Ans : Les hommes : $name</title>
+</head>
+<body>
+<h2 align=center>$name</h2>
+<p>
+EOF
+;
+
+	open(TEXT,"<../txt/$basename.txt");
+	while(<TEXT>){
+		($line=$_)=~s/\@([^\@]*)\@([^\@]*)\@/$1/g;
+		printf PAGE "$line";
+	}
+	close(TEXT);
+
+
+	printf PAGE "<br>\n<p align=center>";
+	if($prev ne ''){
+		printf PAGE 
+		"| <a href=\"%s.html\">Pr&eacute;c&eacute;dant</a> \n",$prev;
+	}
+	printf PAGE "| <a href=\"hommes.html\">Index</a> \n";
+	if($next ne ''){
+		printf PAGE "| <a href=\"%s.html\">Suivant</a> \n",$next;
+	}
+	printf PAGE "|\n</body>\n</html>\n";
+	close(PAGE);
+}#generateHtml
+
+
+
+
+&main;
+__END__
+
+
+
+
+
+
+
+
+

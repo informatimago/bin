@@ -1,0 +1,33 @@
+#!/bin/bash
+cd /tmp
+for ip in $* ; do
+    echo "traceroute to $ip"  >  $ip.route
+    traceroute -n $ip 2>&1 >> $ip.route &
+done
+wait
+cat *.route \
+| awk '
+/^traceroute/{
+    if(lastip=="*"){
+       printf("   * %s\n",ip);
+    }
+    ip=$3;
+    next;
+}
+{
+    hop=$1;
+    lastip=$2;
+    if(lastip==ip){
+       printf("%4d %s\n",hop,ip);
+    }
+    next;
+}
+END{
+    if(lastip=="*"){
+       printf("   * %s\n",ip);
+    }
+}
+'
+exit 0
+#### ip-distance                      -- 2003-02-21 04:43:10 -- pascal   ####
+

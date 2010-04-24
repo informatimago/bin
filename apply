@@ -1,0 +1,16 @@
+#!/bin/sh
+command="$1"
+shift
+
+echo $* | xargs --no-run-if-empty --verbose $command
+exit $?
+
+for arg in $* ; do
+	cp -f $arg /tmp/
+	echo $command $arg 1>&2
+	${command} ${arg}
+done
+#end
+
+
+

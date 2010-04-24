@@ -1,0 +1,57 @@
+#!/bin/bash
+pname=`basename $0`
+stack=( )
+top=1
+
+function push_word () {
+    stack[$top]="$1"
+    top=$(( $top + 1 ))
+#    echo $top / ${stack[@]} > /dev/tty
+}
+
+function pop_word () {
+    top=$(( $top - 1 ))
+    element="${stack[$top]}"
+    stack[$top]=""
+#    echo $top / ${stack[@]} > /dev/tty
+}
+
+echo Begin
+
+while read word rest ; do
+    case "$word" in
+    [0-9]*)
+        push_word "$word"
+        ;;
+    [-+*/])
+        pop_word
+        a=$element
+        pop_word
+        b=$element
+        r=$(( $a $word $b ))
+        push_word "$r"
+        ;;
+    dup)
+        pop_word
+        push_word $element
+        push_word $element
+        ;;
+    print)
+        if [ $top -eq 1 ] ; then
+            echo "${pname} error: stack is empty."
+            exit 1
+        fi
+        pop_word
+        echo $element
+        ;;
+    *)
+        echo "${pname} error: invalid token '$word'."
+        exit 1
+    esac
+done
+echo End
+exit 0
+
+
+
+#### interp                           -- 2003-02-21 18:42:35 -- pascal   ####

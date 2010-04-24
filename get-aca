@@ -1,0 +1,7 @@
+#!/bin/bash
+DIR=$(get-directory ACAPULCO)
+mkdir -p "$DIR"
+cd       "$DIR"
+wget -O `date '+%Y-%m-%d'`.jpg http://www.vialidad.telmex.net/fotos/f23.jpg \
+|| ( sleep 60 ; wget -O `date '+%Y-%m-%d'`.jpg http://www.vialidad.telmex.net/fotos/f23.jpg ) \
+|| ( sleep 60 ; wget -O `date '+%Y-%m-%d'`.jpg http://www.vialidad.telmex.net/fotos/f23.jpg )

@@ -1,0 +1,93 @@
+#!/usr/bin/perl -w
+
+# Programa para acceder al diccionario de la RAE
+# Distribuido bajo los términos de la licencia GNU GPLv2
+
+use strict;
+
+use LWP::UserAgent;
+use HTTP::Request;
+use HTTP::Response;
+use HTML::Entities;
+use IO::File;
+use POSIX;
+
+# Formato de la dirección donde se pide el lema. Por si cambia en el futuro :-)
+# Basta con marcar la posicion del lema a buscar con '%s' (sin las comillas)
+my $RAE_URL_FORMAT = 'http://buscon.rae.es/draeI/SrvltGUIBusUsual?LEMA=%s&origen=RAE&TIPO_BUS=3';
+
+my ($w, $url, $ua, $req, $resp, $tmpfile, $name, $fh);
+
+if (@ARGV){
+    if (-e $ARGV[0] && !-d $ARGV[0]){
+        open IN, "<".$ARGV[0] or die "Cannot open: $!";
+        chomp ($w = <IN>);
+        close IN;
+    }else{
+        $w = $ARGV[0];
+    }
+}else{
+    chomp($w = <STDIN>);
+}
+
+# Codificar las eñes, tildes y demás en formato HTML.
+$w = HTML::Entities::encode ($w);
+$url = sprintf $RAE_URL_FORMAT, $w; 
+
+$ua = LWP::UserAgent->new();
+# Simular que somos Mozilla Firefox 3.5.5 (se puede cambiar a voluntad)
+$ua->agent('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5');
+
+$req = HTTP::Request->new(GET => $url);
+# Simular todas las cabeceras que envia Firefox, para dar el pego }:-)
+$req->referer('http://www.rae.es/rae.html');
+$req->header('Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8');
+$req->header('Accept-Language' => 'en-us,eu;q=0.7,en;q=0.3');
+$req->header('Accept-Encoding' => 'gzip,deflate');
+$req->header('Accept-Charset' => 'ISO-8859-1;q=0.7,*;q=0.7');
+$req->header('Keep-Alive' => '300');
+$req->header('Connection' => 'keep-alive');
+
+$resp = $ua->request($req);
+if ($resp->is_error()) {
+    print "Error recuperando la pagina: %s\n", $resp->status_line;
+}
+
+do {
+    $tmpfile = POSIX::tmpnam();
+} until $fh = IO::File->new($tmpfile, O_RDWR|O_CREAT|O_EXCL);
+
+print $fh $resp->content();
+close $fh;
+print `lynx -dump -nolist -force_html $tmpfile|iconv -f iso-8859-1 -t utf-8`;
+unlink($tmpfile);
+
+exit 0;
+
+# From: Ignacio Arenaza <iarenaza@eb2ebu.ampr.org>
+# Subject: Re: Cambio en la web del DRAE
+# Newsgroups: es.comp.os.linux.programacion
+# Date: Tue, 08 Dec 2009 15:16:32 +0100
+# Organization: Mondragon Unibertsitatea - ETEO
+# Message-ID: <67hbs1a6v3.fsf@poseidon.eteo.mondragon.edu>
+# 
+# gamo@telecable.es writes:
+# 
+# > Nope, sale lo mismo de antes. Una pantalla con dos entradas de texto y 
+# > la llamada a darle a la flechita.
+# 
+# Creo que de alguna manera comprueba si la petición viene desde un
+# navegador 'interactivo', porque me pasa como a Gonzalo, desde Firefox
+# si funciona, pero desde lynx pidiendolo a pelo no.
+# 
+# Así que he hecho un script en Perl mezclando lo que tenías y un par de
+# recetillas del 'Perl Cookbook' de O'Reilly, y con lo siguiente me
+# funciona perfectamente :-)
+# 
+# 
+# Saludos. Iñaki.
+# 
+# -- 
+# Mondragon University
+# 
+# GPG Key available at public keyservers

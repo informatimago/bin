@@ -1,0 +1,12 @@
+#!/bin/bash
+file ~/bin/* | sed -n -e 's/^\([^:]*[^~]\): *//p' \
+| sort | uniq -c \
+| egrep 'shell|cmu|lisp|perl|mz|awk' 
+
+
+# From: rpw3@rpw3.org (Rob Warnock)
+# Subject: Re: lisp as server process for shell scripts
+# Newsgroups: comp.lang.lisp
+# Date: Sun, 22 Oct 2006 00:12:56 -0500
+# Organization: Rob Warnock, Consulting Systems Architect
+# Message-ID: <SuOdnWP4x7JFYKfYnZ2dnUVZ_qednZ2d@speakeasy.net>

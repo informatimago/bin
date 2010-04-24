@@ -1,0 +1,45 @@
+#!/bin/csh
+
+	set uname=`/local/bin/uname`
+	
+	set pophost=mail.imaginet.fr
+	set destination=@${pophost}:pascal@burgond.remcomp.com
+	set name=message
+	set subject=message
+	set randomsize=4096
+	set filename=/tmp/randomail.$$
+	
+	
+	set sent=10
+	set minreceived=5
+	set received=(`/etc/ping $pophost 10 $sent | grep 'packets received'`)
+	set received=$received[4]
+	if ( $received < $minreceived ) then
+		/local/ppp/scripts/pppup -m imaginet bordeaux
+		set closeit=1
+		sleep 20
+	else
+		set closeit=0
+	endif
+	
+	set offset=28
+	set sndsize=0
+	@ sndsize = $randomsize * 8 + $offset
+	/usr/bin/sndrecord -s $sndsize ${filename}.snd 
+									#file size is rounded to upper 256.
+	/bin/cat ${filename}.snd  \
+		| /local/bin/${uname}/binskip $offset \
+		| /users/pascal/bin/${uname}/extractbit1 \
+		> ${filename}
+	/bin/rm -f ${filename}.snd 
+	/local/bin/${uname}/truncate -${randomsize} ${filename} 
+	
+	/usr/bin/uuencode $name < ${filename} | mail -s "$subject" $destination
+	
+	if ( $closeit ) then
+		sleep 120
+		/local/ppp/scripts/pppdown
+	endif
+	
+	exit 0
+#end

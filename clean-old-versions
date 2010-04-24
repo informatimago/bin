@@ -1,0 +1,23 @@
+#!/bin/bash 
+dirs=()
+do=
+for arg ; do 
+    case "$arg" in
+    -n) do=echo ;;
+    -*) echo "Usage:"
+        echo "   $(basename $0) [-n] directory ..."
+        echo "Remove all backup files that don't have a head."
+        exit 1
+        ;;
+    *)  dirs[${#dirs}]="$arg" ;;
+    esac
+done
+for dir in "${dirs[@]}" ; do 
+    find "$dir" -maxdepth 1 \( -name \*~ -o -name .\?\*~ \) -print  \
+    |while read file ; do 
+        base="$(echo "$file" | sed -e 's/\(\.~[.0-9]\+\)\?~$//')"
+        if [ ! -e "$base" ] ; then
+            $do rm "$file" 
+        fi
+     done
+done

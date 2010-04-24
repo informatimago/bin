@@ -1,0 +1,27 @@
+#!/bin/sh
+
+if [ $# -lt 3 ] ; then
+    echo usage: $0  clear-text-isolatin1-message \\
+    echo '                   'pgp-message-from-macintosh pgp_options...
+    exit 1
+fi
+
+if [ ! -r "$1" ] ; then
+    echo "$0 error: '$1' should be a readable clear-text file."
+    exit 2
+fi
+if [ -e "$2" ] ; then
+    echo "$0 error: the output file '$2' should not exist."
+    exit 3
+fi
+in="$1"
+shift
+out="$1"
+shift
+tmp=/tmp/m$$
+
+nema -to macintosh -from isolatin1 < "$in" | lc -m > $tmp
+pgp -seat "$tmp" -o "$out" $@
+rm -f $tmp
+exit 0
+

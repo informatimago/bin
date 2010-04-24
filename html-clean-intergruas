@@ -1,0 +1,71 @@
+#!/bin/bash
+PATH=/local/bin:$PATH
+if [ $# -eq 0 ] ; then
+    echo "$0 usage:"
+    echo "    $0 srcdir"
+    exit 1
+fi
+if [ ! -d "$1" ] ; then
+    echo "$0: argument must be an existing directory."
+    exit 1
+fi
+dir="`echo $1 | sed -e 's-/*$--'`"
+
+cd "$dir"
+find . -name \*.html -exec lc -u {} \;
+
+root_old='[Ff][Ii][Ll][Ee]:///[^"]*/[Ss][Ii][Tt][Ee]%20[Ww][Ee][Bb]'
+root_new='[Ff][Ii][Ll][Ee]:///[^"]*/[Ii][Nn][Tt][Ee][Rr][Gg][Rr][Uu][Aa][Ss]'
+
+for f in *.html ; do
+    mv $f $f~
+    sed -e "s^$root_old/^^g" \
+        -e "s^$root_new/^^g" \
+        -e "s^WEB/site-WEB/^^g" \
+        -e 's^href="mailto:\([^"]*\)">.*@.*</a>^href="mailto:\1">\1</a>^g' \
+        <$f~ > $f
+done
+
+find `find * -type d -prune -print` -type f -name \*.html -print \
+|while read f ; do
+    mv $f $f~
+    d=$(basename $(dirname $f))
+    sed -e "s^$root_old/$d/^^g" \
+        -e "s^$root_new/$d/^^g" \
+        -e "s^$root_old/^../^g" \
+        -e "s^$root_new/^../^g" \
+        -e 's^href="mailto:\([^"]*\)">.*@.*</a>^href="mailto:\1">\1</a>^g' \
+        <$f~ > $f
+done
+
+find . -type d -exec chmod 755 {} \; 
+find . -type f -exec chmod 644 {} \;
+find . -name \*~ -exec rm -f {} \; 
+
+[ $UID -eq 0 ] && chown -R  gdr.web .
+exit 0
+
+
+(defun anycase-region (start end)
+  (interactive "r")
+  (let ((str (buffer-substring start end)))
+    (delete-region start end)
+    (insert 
+     (do* ((i   0            (1+ i))
+           (ch) (chd) (chu)
+           (any ""))
+         ((>= i (length str)) any)
+       (setq ch  (aref str i))
+       (setq chd (downcase ch)
+             chu (upcase ch))
+       (setq any (concat any (if (or (/= ch chd) (/= ch chu)) 
+                                 (format "[%c%c]" chu chd) 
+                               (format "%c" ch))))))))
+
+
+html-clean-intergruas /Users/guillermo/Intergruas/Public/Intergruas/
+rsync -e ssh '/Users/guillermo/Intergruas/Public/Intergruas/' gdr:jpbmat@www.intergruas.com:/local/html/intergruas
+
+
+           
+#### html-clean-intergruas            -- 2004-03-16 19:31:02 -- pascal   ####

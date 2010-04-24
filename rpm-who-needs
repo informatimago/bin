@@ -1,0 +1,5 @@
+#!/bin/sh
+needed=$1
+rpm -q -a | while read package ; do
+        rpm -q --requires $package | grep -s -q $needed && echo $package
+done

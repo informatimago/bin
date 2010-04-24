@@ -1,0 +1,21 @@
+#!/bin/csh
+
+set path="$1"
+shift
+set root=""
+foreach m ( `echo "$path"|/usr/bin/tr '/' ' '` ) 
+	if ( "$root" == "" ) then
+		if ( "$m" != "." ) then
+			set root="/$m"
+			/bin/ls -lgd /
+		else
+			set root="$m" 
+		endif
+	else
+		set root="$root/$m"
+	endif
+	/bin/ls -lgd $root
+end
+
+
+#END

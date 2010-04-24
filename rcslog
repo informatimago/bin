@@ -1,0 +1,326 @@
+#!/bin/csh -f
+#******************************************************************************
+#FILE:              rcslog
+#LANGUAGE:          /bin/csh
+#SYSTEM:            UNIX
+#USER-INTERFACE:    None
+#TYPE:              COMMAND
+#DESCRIPTION:
+#	Cette commande encapsule rlog mais affiche les informations sous
+#	forme de table.
+#USAGE:
+#	rcslog [options...] source...
+#	man rlog
+#AUTHORS:
+#	<PJB>	Pascal J. Bourguignon
+#MODIFICATIONS:
+#	$Id$
+#	$Log$
+#	1994/07/06	<PJB>	Creation.
+#BUGS:
+#LEGAL:
+#	Copyright Pascal J. Bourguignon 1995 - 1995
+#******************************************************************************
+	
+	printf>&/dev/null && set printf_known=1 || set printf_known=0
+	
+	set tmpfile=/tmp/rcslog.$$
+	set RCSLOG_TABULATE=/tmp/rcslog.RCSLOG_TABULATE.$$
+	sed -e '1,/BEGIN\_RCSLOG_TABULATE/d' -e '/END\_RCSLOG_TABULATE/,$d' < $0 > $RCSLOG_TABULATE
+	chmod 755 $RCSLOG_TABULATE
+
+	# self :
+	set pname=$0
+	set selfdir=${pname:h}
+	set selfile=${pname:t}
+	if ( $selfdir == $pname ) then
+		set selfdir=.
+	endif
+
+	set options=()
+	set files=()
+	set r=0
+	
+	if ( $#argv == 0 ) then
+		echo "${selfile}: il manque un argument."
+		echo "${selfile} usage:"
+		echo "	rcslog [-h] [-v] [-r] file_or_srcdir..."
+		exit 3
+	endif
+	
+	foreach p ( $* )
+		switch ( $p ) 
+		case -h:
+			if ( -r ${selfdir}/rcslink ) then
+				cat ${selfdir}/rcslink \
+				| sed -e '1,/^DOC[_]BEGIN/d' -e '/^DOC[_]END/,$d' \
+				| more
+				exit 0
+			else
+				echo "${selfile}: rcslink is missing in the same directory as ${selfile}."
+				echo "${selfile} usage:"
+				echo "	rcslog [-h] [-v] [-r] file_or_srcdir..."
+				exit 1
+			endif
+			breaksw
+		case -v:
+			# ignore.
+			breaksw
+		case -r:
+			set r=1
+			breaksw
+		case -*:
+			set options=($options $p)
+			breaksw
+		default:
+			set files=($files $p)
+			breaksw
+		endsw
+	end
+
+if ( $printf_known ) then
+	printf "head      branch    s lockers           revs  key  com   name             \n"
+	printf "--------  --------  - ----------------  ----  ---  ----  -----------------\n"
+	if ( $r ) then
+		foreach dir ( `find $files -type d -name RCS -print` )
+			foreach f ( $dir/*,v ) 
+				rlog -h $options $f \
+				| sed -e 's/locks:\( *\)\(.*\)strict/locks:\1strict;\2/' \
+				| sed -e 's/; */;/g' | tr ';' '\012'> $tmpfile
+				printf '\nEOF\n' >> $tmpfile
+				$RCSLOG_TABULATE `echo $dir|sed -e 's:/RCS$::'< $tmpfile
+			end
+		end
+	else
+		foreach f ( $files ) 
+			rlog -h $options $f \
+			| sed -e 's/locks:\( *\)\(.*\)strict/locks:\1strict;\2/' \
+			| sed -e 's/; */;/g' | tr ';' '\012'> $tmpfile
+			printf '\nEOF\n' >> $tmpfile
+			$RCSLOG_TABULATE < $tmpfile
+		end
+	endif
+else
+	echo "head      branch    s lockers           revs  key  com   name             "
+	echo "--------  --------  - ----------------  ----  ---  ----  -----------------"
+	if ( $r ) then
+		foreach dir ( `find $files -type d -name RCS -print` )
+			foreach f ( $dir/*,v ) 
+				rlog -h $options $f \
+				| sed -e 's/locks:\( *\)\(.*\)strict/locks:\1strict;\2/' \
+				| sed -e 's/; */;/g' | tr ';' '\012'> $tmpfile
+				echo ''    >> $tmpfile
+				echo 'EOF' >> $tmpfile
+				$RCSLOG_TABULATE `echo $dir|sed -e 's:/RCS$::'`< $tmpfile
+			end
+		end
+	else
+		foreach f ( $files ) 
+			rlog -h $options $f \
+			| sed -e 's/locks:\( *\)\(.*\)strict/locks:\1strict;\2/' \
+			| sed -e 's/; */;/g' | tr ';' '\012'> $tmpfile
+			echo ''    >> $tmpfile
+			echo 'EOF' >> $tmpfile
+			$RCSLOG_TABULATE < $tmpfile
+		end
+	endif
+endif
+
+	rm -f $tmpfile $RCSLOG_TABULATE
+	exit 0
+#end rcslog
+
+BEGIN_RCSLOG_TABULATE
+#!/bin/csh -f
+	set printf_known=0
+
+	if ( $#argv == 0 ) then
+		set dir=""
+	else
+		set dir="$1/"
+	endif
+	
+	set head=""
+	set branch=""
+	set locks=""
+	set revs=""
+	set keyw=""
+	set com=""
+	set lockers=()
+	
+	set line=""
+	set searching=1
+	while ( "$line" != "EOF" ) 
+		if ( $searching ) then
+			set line="$<"
+		else
+			set searching=1
+		endif
+# echo ::debug::  line=$line
+		switch ( "$line" )
+		case "Working file:*":
+			set name="`echo $line|sed -e 's/Working file: *//'`"
+# echo ::debug::  name=$name
+			breaksw
+		case "head:*":
+			set head="`echo $line|sed -e 's/head: *//'`"
+# echo ::debug::  head=$head
+			breaksw
+		case "branch:*":
+			set branch="`echo $line|sed -e 's/branch: *//'`"
+# echo ::debug::  branch=$branch
+			breaksw
+		case "access list:*":
+			set accesslist="`echo $line|sed -e 's/access list: *//'`"
+# echo ::debug::  accesslist=$accesslist
+			breaksw
+		case "comment leader:*":
+			set com="`echo $line|sed -e 's/comment leader: *//' -e 's/	/^I/g'`"
+# echo ::debug::  com=$com
+			breaksw
+		case "keyword substitution:*":
+			set keyw="`echo $line|sed -e 's/keyword substitution: *//'`"
+# echo ::debug::  keyw=$keyw
+			breaksw
+		case "total revisions:*":
+			set revs="`echo $line|sed -e 's/total revisions: *//'`"
+# echo ::debug::  revs=$revs
+			breaksw
+		case "locks:*":
+			set locks="`echo $line|sed -e 's/locks: *//'`"
+# echo ::debug::  locks=$locks
+			set line="$<"
+			while ( $searching ) 
+				switch ( "$line" )
+				case "Working file:*":
+				case "head:*":
+				case "branch:*":
+				case "locks:*":
+				case "access list:*":
+				case "comment leader:*":
+				case "keyword substitution:*":
+				case "total revisions:*":
+				case "EOF":
+					set searching=0 
+					breaksw
+				default:
+					set lockers=($lockers `echo "$line"|tr ' ' '_'`)
+# echo ::debug::  lockers=$lockers
+					set line="$<"
+					breaksw
+				endsw
+			end
+			breaksw
+		default:
+			breaksw
+		endsw
+	end
+
+	if ( ! $?name ) then
+		exit 0 
+	endif
+	
+	if ( "$head" == "" ) then
+		set head=" "
+	endif
+	if ( "$branch" == "" ) then 
+		set branch=" "
+	endif
+	if ( "$locks" == "" ) then
+		set locks=" "
+	else
+		set locks="s"
+	endif
+	if ( "$com" == "" ) then
+		set com=" "
+	endif
+	if ( "$keyw" == "" ) then
+		set keyw=" "
+	endif
+	if ( "$revs" == "" ) then
+		set revs=" "
+	endif
+	if ( "$name" == "" ) then
+		set name=" "
+	endif
+
+# echo ::debug::  "$head" "$branch" "$locks" "$lockers[1]" "$revs" "$keyw" "$com" "$name"
+
+if ( $printf_known ) then
+
+	if ( $#lockers == 0 ) then
+		printf "%-10s%-10s%-2s%-18s%-6s%-5s%-6s%s\n" \
+			"$head" "$branch" "$locks" " " "$revs" "$keyw" "$com" "$name"
+	else if ( $#lockers == 1 ) then
+		printf "%-10s%-10s%-2s%-18s%-6s%-5s%-6s%s\n" \
+			"$head" "$branch" "$locks" "$lockers" "$revs" "$keyw" "$com" "$dir$name"
+	else
+		printf "%-10s%-10s%-2s%-18s%-6s%-5s%-6s%s\n" \
+			"$head" "$branch" "$locks" "$lockers[1]" "$revs" "$keyw" "$com" "$dir$name"
+		set head="-"
+		set branch="-"
+		set locks="-"
+		set revs="-"
+		set keyw="-"
+		set com="-"
+		set i=2
+		while ( $i <= $#lockers )
+			printf "%-10s%-10s%-2s%-18s%-6s%-5s%-6s%s\n" \
+				"$head" "$branch" "$locks" "$lockers[$i]" "$revs" "$keyw" "$com" "$dir$name"
+			@ i++
+		end
+	endif
+
+else	
+	
+# echo ::debug::  "   head =$head=     "
+# echo ::debug::  " branch =$branch=   "
+# echo ::debug::  "  locks =$locks=    "
+# echo ::debug::  "   revs =$revs=     "
+# echo ::debug::  "   keyw =$keyw=     "
+# echo ::debug::  "    com =$com=      "
+
+	
+	set    head=`echo "$head              "|tr ' ' '_'|sed -e 's/^\(..........\).*/\1/'`
+	set  branch=`echo "$branch            "|tr ' ' '_'|sed -e 's/^\(..........\).*/\1/'`
+	set   locks=`echo "$locks             "|tr ' ' '_'|sed -e 's/^\(..\).*/\1/'`
+	set    revs=`echo "            $revs  "|tr ' ' '_'|sed -e 's/^.*\(......\)/\1/'`
+	set    keyw=`echo "$keyw              "|tr ' ' '_'|sed -e 's/^\(.....\).*/\1/'`
+	set     com=`echo "$com               "|tr ' ' '_'|sed -e 's/^\(......\).*/\1/'`
+
+# echo ::debug::  "   head =$head=     "
+# echo ::debug::  " branch =$branch=   "
+# echo ::debug::  "  locks =$locks=    "
+# echo ::debug::  "   revs =$revs=     "
+# echo ::debug::  "   keyw =$keyw=     "
+# echo ::debug::  "    com =$com=      "
+# echo ::debug::  "lockers =$lockers=  "
+
+	if ( $#lockers == 0 ) then
+		set lockeri="`echo '                             '|tr ' ' '_'|sed -e 's/^\(..................\).*/\1/'`"
+		echo "$head$branch$locks$lockeri$revs$keyw$com$dir$name"|tr '_' ' '
+	else if ( $#lockers == 1 ) then
+		set lockeri="`echo $lockers'                     '|tr ' ' '_'|sed -e 's/^\(..................\).*/\1/'`"
+		echo "$head$branch$locks$lockeri$revs$keyw$com$dir$name"|tr '_' ' '
+	else
+		set lockeri="`echo $lockers[1]'                  '|tr ' ' '_'|sed -e 's/^\(..................\).*/\1/'`"
+		echo "$head$branch$locks$lockeri$revs$keyw$com$dir$name"|tr '_' ' '
+		set   head="-_________"
+		set branch="-_________"
+		set  locks="-_"
+		set   revs="___-__"
+		set   keyw="_____"
+		set    com="-_____"
+		set i=2
+		while ( $i <= $#lockers )
+			set lockeri="`echo $lockers[$i]'                  '|tr ' ' '_'|sed -e 's/^\(..................\).*/\1/'`"
+			echo "$head$branch$locks$lockeri$revs$keyw$com$dir$name"|tr '_' ' '
+			@ i++
+		end
+	endif
+endif
+
+	exit 0
+#end RCSLOG_TABULATE
+END_RCSLOG_TABULATE
+#END rcslog.

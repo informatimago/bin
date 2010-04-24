@@ -1,0 +1,23 @@
+#!/bin/bash
+if [ $# -ge 1 ] ; then
+    for arg ; do 
+        echo "$arg"
+    done
+else
+    find . \( \( -name CVS -prune \) -o -true \) -type f -name \*[^~] -print 
+fi \
+| sort \
+| xargs -i{} cvs status {} 2>/tmp/cvs-status.${UID}.log \
+| awk '/File:.*Status:/{file=$2;status=$4;
+if(status=="Up-to-date"){s="-";}else
+if(status=="Locally"){if($5=="Modified"){s="M";}else
+                      if($5=="Removed"){s="R";}else 
+                      if($5=="Added"){s="A";}else 
+                      {s=status " " $5;}}else
+if(status=="Needs Checkout"){s="O";}else
+if(status=="Unknown"){s="a"}else{s=status;}
+printf "%s %s\n",s,file;}' \
+| sort
+
+
+

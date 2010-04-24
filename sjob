@@ -1,0 +1,125 @@
+#!/bin/bash
+pname="$(basename "${0}")"
+jobdir=/mnt/cube1/jobs
+if [ ! -d "${jobdir}" ] ; then
+    echo "${pname}: missing ${jobdir}"
+    exit 1
+fi
+cmd="${1}"
+shift
+case "${cmd}" in
+-h|--help|help)
+    echo "${pname} add TARGET [COMMAND ARGS...]"
+    echo "${pname} report [TARGET]"
+    echo "${pname} list   [TARGET]"
+    echo "${pname} run    [TARGET]"
+    exit 0
+    ;;
+add)
+    target="$(echo "${jobdir}/${1}"*)"
+    shift
+    if [ -d "${target}" ] ; then
+        jobfile="${target}/$(date +%Y%m%dT%H%M%S).job"
+        if [ $# -gt 0 ] ; then
+            ( echo "#!/bin/bash" ; echo "${@}" ) > "${jobfile}"
+        else
+            ( echo "#!/bin/bash" ; cat ) > "${jobfile}"
+        fi
+        chmod 755 "${jobfile}"
+        echo ${jobfile}
+    else
+        echo "There is no target ${target}"
+        exit 2
+    fi
+    ;;
+list)
+    target="${1}"
+    shift
+    if [ -n "${target}" ] ; then
+        ls -l "${jobdir}/${target}"*/*
+    else
+        ls -l "${jobdir}/"*/*
+    fi
+    ;;
+report)
+    format='%8s  %35s  %s\n'
+    target="${1}"
+    shift
+    printf "${format}" "--------" "-----------------------------------" "------------------------------"
+    printf "${format}" "status" "host" "job"
+    printf "${format}" "--------" "-----------------------------------" "------------------------------"
+    find "${jobdir}/${target}"*/ -name \*.job | sort | while read job ; do 
+        printf "${format}" "Will Run" "$(basename "$(dirname "${job}")")" $(basename "${job}")
+    done
+    find "${jobdir}/${target}"*/ -name \*.done | sort | while read job ; do 
+        status="$(echo "${job}"|sed -e 's/\.done$/.status/')"
+        if [ -r "${status}" ] ; then
+            status=$(sed -n 's/(status *\(.*\))/\1/p' < "${status}"|tail -1)
+        else
+            status="Cleared"
+        fi
+        printf "${format}" "${status}" "$(basename "$(dirname "${job}")")" $(basename "${job}")
+    done
+    printf "${format}" "--------" "-----------------------------------" "------------------------------"
+    ;;
+rerun)
+    for done ; do
+        status="$(echo "${done}"|sed -e 's/\.done$/.status/')"
+        out="$(echo "${done}"|sed -e 's/\.done$/.out/')"
+        err="$(echo "${done}"|sed -e 's/\.done$/.err/')"
+        job="$(echo "${done}"|sed -e 's/\.done$/.job/')"
+        mv "${done}" "${job}"
+        rm -f "${status}" "${out}" "${err}"
+    done
+    ;;
+clean)
+    find "${jobdir}" \( -name \*.out -o -name \*.err -o -name \*.status \) -exec rm -f {} \; 
+    ;;
+erase)
+    find "${jobdir}" \( -name \*.out -o -name \*.err -o -name \*.status -o -name \*.done \) -exec rm -f {} \;
+    ;;
+run)
+    target="$(echo "${jobdir}/$(hostname)"*)"
+    rundir="/tmp/sjob-$$";mkdir -p "${rundir}"
+    if [ -d "${target}" ] ; then
+        # echo ${target}
+        ls "${target}/"*.job
+        for job in "${target}/"*.job ; do
+            echo "//////////////////////////////////////////////"
+            echo "// processing job ${job}"
+            echo "//////////////////////////////////////////////"
+            # ${f%.x%.y} doesn't work in this bash...
+            status="$(echo "${job}"|sed -e 's/\.job$/.status/')"
+            out="$(echo "${job}"|sed -e 's/\.job$/.out/')"
+            err="$(echo "${job}"|sed -e 's/\.job$/.err/')"
+            done="$(echo "${job}"|sed -e 's/\.job$/.done/')"
+        echo ${job} / ${status} / ${out} / ${err}
+        echo "status=${status}"
+        echo "(started \"$(date +%Y%m%dT%H%M%S)\")" >> "${status}"
+        echo "(hostname \"$(hostname)\")" >> "${status}"
+        interpreter=( $(head -1 "${job}" | sed -n '1s/^#!//p') ) # quotes?
+        if [ ${#interpreter} -gt 0 ] ; then
+            "${interpreter[@]}" "${job}"  > "${out}" 2> "${err}" 
+        elif cp "${job}" "${rundir}" ; then
+            script="${rundir}/$(basename "${job}")"
+            "${script}" > "${out}" 2> "${err}" 
+        else
+            "${SHELL}" "${script}" > "${out}" 2> "${err}" 
+        fi
+        echo "(status $?)" >> "${status}"
+        echo "(finished \"$(date +%Y%m%dT%H%M%S)\")" >> "${status}"
+        case "${job}" in
+        *.persistent.job) true ;;
+        *) mv "${job}" "${done}" ;; 
+        esac
+        done
+    else
+        echo "There is no target ${target}"
+        exit 2
+    fi
+    ;;
+*)
+    echo "${pname}: syntax error"
+    "${0}" --help
+    exit 3
+esac

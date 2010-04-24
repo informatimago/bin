@@ -1,0 +1,20 @@
+#!/bin/bash
+ps axl|awk '
+BEGIN{
+    VSZ=0;
+    RSS=0;
+    numprocs=0;
+}
+/^[0-9]/{
+    VSZ+=$7;
+    RSS+=$8;
+    numprocs++;
+}
+END{
+    system("free;echo ''");
+    printf("           virtual       real     number\n");
+    printf("Procs:  %10s %10s %10s\n",VSZ,RSS,numprocs);
+    system("echo '';swapon -s");
+}
+'
+

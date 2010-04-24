@@ -1,0 +1,8 @@
+#!/bin/bash
+if [ $# -ge 1 ] ; then
+    cpp -dM $@
+else
+    touch /tmp/$$.c
+    cpp -dM /tmp/$$.c
+fi
+#### gcc-default-macros               -- 2004-01-01 06:12:14 -- pascal   ####

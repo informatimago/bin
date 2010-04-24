@@ -1,0 +1,142 @@
+#!/usr/local/bin/clisp -ansi -q   -Kfull  -E iso-8859-1
+;; -*- mode: lisp -*-
+;;****************************************************************************
+;;FILE:               cookie
+;;LANGUAGE:           Common-Lisp
+;;SYSTEM:             Common-Lisp
+;;USER-INTERFACE:     NONE
+;;DESCRIPTION
+;;    
+;;    This program search a cookie in the cookie files and print it.
+;;    
+;;AUTHORS
+;;    <PJB> Pascal Bourguignon <pjb@informatimago.com>
+;;MODIFICATIONS
+;;    2004-12-17 <PJB> Created (converted from cookie.c)
+;;    2003-12-01 <PJB> Some changes.
+;;    1993-09-08 <PJB> Implemented the lookup of the file "cookie.files".
+;;    1993-03-28 <PJB> Began updating to lookup the file "cookie.files" before
+;;                     using the hard-coded files.
+;;    1990-12-20 <PJB> Creation.
+;;BUGS
+;;LEGAL
+;;    GPL
+;;    
+;;    Copyright Pascal Bourguignon 1990 - 2004
+;;    
+;;    This program is free software; you can redistribute it and/or
+;;    modify it under the terms of the GNU General Public License
+;;    as published by the Free Software Foundation; either version
+;;    2 of the License, or (at your option) any later version.
+;;    
+;;    This program is distributed in the hope that it will be
+;;    useful, but WITHOUT ANY WARRANTY; without even the implied
+;;    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+;;    PURPOSE.  See the GNU General Public License for more details.
+;;    
+;;    You should have received a copy of the GNU General Public
+;;    License along with this program; if not, write to the Free
+;;    Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;    Boston, MA 02111-1307 USA
+;;****************************************************************************
+
+;; Clean the packages imported into COMMON-LISP-USER:
+(MAPC (LAMBDA (USED) (UNUSE-PACKAGE USED "COMMON-LISP-USER"))
+      (REMOVE (FIND-PACKAGE "COMMON-LISP")
+              (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))))
+
+(defparameter *pname* 
+  (if *load-pathname* (file-namestring *load-pathname*) "cookie"))
+
+(defparameter +cookie-environment-variable-name+ "cookiefiles")
+
+(defparameter *default-table-path* "/data/cookies/ALL.files")
+(defparameter *default-files* 
+  '("/data/cookies/fortune.cookies"
+    "/data/cookies/mit.cookies"
+    "/data/cookies/cmirh.cookies"
+    "/data/cookies/litp.cookies"))
+
+
+(defun load-file-names (table-path)
+  (with-open-file (input table-path :direction :input :if-does-not-exist nil)
+    (when input
+      (loop for line = (read-line input nil nil)
+            while line
+            collect (string-trim " " line)))))
+
+
+(defparameter +hash+ (character "#"))
+
+(defun cookie-from-file (file)
+  (with-open-file (input file :direction :input :if-does-not-exist :error)
+    (loop repeat 3 do
+          (loop repeat 3
+                until (file-position input (random (file-length input))))
+          (let* ((line (and
+                       (loop for line = (read-line input nil nil)
+                             while (and line
+                                        (or (zerop (length line))
+                                            (char/= +hash+ (char line 0))))
+                             finally (return line))
+                       (loop for line = (read-line input nil nil)
+                             while (and line
+                                        (or (zerop (length line))
+                                            (char=  +hash+ (char line 0))))
+                             finally (return line))))
+                 (cookie (list line)))
+            (when line
+              (loop for line = (read-line input nil nil)
+                    while (and line (or (zerop (length line))
+                                        (char/= +hash+ (char line 0))))
+                    do (push line cookie)
+                    finally (when line
+                              (dolist (line (nreverse cookie))
+                                (princ line) (terpri))
+                              (return-from cookie-from-file))))))))
+
+
+(defun optionp (options arguments)
+  (if (atom options)
+    (member options arguments :test (function string-equal))
+    (some (lambda (option) (member option arguments :test (function string-equal)))
+          options)))
+
+
+(defun usage ()
+  (format t "~A usage:~%~
+             ~&    ~:*~A [-h|--help] [-f|--file cookie-file]~%" *pname*))
+
+(defun main (argv)
+  (setf *random-state* (make-random-state t))
+  (when (optionp '("--help" "-h") argv) (usage) (ext:exit 0))
+  (let ((file (optionp '("--file" "-f") argv)))
+    (format t "~&")
+    (if file
+      (cookie-from-file (second file))
+      (let* ((total-size 0)
+             (files
+              (mapcan (lambda (file)
+                        (with-open-file (stream file :direction :input
+                                                :if-does-not-exist nil)
+                          (when stream
+                            (let ((size (file-length stream)))
+                              (incf total-size size)
+                              (list (cons size file))))))
+                      (or (load-file-names
+                           (or (ext:getenv +cookie-environment-variable-name+)
+                               *default-table-path*))
+                          *default-files*)))
+             (arrow (if (zerop total-size) 
+                        (progn (error "~A: not a good cookie file! ~
+                                       (This is not a cookie).~%"
+                                      *pname*)
+                               (ext:exit 1))
+                        (random total-size))))
+        (cookie-from-file (loop with total = 0 
+                                for file in files
+                                while (< (+ total (car file)) arrow)
+                                do (incf total (car file))
+                                finally (return (cdr file))))))))
+
+(main ext:*args*)

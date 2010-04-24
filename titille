@@ -1,0 +1,85 @@
+#!/bin/sh
+umask 077
+export PGPPASSFD=0
+export PATH=/local/bin:$PATH
+pname=`basename "$0"`
+return=0
+
+function usage () {
+    echo "$pname usage:"
+    echo "    $pname [--send|-s|--help|-h]"
+    echo " If no option is given then print on stdout a titille message."
+    echo " With --send (or -s), will send a titille message to a range of addresses."
+}
+#usage
+
+function make_message () {
+    (echo 426F6E642C204A616D657320426F6E64210A|hextobin;\
+     echo 'From: Harry Palmer';\
+     echo 'To: James Bond';\
+     randchar -w 64 -l 16)\
+        | pgp -seatf -u 0xA67F509A 0xEF5E9966  \
+        > "$1" 2> /dev/null
+}
+#make_message
+
+
+
+case "$1" in
+--send|-s)
+    make_message /tmp/message.$$
+    for dest in \
+        669155386@correo.movistar.net \
+        pjb@informatimago.com \
+        pascal.bourguignon@afaa.asso.fr \
+        pascal@afaa.asso.fr \
+        pjb@afaa.asso.fr \
+        pbourgui@afaa.asso.fr \
+        bourguignon@jazzfree.com \
+        pbourguignon@jazzfree.com \
+        pbourguignon@jazzcyber.com \
+        pajabou@worldonline.fr \
+        pbo21957@worldonline.fr \
+        informatimago@yahoo.es \
+        informatimago@terra.es \
+        grozilla@offcampus.es \
+        pjb@larural.es \
+        latymer@jazzcyber.com \
+        latymer_designs@yahoo.com \
+        latymer.designs@worldonline.fr \
+        dla68836@worldonline.fr \
+        latymer@worldonline.fr \
+        idrv8338@worldonline.fr \
+        ; do
+        mail -s Titille $dest < /tmp/message.$$
+    done
+    rm -f /tmp/message.$$
+    ;;
+
+-*)
+    echo "${pname}: invalid option $1"
+    usage
+    exit 1
+    ;;
+
+--help|-h)
+    usage
+    exit 0
+    ;;
+
+*)
+    make_message /dev/stdout
+    ;;
+esac
+
+exit 0
+
+
+
+
+
+
+
+
+
+#### titille                          --                     --          ####

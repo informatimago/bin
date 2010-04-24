@@ -1,0 +1,2 @@
+setenv TERM "`tset - -m network:\?vt52 -m vt52:\?vt52 -IQ`"
+

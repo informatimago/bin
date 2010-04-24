@@ -1,0 +1,70 @@
+#!/bin/csh -f
+
+set index=$1
+shift
+
+cat << EOF > $index
+<html>
+<head>
+<title>30 Ans</title>
+</head>
+<body>
+<dir>
+EOF
+
+
+set prev=''
+set next=''
+set name=''
+
+foreach f ( $* '')
+set prev=$name
+set name=$next
+set next=$f:t
+set next=$next:r
+
+if ( "$name" != '' ) then
+
+echo $name
+
+cat << EOF > html/$name.html
+<html>
+<head>
+<title>30 Ans : $name</title>
+</head>
+<body>
+<pre>
+EOF
+
+nema -from next -to isolatin1 < txt/$name.txt >>  html/$name.html
+
+cat << EOF >> html/$name.html
+</pre>
+<p><center>|
+EOF
+
+if ( "$prev" != '' ) then
+	echo ' <a href="'$prev'.html">Precedent</a> |' >>  html/$name.html
+endif
+
+echo ' <a href="index.html">Index</a> |' >>  html/$name.html
+echo ' <a href="'$name'.html">'$name'</a> |' >>  $index
+
+if ( "$next" != '' ) then
+	echo ' <a href="'$next'.html">Suivant</a> |' >>  html/$name.html
+endif
+
+cat << EOF >> html/$name.html
+</body>
+</html>
+EOF
+
+endif
+end
+
+
+cat << EOF >> $index
+</dir>
+</body>
+</html>
+EOF

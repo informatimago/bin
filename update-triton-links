@@ -1,0 +1,13 @@
+#!/bin/bash
+
+for d in /opt/local/bin /opt/local/sbin ; do
+    cd $d
+    sudo bash -c 'for f in g* ; do if [ -e /bin/$f -o -e /usr/bin/$f ] ; then true ; else read -p "link $f (y/n)?" rep ; case y in y|yes) ln -s $f ${f/g} ;; *) true ;; esac ; fi ; done'
+done
+
+for d in /opt/local/man/man1 /opt/local/man/man8 ; do
+    cd $d
+    sudo bash -c 'for f in g* ; do p=$(echo $f|sed -e 's/^g//' -e 's/\\.[0-9]\\.gz') ; if [ -e /opt/local/bin/$f -o -e /opt/local/sbin/$f ] ; then ; ln -s $f ${f/g} ; fi ; done'
+done
+
+

@@ -1,0 +1,3 @@
+#!/bin/sh
+cd /local/languages/java/swing-1.0.3/examples/Table
+exec ./runnit

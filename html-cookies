@@ -1,0 +1,15 @@
+#!/bin/bash
+cat ~/.netscape/cookies | awk -v domain="$1" '
+BEGIN{
+    printf "--header=%cCookie: \$Version=1; ",39;
+}
+{
+    if(($1==domain)||($1=="." domain)){
+        printf "%s=%s ; \$Domain=%s ; ",$6,$7,domain;
+    }
+}
+END{
+    printf "%c\n",39;
+}
+'
+

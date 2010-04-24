@@ -1,0 +1,9 @@
+#!/bin/bash
+cd /var/spool/mail-filter
+d=$(date %+Y-%+m yesterday) 
+mv virus virus-$d ; mkdir virus ; chmod amavis:amavis virus
+mv spam  spam-$d  ; mkdir spam  ; chmod amavis:amavis spam
+v=$(find virus-$d -type f -print | wc -l)
+s=$(find spam-$d  -type f -print | wc -l)
+m="$(printf "%s %8d %8d" $d $v $s)"
+echo "$m" | mail -s "$m" pjb@culturesfrance.com

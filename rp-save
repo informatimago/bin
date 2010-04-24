@@ -1,0 +1,4 @@
+#!/bin/bash
+name="$1"
+mkdir  ~/.ratpoison/ 2>/dev/null
+ratpoison -c 'fdump' > ~/.ratpoison/"$name"

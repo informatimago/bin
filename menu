@@ -1,0 +1,66 @@
+#!/usr/local/bin/clisp -ansi -q   -Kfull  -E iso-8859-1
+;; -*- mode:lisp; coding:iso-8859-1 -*-
+
+(format *error-output* "~2%Not implemented yet.~2%")
+(ext:exit 1)
+
+;; From /usr/include/sysexists.h (Linux)
+(DEFCONSTANT _SYSEXITS_H      1)
+(DEFCONSTANT EX-OK            0)
+(DEFCONSTANT EX--BASE        64)
+(DEFCONSTANT EX-USAGE        64)
+(DEFCONSTANT EX-DATAERR      65)
+(DEFCONSTANT EX-NOINPUT      66)
+(DEFCONSTANT EX-NOUSER       67)
+(DEFCONSTANT EX-NOHOST       68)
+(DEFCONSTANT EX-UNAVAILABLE  69)
+(DEFCONSTANT EX-SOFTWARE     70)
+(DEFCONSTANT EX-OSERR        71)
+(DEFCONSTANT EX-OSFILE       72)
+(DEFCONSTANT EX-CANTCREAT    73)
+(DEFCONSTANT EX-IOERR        74)
+(DEFCONSTANT EX-TEMPFAIL     75)
+(DEFCONSTANT EX-PROTOCOL     76)
+(DEFCONSTANT EX-NOPERM       77)
+(DEFCONSTANT EX-CONFIG       78)
+(DEFCONSTANT EX--MAX         78)
+
+
+(DEFUN USAGE ()
+  (FORMAT T "~%~
+             ~A usage:~%~
+             ~%~
+             ~&    ~:*~A [-h|--help] item... ~%~
+             ~%"
+          PNAME))
+
+(defun width () (screen:with-window (screen:window-size screen:*window*)))
+
+(defun main (arguments)
+  (let ((items '()))
+    (dolist (arg arguments)
+      (cond
+       ((or (string= "-h" arg) (string= "--help" arg))
+        (usage)
+        (ext:exit ex-ok))
+       ((string= (aref arg 0) #\-)
+        (format *error-output* "~a: invalid argument '~a'.~%" pname arg)
+        (usage)
+        (ext:exit ex-usage))
+       (t (push arg items))))
+
+    (when (= 0 (length items))
+      (format *error-output*
+        "~a: No menu item given. Aborting.~%" pname)
+      (usage)
+      (ext:exit ex-usage))))
+
+
+
+
+(when (boundp 'ext:*args*)
+  (main  ext:*args*)
+  (ext:exit ex-ok));;otherwise, we're not in a script!
+
+
+;;;; THE END ;;;;

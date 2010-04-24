@@ -1,0 +1,12 @@
+#!/bin/bash
+trap 'rm -f /tmp/*-$$.nasatv' 0
+asx(){
+    tr '<>\015' '\012\012\012'< "$1" \
+    | sed -n -e 's/.*[Rr][Ee][Ff]  *[Hh][Rr][Ee][Ff] *= *"\([^"]*\)".*/\1/p' \
+    | head -1
+}
+url='http://www.nasa.gov/55644main_NASATV_Windows.asx'
+wget "$url" -O "/tmp/1-$$.nasatv" > /dev/null 2>&1
+url2="$(asx /tmp/1-$$.nasatv)"
+wget "$url2" -O "/tmp/2-$$.nasatv" > /dev/null 2>&1
+exec mplayer -ontop "$(asx /tmp/2-$$.nasatv)"

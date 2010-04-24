@@ -1,0 +1,53 @@
+#!/bin/csh
+
+set i=0
+set line="$<"
+while ( "$line" != "EOF" )
+	set n=`echo 000$i|sed -e 's/.*\(....\)/\1/'`
+	echo $n Outputing to $n...
+	@ i++
+	echo "$line" >> $n
+#echo "------$line" 
+	set line="$<"
+	echo $n Outputing header
+	while ( ( "$line" != "EOF" ) && ( "$line" != "" ) )
+		echo "$line" >> $n
+#echo "------$line"
+		set line="$<"
+	end	
+	echo $n Outputing message
+	switch ( "$line" )
+	case 'From '*:
+		set from=1
+		breaksw
+	case Subject*:
+		echo "$line"
+	default:
+		set from=0
+		breaksw
+	endsw
+	while ( ( "$line" != "EOF" ) && ( $from == 0 ) )
+		echo "$line" >> $n
+#echo "------$line" 
+		set line="$<"
+		switch ( "$line" )
+		case 'From '*:
+			set from=1
+			breaksw
+		case Subject*:
+			echo "$line"
+		default:
+			set from=0
+			breaksw
+		endsw
+	end
+end
+
+exit 0
+###################################
+
+/usr/lib/sendmail jean-pierre.baccache@ctp.com
+
+
+
+#### mailcut                          -- 2004-02-12 14:07:03 -- pascal   ####

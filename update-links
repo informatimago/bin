@@ -1,0 +1,129 @@
+#!/bin/sh
+
+function do_sort {
+    sort -u
+}
+
+
+TMP="/tmp/update-links-$$"
+INPUT="$HOME/mail/links"
+OUTPUT="$HOME/links.html"
+MARK='<!-- APPEND NEW LINKS HERE -->'
+
+pname=`basename "$0"`
+append=1
+sort=do_sort
+default_input=1
+
+for arg ; do
+    case "$arg" in
+    --sort)
+        sort=do_sort
+        ;;
+    --no-sort)
+        sort=cat
+        ;;
+    --append)
+        if [ ! -w "$OUTPUT" ] ; then
+            echo "Output file ($OUTPUT) does not exist yet;"
+            echo "Will create it."
+            append=0
+        else
+            append=1
+        fi
+        ;;
+    --replace)
+        append=0
+        ;;
+    --from=*)
+        file="`echo $arg|sed -e 's/^--from=//'`"
+        if [ -r $file ] ; then
+            INPUT="$file"
+            default_input=0
+            echo "Will use input file ($file) "
+            echo "instead of default ($INPUT)."
+        else
+            echo "Cannot read input file ($file)."
+            exit 2
+        fi
+        ;;
+    --help)
+        pblan="`echo $pname|sed -e 's/./ /g'`"
+        echo 'Usage:'
+        echo "    $pname [--help] [--append|--replace] "
+        echo "    $pblan [--from=FILE] [--no-sort]"
+        echo ""
+        echo "Extracts http links from input files and writes them out as HTML links.html"
+        exit 0
+        ;;
+    *)
+        echo "Unknown option: $arg"
+        "$0" --help
+        exit 1
+        ;;
+    esac
+done
+
+apo=\'
+echo "${pname}: will take input from ${apo}${INPUT}${apo}."
+echo "${pname}: will `[ $append -ne 0 ] && echo append to || echo replace` ${apo}${OUTPUT}${apo}."
+echo "${pname}: will `[ $sort = cat ] && echo 'not ' || echo ''`sort the new URLs."
+
+
+
+cat "$INPUT" \
+| sed -n \
+    -e 's-.*\(http://[^]     <>"]*\).*-\1-' \
+    -e '/http/p' \
+| $sort \
+| awk '{printf "<li><a href=\"%s\">\n    %s</a>\n\n",$1,$1;}' \
+> $TMP
+
+
+if [ $append -eq 0 ] ; then
+cat > "$OUTPUT" <<EOF
+<html>
+<head>
+    <title>Links</title>
+</head>
+<body>
+<h2>`date`</h2>
+<p>
+<ul>
+EOF
+cat $TMP >> "$OUTPUT"
+cat >> "$OUTPUT" <<EOF
+$MARK
+</ul>
+</body>
+</html>
+EOF
+else
+    cat "$OUTPUT" | sed -e "/$MARK/,\$ d"    > "$TMP-1"
+    cat "$OUTPUT" | sed -e "1,/$MARK/ d"     > "$TMP-2"
+    cat >> "$TMP-1" <<EOF
+</ul>
+<h2>`date`</h2>
+<ul>
+EOF
+    echo "$MARK" >> "$TMP"
+    cat "$TMP-1" "$TMP" "$TMP-2" > "$OUTPUT"
+fi
+
+if [ $default_input -ne 0 ] ; then
+    cat > $INPUT <<EOF
+BABYL OPTIONS: -*- rmail -*-
+Version: 5
+Labels:
+Note:   This is the header of an rmail file.
+Note:   If you are seeing it in rmail,
+Note:    it means the file has no messages in it.
+
+EOF
+fi
+
+
+rm -f "$TMP"
+echo "${pname} complete."
+exit 0
+

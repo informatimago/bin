@@ -1,0 +1,12 @@
+#!/bin/csh -f 
+
+set year=`date |sed -e 's/.* \([0-9][0-9][0-9][0-9]\)$/\1/'`
+foreach f ( ${*:q} )
+	echo Updating \'${f:q}\'..
+	cp ${f:q} ${f:q}~
+	sed -e 's/Copyright\(.*\)[12][0-9][0-9][0-9] *$/Copyright\1'${year:q}'/' \
+		< ${f:q}~ >! ${f:q}
+	grep Copyright ${f:q}
+end
+
+exit 0

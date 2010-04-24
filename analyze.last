@@ -1,0 +1,46 @@
+#!/bin/sh
+
+last | nawk '
+	$1 != "wtmp" && $0!="" {
+		nblog[$1]++
+		totallog++
+		if(substr($NF,1,1)=="(")
+		{
+			thistime = substr($NF,2,2)*60 + substr($NF,5,2)
+			timelog[$1] += thistime
+			if(thistime>maxtime[$1])
+				maxtime[$1]=thistime
+			ValidTime[$1]++
+			totaltime+=thistime
+			validtotal++
+		}
+	}
+
+	$1=="wtmp" && $2=="begins" {
+		wtmpstart=$0
+	}
+
+	END {
+		for (LoginName in nblog)
+			if(ValidTime[LoginName]>=1)
+				printf("%-8s %4d %6d %s %6d %s %6d %s\n",LoginName,nblog[LoginName],timelog[LoginName],hourtext(timelog[LoginName]),timelog[LoginName]/ValidTime[LoginName],hourtext(timelog[LoginName]/ValidTime[LoginName]),maxtime[LoginName],hourtext(maxtime[LoginName]))
+			else
+				printf("%-8s %4d\n",LoginName,nblog[LoginName])
+		printf("%-8s %4d %6d %s %6d %s\n","[Total]",totallog,totaltime,hourtext(totaltime),totaltime/validtotal,hourtext(totaltime/validtotal))
+		printf("\n     %s\n",wtmpstart)
+	}
+
+	function hourtext(minutes) {
+		days=int(minutes/1440)
+		minutes-=days*1440
+		hours=int(minutes/60)
+		minutes-=hours*60
+		return sprintf("%s+%s:%s",zeropad(days,4),zeropad(hours,2),zeropad(int(minutes),2))
+	}
+
+	function zeropad(number,size) {
+		while(length(number)<size)
+			number=sprintf("0%s",number)
+		return number
+	}
+' | sort -f +0 -1

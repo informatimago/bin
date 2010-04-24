@@ -1,0 +1,43 @@
+#!/bin/bash
+tmp=/tmp
+vob=/d7/movies/futurama/v1/
+out=/d7/movies/futurama-1-
+
+
+cd $tmp
+i=1
+for slice in 00:00:00.0-01:36:32.0 01:36:32.0-03:13:05.0 ; do
+    name=${out}-${i}--de.avi 
+    rm -f $name
+    (sleep 3 ; printf "\n%s\n" $name)&
+    transcode \
+        -H 10 \
+        -Z 400x320 \
+        -a 0 \
+        -x vob -i $vob \
+        -w 500,50 -b 128,0,2 -s 2.0 \
+        -c $slice \
+        --a52_drc_off \
+        -I 3 \
+        -f 23 \
+        -R 2 \
+        -y xvid -o ${name} \
+        --print_status 20
+    i=$(($i + 1))
+done
+exit 0
+
+(/ 720 2)
+(/ 576 2)
+
+(mapcar (lambda (x) (truncate (* x 1.113))) (quote (360 288)))
+
+
+(* 576.0 (/ 480.0 720))
+384.0
+(/ (* 515 700.0 1024 1024) 1845647892.0)
+204.8124399234001
+(/ (* 720.0 576) (* 480 384))
+(/ 916 (/ 4 2.25))
+515.25
+1.7777777777777777

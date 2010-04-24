@@ -1,0 +1,6 @@
+#!/bin/bash
+if [ -z "$DISPLAY" ] ; then
+   echo Please set DISPLAY environment variable first.
+   exit 1
+fi
+xauth add `echo "${DISPLAY}" | sed 's/.*\(:.*\)/\1/'` . `mcookie`

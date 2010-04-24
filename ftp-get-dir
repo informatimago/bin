@@ -1,0 +1,41 @@
+#!/bin/csh -f
+
+if ( $#argv < 2 ) then
+	echo 'Usage: ftp-get-dir host directory...'
+	exit 1
+else if ( $#argv > 2 ) then
+	set host=$1
+	shift
+	foreach dir ( $* )
+		$0 $host $dir
+	end
+	exit $status
+endif
+
+set host=$1
+set directory=$2
+
+set listing=/tmp/$host.$$
+
+(\
+	echo cd / ;\
+	echo cd $directory ;\
+	echo ls -lR $listing ;\
+)| ftp -v $host
+
+(\
+	echo bin ;\
+	echo prompt ;\
+	echo cd / ;\
+	( echo ./: ; egrep '.*:$' $listing ) \
+	| sed -e 's-^\./--' -e 's-^\(.*\):$-'"${directory}/\1-" -e 's-/$--' \
+	| xargs -i echo '! mkdirs' {} @'mget    ' {} @@@/\* \
+	| sed -e 's- @@@/-/-' \
+	| tr @ '\012' ;\
+)| ftp -v $host
+
+rm $listing
+
+exit 0
+
+

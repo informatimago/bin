@@ -1,0 +1,17 @@
+#!/bin/bash
+od -t x1 -c \
+| awk '
+/^0/{
+    split($0,fields);
+    for(i=1;i<=NF;i++){
+        printf "%s  ",fields[i];
+    }
+    printf "\n";
+    next;
+}
+{
+    print $0;
+}
+'
+
+

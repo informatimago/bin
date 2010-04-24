@@ -1,0 +1,49 @@
+#!/bin/bash
+sensor=/proc/sys/dev/sensors/w83782d-i2c-0-2d
+if [ -n "$2" ] ; then
+    delay="$1"
+    while sleep "$delay" ; do
+        cpu_temp=$( awk '{print $3}' < $sensor/temp2 )
+        mob_temp=$( awk '{print $3}' < $sensor/temp1 )
+        cpu_fans=$( awk '{print $2}' < $sensor/fan1 )
+        awk -v cpu_temp=$cpu_temp -v mob_temp=$mob_temp -v cpu_fans=$cpu_fans '
+BEGIN{
+    temp[1]=62.5; level[1]="kern.emerg";   tag[1]="TEMP EMERGENCY";
+    temp[2]=55.0; level[2]="kern.alert";   tag[2]="TEMP ALERT    ";
+    temp[3]=50.0; level[3]="kern.crit";    tag[3]="TEMP CRITICAL ";
+    temp[4]=45.0; level[4]="kern.warning"; tag[4]="TEMP WARNING  ";
+    temp[5]=43.0; level[5]="kern.notice";  tag[5]="TEMP NOTICE   ";
+    temp[6]=00.0; level[6]="kern.info";    tag[6]="TEMP NORMAL   ";
+    i=1;
+    while(i<=6){
+        if(temp[i]<=i){
+            system(sprintf("/usr/bin/logger -p %s -t \"%s\" \"%8.1f C (MB) %8.1f C (CPU) %8.1f r/m (CPU)\"",level[i],tag[i],mob_temp,cpu_temp,cpu_fans));
+            if(i==1){
+                system("/sbin/halt -p");
+            }
+            exit;
+        }else{
+            i++;
+        }
+    } 
+}' < /dev/null
+    done
+elif [ -n "$1" ] ; then
+    delay="$1"
+    while sleep "$delay" ; do
+        date=$( date +"%Y-%m-%d %H:%M:%S" )
+        cpu_temp=$( awk '{print $3}' < $sensor/temp2 )
+        mob_temp=$( awk '{print $3}' < $sensor/temp1 )
+        cpu_fans=$( awk '{print $2}' < $sensor/fan1 )
+        printf "%20s %10.1f C (MB) %10.1f C (CPU) %10.1f r/m (CPU)\n" \
+            "$date" $mob_temp $cpu_temp $cpu_fans 
+    done
+fi
+date=$( date +"%Y-%m-%d %H:%M:%S" )
+cpu_temp=$( awk '{print $3}' < $sensor/temp2 )
+mob_temp=$( awk '{print $3}' < $sensor/temp1 )
+cpu_fans=$( awk '{print $2}' < $sensor/fan1 )
+echo $date $mob_temp $cpu_temp $cpu_fans 
+if [ $(awk "BEGIN{printf \"%d\",$cpu_temp*10;}"</dev/null) -gt 625 ] ; then
+    /sbin/halt -p
+fi

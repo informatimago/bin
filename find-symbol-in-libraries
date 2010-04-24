@@ -1,0 +1,48 @@
+#!/bin/sh
+pname="`basename $0`"
+symbols=''
+
+function usage {
+    echo "${pname} usage:"
+    echo "    ${pname} [--help| symbol... ]"
+    echo "Will search the symbols in every library found in \$LD_LIBRARY_PATH."
+}
+
+for arg ; do
+    case "$arg" in
+    --help)
+        usage
+        exit 0
+        ;;
+    -*)
+        usage
+        exit 1
+        ;;
+    *)
+        symbols="$symbols|$arg"
+        ;;
+    esac
+done
+
+trap "exit" SIGINT SIGTERM
+
+symbols=`echo "$symbols"|sed -e 's/^|//'`
+
+for f in `locate /lib` ; do 
+    nm $f | egrep $symbols && echo $f 
+done 2> /dev/null
+exit 0
+
+for libdir in `echo $LD_LIBRARY_PATH|sed -e 's/:/ /g'` ; do
+	
+	for libfil in  $libdir/lib* ; do
+
+		file $libfil | egrep -q 'ELF 32-bit LSB|current ar archive' \
+		&& nm $libfil | egrep "$symbols" && echo "=======> $libfil"
+
+	done
+
+done
+exit 0
+
+

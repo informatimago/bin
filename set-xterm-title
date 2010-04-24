@@ -1,0 +1,15 @@
+#!/bin/bash
+device=/dev/tty
+while [ $# -ge 1 ] ; do
+    case "$1" in
+    -d|--device) device=$2 ; shift ; shift ;;
+    *) if [ -z "$title" ] ; then
+        title="$1"
+        else
+        title="$title $1"
+        fi
+        shift 
+        ;;
+    esac
+done
+echo -n "]2;${title}" >> "$device"

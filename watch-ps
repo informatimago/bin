@@ -1,0 +1,4 @@
+#!/bin/csh -f
+while ( 1 )
+	( ps $* | grep $argv[$#argv] ) || exit 0
+end

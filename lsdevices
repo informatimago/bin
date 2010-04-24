@@ -1,0 +1,6 @@
+#!/bin/sh
+sed -e '1,/NeXT Mach/d' < /usr/adm/messages \
+| grep 'as sd' \
+| sed -e 's/\(.*\)\(as sd.*\)/\1	\2/'
+
+

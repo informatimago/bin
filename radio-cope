@@ -1,0 +1,9 @@
+#!/bin/bash
+URL=http://copefm.cope.stream.flumotion.com/cope/copefm.mp3.m3u
+exec mplayer $URL
+
+export WRITE_ASF=1
+POSITION=+512-1
+URL=mms://live.cope.edgestreams.net/reflector:34744
+exec mplayer $URL
+exec aviplay  -geometry $POSITION  $URL # /dev/null > /tmp/aviplay.log 2>&1

@@ -1,0 +1,50 @@
+#!/bin/perl
+
+printf "%s",<<EOF
+<html>
+<body>
+<bookmarkInfo scrollbarPercentage=0 annotationHeight=89>
+<ul>
+EOF
+;
+
+$state='idle';
+while(<>){
+	chop;
+	$line=$_;
+	if($state eq 'idle'){
+		if($line ne ''){
+			$title=$line;
+			$state='url';
+		}
+	}elsif($state eq 'url'){
+		if($line ne ''){
+			$url=$line;
+			$state='comment';
+			$comment='';
+		}
+	}elsif($state eq 'comment'){
+		if($line ne ''){
+			$comment=$comment.$line."\n";
+		#	printf "---%s\n",$line;
+		#	printf "===%s\n",$comment;
+		}else{
+			printf "<li><a href=\"%s\">%s</a>\n%s",$url,$title,$comment;
+			$state='idle';
+		}
+	}else{
+		die 'Unknown state '.$state;
+	}
+}
+
+printf "%s",<<EOF
+</ul>
+</body>
+</html>
+EOF
+;
+
+
+__END__
+
+#### html-to-bookmark                 --                     --          ####

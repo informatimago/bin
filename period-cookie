@@ -1,0 +1,30 @@
+#!/bin/bash
+if [ $(uname) = Darwin ] ; then
+    if [ -w /dev/tty ] ; then
+        # From 10.4:
+        output=/dev/tty
+    else
+        # Before 10.4:
+        output=/dev/stdout
+    fi
+else
+    output=/dev/tty
+fi
+COOKIE=$(type -path fortune || type -path cookie || type -path /usr/local/bin/cookie)
+if [ -n "$COOKIE" ] ; then
+    period=$(( 5 * 60 ))
+    last=$(cat ~/.period-cookie 2>/dev/null)
+    [ -z "$last" ] && last=0
+    now=$(date +%s)
+    if [ 0 -ne $(( $now - $last > $period )) ] ; then
+        echo $now > ~/.period-cookie
+	    text="$("$COOKIE" 2>/dev/null)"
+	    if [ -s "$text" ] ; then
+	        line=+-----------------------------------------------------------------------
+	        ( printf "\n$line\n" ;
+		        (echo "$text";printf "\n")|sed -e '/^$/d' -e 's/^/|  /' ;
+		        printf "$line\n\n" ) > $output
+	    fi
+    fi
+fi
+#### period-cookie                    --                     --          ####

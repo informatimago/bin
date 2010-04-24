@@ -1,0 +1,22 @@
+#!/bin/csh -f -b 
+
+foreach oldname ( $* )
+	switch ( ${oldname:q} )
+	case *.tar.Z:
+	case *.tar.gz:
+		set name="${oldname:r}"
+		set name="${name:r}.tgz"
+		echo "${oldname:q} renamed to ${name:q}."
+		mv $oldname:q $name:q
+		breaksw
+	default:
+		echo "${oldname:q} not renamed."
+		breaksw
+	endsw
+end
+
+exit 0
+
+
+
+

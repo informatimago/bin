@@ -1,0 +1,46 @@
+#!/bin/sh
+OUT=~/.emacs-space-calendar
+echo ";; Please  use ~/bin/space-calendar to update this file." > $OUT
+cat >>$OUT <<EOF
+(setq 
+ other-holidays
+ (append 
+  other-holidays
+  (quote 
+   (
+EOF
+cat ~/tmp/a-lire/Space-Calendar-2001.txt \
+| sed   -e '1,/January/d' \
+        -e 's/^..//'    -e 's///g' \
+        -e 's/^Jan/01/' -e 's/^Feb/02/' -e 's/^Mar/03/' \
+        -e 's/^Apr/04/' -e 's/^May/05/' -e 's/^Jun/06/' \
+        -e 's/^Jul/07/' -e 's/^Aug/08/' -e 's/^Sep/09/' \
+        -e 's/^Oct/10/' -e 's/^Nov/11/' -e 's/^Dec/12/' \
+        -e 's/??/01/'   -e s/\"/\'\'/g  -e '/^ *$/d'    \
+| awk '
+BEGIN{
+    l="";
+}
+function chop_spaces(s){
+    i=1;
+    while(substr(s,i,1)==" "){
+        i++;
+    }
+    return(substr(s,i,length(s)-i+1));
+}
+{
+    if(substr($0,1,1)==" "){
+        l=l " " chop_spaces($0);
+    }else{
+        print l;
+        l=$0; 
+    } 
+}
+END{
+    print l;
+}
+' \
+| sed   -e 's/\(.. ..\) - \(.*\)/    (holiday-fixed \1 "\2")/' \
+>>$OUT
+echo '))))' >>$OUT
+exit 0

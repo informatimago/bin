@@ -1,0 +1,17 @@
+#!/bin/csh -f -b
+set fname=$1
+set found=0
+while ( ! $found ) 
+	if ( -e $fname ) then
+		set found=1
+	endif
+	ls -l `ls -1 | sort -t. +1n | tail -1`
+	sleep 5
+end
+echo ''
+echo "$fname exists now."
+echo ''
+exit 0
+#END
+
+

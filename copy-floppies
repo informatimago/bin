@@ -1,0 +1,69 @@
+#!/bin/csh -f
+
+set pname="$0"
+set pname="$pname:t"
+
+if ( $#argv != 2 ) then
+	echo ""
+	echo "Usage:"
+	echo "    $pname mount-point destination-format"
+	echo ""
+	echo "Example:"
+	echo "    $pname /mnt/mfloppy /tmp/msdos-floppy-%02d"
+	echo ""
+	exit 1
+endif
+
+set mountpoint="$1"
+set floppy_format="$2"
+
+set type=`awk 'BEGIN{tmp="'$mountpoint'";result="ERROR";} {mp=$2;typ=$3;options=$4;if(tmp==mp){if(index(options,"user")!=0){result=typ;}else{result="NOTUSER";}exit;}} END{print result;}' < /etc/fstab`
+
+switch ( $type )
+case ERROR:
+	echo "${pname}: No such $mountpoint mount point in /etc/fstab."
+	exit 1;
+case NOTUSER:
+	echo "${pname}: This $mountpoint mount point is not user-mountable."
+	exit 2;
+default:
+	switch ( $type ) 
+	case [aeiou]*:
+		set type="an $type"
+		breaksw
+	default:
+		set type="a $type"
+		breaksw
+	endsw
+	breaksw
+endsw
+
+set num=1
+
+echo ""
+
+while ( 1 ) 
+
+	echo -n \
+		"${pname}: Please insert $type floppy (#$num), and press RETURN..."
+	set line="$<"
+	
+	echo "${pname}: Mounting $mountpoint..."
+	mount $mountpoint || continue
+
+	set floppy_name=`printf "$floppy_format" $num`
+	@ num++
+
+	mkdirs $floppy_name
+	echo "${pname}: Copying floppy to $floppy_name..."
+	( cd $mountpoint ; tar cf - . ) | ( cd $floppy_name ; tar xf - )
+	find $floppy_name -type f -exec chmod a-x {} \;
+	echo "${pname}: Copy complete."
+	
+	echo "${pname}: Unmounting $mountpoint..."
+	umount $mountpoint
+
+	echo ""
+
+end
+

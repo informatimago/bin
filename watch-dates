@@ -1,0 +1,7 @@
+#!/bin/csh -f
+while ( 1 )
+	dates > /tmp/watch_dates_$$
+	clear
+	cat /tmp/watch_dates_$$
+	sleep 1
+end

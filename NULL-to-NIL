@@ -1,0 +1,6 @@
+#!/bin/csh -f
+foreach f ( $* )
+	mv $f $f~
+	echo      $f@`grep NULL $f~ | wc -l ` | sed -e 's/\(.*\)@\(.*\)/\2 \1/'
+	sed -e 's/NULL/NIL/g' < $f~ > $f
+end

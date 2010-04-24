@@ -1,0 +1,5 @@
+#!/usr/local/bin/clisp -norc -q -ansi
+(setf *random-state* (make-random-state t))
+(prin1 (random (let ((*read-eval* nil)) (read-from-string (elt ext:*args* 0)))))
+(terpri)
+

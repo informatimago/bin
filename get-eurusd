@@ -1,0 +1,12 @@
+#!/bin/bash
+cd /tmp
+period=$(( 3600 * 3 ))
+while true ; do
+    wget -o /dev/null -O eurusd-3m.gif 'http://cchart.yimg.com/3m?eurusd=x' \
+ && wget -o /dev/null -O eurusd-5d.gif 'http://ichart.yahoo.com/w?s=eurusd=x' \
+ && wget -o /dev/null -O eurusd-1d.gif 'http://ichart.yahoo.com/b?s=eurusd=x' \
+ && xv -display :0.0 eurusd-1d.gif  eurusd-5d.gif eurusd-3m.gif &
+ sleep $period
+done
+
+

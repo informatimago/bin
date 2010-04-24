@@ -1,0 +1,70 @@
+#!/bin/csh -f
+
+set version=1.1.0 ### INCREMENTER A CHAQUE MODIFICATION !!!
+
+set path=(/users/pascal/bin /local/bin/NEXTSTEP /local/bin/ $path)
+set tmp=/tmp/insulte.$$
+
+set test=0
+set destinataires=(`cat $0.list`)
+
+if ( $#argv >= 1 ) then
+	switch ( "$1" )
+	case "--test":
+	case "-t":
+		set destinataires=(nobody)
+		set test=1
+		breaksw
+	default:
+		echo usage: $0 [-t|--test]
+		exit 1
+	endsw
+endif
+
+if ( $test == 1 ) then
+	echo test=$test
+	echo destinataires=$destinataires
+endif
+
+foreach destinataire ( $destinataires )
+	set ins=`insulte|nema -a -from next -to ascii`
+	echo "L'insulte du capitaine :" > $tmp
+	echo '' >> $tmp
+	echo "$ins" >> $tmp
+	echo '' >> $tmp
+	echo '      -- Capitaine Haddock' >> $tmp
+	echo '' >> $tmp
+	echo '' >> $tmp
+	echo "Some jargon:" >> $tmp
+	setenv cookiefiles /local/lib/jargon.files
+	cookie | box >> $tmp
+	unsetenv cookiefiles
+	echo '' >> $tmp
+	echo '' >> $tmp
+	echo "Hackers' special:" >> $tmp
+	'When do you know you have been hacking too long?'|box >> $tmp
+	echo '' >> $tmp
+	echo '' >> $tmp
+	echo 'Cookie du jour :' >> $tmp
+	echo '' >> $tmp
+	cookie | box -toto >> $tmp
+	echo '' >> $tmp
+	echo '--' >> $tmp
+	echo 'Ce service tres "select" et personalise'\'' vous est offert' \
+		'gracieusement par <pjb@informatimago.com>. Vous etes actuellement ' \
+		$#destinataires' privilegies a en profiter. Mais notez que' \
+		'chaque destinataire recoit une version completement unique' \
+		'et personnelle de ce message.  ['$version']' | fmt >> $tmp
+	
+	if ( $test == 1 ) then
+		cat $tmp
+	else
+		/usr/ucb/Mail -s "$ins" $destinataire < $tmp
+	endif
+end
+rm -f $tmp
+exit 0
+
+
+
+#### mailinsulte                      --                     --          ####

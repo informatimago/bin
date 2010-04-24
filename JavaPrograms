@@ -1,0 +1,2 @@
+#!/bin/sh
+grep -n runnit ~/bin/* 2>&1 | grep runnit | sed -e '/JavaPrograms/d' -e 's/:.*//' -e 's:.*/::'

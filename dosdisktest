@@ -1,0 +1,21 @@
+#!/bin/csh
+set echo=0
+if ( -d "$1" ) then
+	set dfline=(`df "$1" | tail -1`)
+	set kbsize=$dfline[4]
+	set td=/tmp
+	set tf=t$$.tst
+	randchar -w 1023 -l $kbsize > $td/$tf
+	cp $td/$tf "$1"
+	sync
+	ls -gal $1/
+	diff -h $td/$tf "$1"/$tf
+	rm $td/$tf "$1"/$tf
+	ls -gal "$1"/
+	exit 0
+else
+	echo $0 usage:
+	echo $0 diskette_mount_point
+	exit 0
+endif
+#end

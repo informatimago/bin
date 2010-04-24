@@ -1,0 +1,239 @@
+#!/bin/bash
+
+# -ls      login shell
+# -sb      save some scrolled lines
+# -sl N    save N scrolled lines
+# -vb      visual bell 
+
+default_font='-*-lucidatypewriter-medium-r-normal-*-12-*-*-*-m-*-*-*'
+dectec_font='-dec-terminal-bold-r-normal-*-14-*-*-*-*-*-dec-dectech'
+utf8_font='-*-unifont-medium-r-normal-*-16-160-75-75-p-80-*'
+utf8_font='-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-*'
+utf8_font='-misc-fixed-medium-r-normal-*-14-130-75-75-c-70-*'
+old_font='-*-lucidatypewriter-bold-r-normal-*-12-*-*-*-m-*-*-*'
+iso646_font='-*-clean-medium-r-normal-*-14-140-75-75-*-70-*-*'
+
+led_font='-*-ledfixed-medium-r-semicondensed-*-*-*-*-*-*-*-iso8859-1'
+intl_font='-*-international-medium-r-normal-*-15-*-*-*-*-*-iso8859-1'
+conso_font='-*-console-medium-r-normal-*-16-*-*-*-*-*-*-*'
+deciso_font='-dec-terminal-bold-r-normal-*-14-*-*-*-*-*-iso8859-1'
+green_medi_font='-*-lucidatypewriter-medium-r-normal-*-12-*-*-*-m-*-*-*'
+green_bold_font='-*-lucidatypewriter-bold-r-normal-*-12-*-*-*-m-*-*-*'
+
+green_1_fo=" -fn $green_medi_font -fb $green_bold_font "
+green_2_fo=" -fn $deciso_font "
+green_3_fo=" -fn $conso_font "
+green_4_fo=" -fn $intl_font "
+green_5_fo=" -fn $led_font "
+
+
+#export LC_CTYPE=${LC_CTYPE:-fr_FR}.UTF-8
+export LC_CTYPE=${LC_CTYPE:-fr_FR}.ISO8859-1
+selected_font="$default_font"
+
+# '-*-luxi mono-medium-r-normal-*-*-*-*-*-*-*-*-*'
+# '-*-nimbus\ mono-regular-r-*-*-*-*-*-*-*-*-*-*'
+# '-*-courier-regular-r-*-*-*-*-100-100-p-*-*-*'
+
+
+
+if [ "$DISPLAY" == "" ] ; then
+    echo Then environment variable DISPLAY  must be defined.
+    exit 1
+fi
+
+case "$DISPLAY" in
+:*)
+    displayhost="`hostname`"
+    ;;
+*)
+    displayhost="$DISPLAY"
+    ;;
+esac
+
+cmd_xterm=/usr/X11R6/bin/xterm
+function xterm () {
+    echo xterm "$@"
+    command $cmd_xterm "$@"
+}
+xterm=$cmd_xterm
+
+
+# +cm +dc   ansi color change  dynamic color change
+# +sp       escape codes for function keys.
+# -bc -bcf 200 -bcn 500   cursor blink blink off blink on milliseconds
+# +ah text cursor highlighted based on focus
+# -aw auto wrap-around allowed
+# -cn new lines not cut un line-mode selections
+# -j  jump scrolling
+# -ls login shell
+# +mb don't ring margin bell
+# -rw reverse wrap-around allowed
+# -s  scroll asynchronously
+# -sb save scrolled off lines
+# -si no automatic scroll down
+# -sk scroll down on key press
+# -sl saved lines
+# +t  start in VT102 mode
+# +vb use visual bell
+
+options=( \
+    +ah -aw -rw -cn \
+    -bc -bcf 200 -bcn 500 \
+    -bdc \
+    +cm +dc \
+    +mb -j +l -ls \
+    +nul \
+    -s  -sb -si -sk -sl 14400  +t  +vb -name xterm \
+    -sm  +sp )
+
+oldopts=( \
+    +mb +aw +rw +ah -cn -j -ls \
+    -s  -sb -si -sk -sl  2000  +t  +vb -name xterm \
+    )
+
+name="$1"
+case "$name" in
+-*) name="${USER}@$(hostname)" ;;
+*)  shift ;;
+esac
+
+case "$name" in 
+root|root@*)   fgcolor=( -fg '#d04020' ) ;;
+*)             fgcolor=( -fg '#000000' ) ;;
+esac
+
+
+function randomarg () {
+    local i=$(($(random $#) + 1))
+    echo ${!i}
+}
+
+clist=('#a0e0ff' '#b0c0f0' '#99ccff' '#90d0f0' '#a0e0f0')
+color=$(randomarg ${clist[@]})
+
+case "$displayhost" in
+triton*)
+    font=( -fn "$selected_font" )
+    root=( -bg $color )
+    user=( -bg $color )
+    ;;
+galatea*)
+    font=( -fn "$selected_font" )
+    root=( -bg $color )
+    user=( -bg $color )
+    ;;
+thalassa*)
+    font=( -fn "$selected_font" )
+    root=( -bg $color )
+    user=( -bg $color )
+    ;;
+*)
+    echo 'Unknown display host; Using default colors.'
+    font=( )
+    root=( )
+    user=( )
+    ;;
+esac
+
+
+function get_after_e () {
+    while [ $# -gt 0 ] ; do
+        if [ "$1" = "-e" ] ; then
+            echo "$2"
+            return
+        fi
+        shift
+    done
+    echo "sh"
+}
+      
+
+# ------------------------------------------------------------------------
+# '#AB82FF'
+#(show (apply 'format (cons "%02x%02x%02x" (mapcar (lambda (x) (/ x 256)) (lighter (lighter (mapcar (lambda (x) (* 256 x)) '( 171 130 255 ))))))))
+
+
+case "$name" in
+dec|dec@*)
+    options=( ${options[@]} )
+    font=( -fn $dectec_font )
+    colors=( -bg '#000' -fg '#5f2' )
+    ;;
+old|old@*)
+    # old options (no autowrap).
+    options=( ${oldopts[@]} )
+    font=( -fn $old_font )
+    colors=( -bg '#000' -fg '#5f2' )
+    ;;
+green*)
+    # same as old but with normal options.
+    case "$name" in
+    green-[1-5]*) size="${name:6:1}" ;;
+    green*) size=1 ;;
+    esac
+    if [ $size -eq 5 ] ; then 
+        # led
+        options=( ${options[@]} -geometry 68x24 )
+    fi
+    fo="green_${size}_fo"
+    font=( ${!fo} )
+    colors=( -bg '#000' -fg '#4e4' -cr yellow )
+    ;;
+root@hermes)    colors=( -fg maroon -bg MediumAquamarine  ) ;;
+*@hermes)       colors=(            -bg MediumAquamarine ) ;;
+*@thales)       colors=(            -bg PaleGreen  ) ;;
+*@sirius)       colors=(            -bg aquamarine1 ) ;;
+*@socrate)      colors=(            -bg aquamarine2  ) ;;
+*@platon)       colors=(            -bg aquamarine3  ) ;;
+*@alexandrie)   colors=(            -bg aquamarine4 ) ;;
+*@janus-1)      colors=(            -bg darkslategray1 ) ;;
+*@janus-2)      colors=(            -bg darkslategray2 ) ;;
+*@janus-3)      colors=(            -bg darkslategray3 ) ;;
+*@janus-4)      colors=(            -bg "#65acac" ) ;;
+*@anonix*)      colors=(            -bg '#40d0f0' ) ;;
+*@macosx*)      colors=(            -bg '#ffdaff' ) ;;
+*@hyacinte*)    colors=(            -bg '#dfeaff' ) ;;
+*@*mappy*)      colors=(            -bg '#ffdaff' ) ;;
+*@pinaud*)      colors=(            -bg '#ffdaff' ) ;;
+uml1)           colors=( -fg '#011' -bg LightYellow ) ;;
+uml2)           colors=( -fg '#011' -bg LightGoldenrodYellow ) ;;
+uml3)           colors=( -fg '#011' -bg LemonChiffon1 ) ;;
+uml4)           colors=( -fg '#011' -bg LemonChiffon2 ) ;;
+unl*)           colors=( -fg '#011' -bg PaleGoldenrod ) ;;
+*@thalassa)     colors=( ${user[@]} ) ;;
+*@galatea)      colors=(            -bg '#d0f0b0' ) ;;
+*@larissa)      colors=(            -bg '#eae0ff' ) ;;
+*@naiad)        colors=(            -bg PowderBlue );; #'#e1e2f3' ) ;;
+*) colors=( -bg $(awk -v name="$name" 'BEGIN{got=0;}{if($4==name){got=1;print $4;exit}}END{if(!got){print "white"}}' < /usr/X11R6/lib/X11/rgb.txt ) ) ;;
+esac
+
+
+case "$name" in
+*@*)
+    true
+    ;;
+'')
+    name="${USER}@`hostname`"
+    ;;
+*)
+    name="${name}@`hostname`"
+    ;;
+esac
+title=( -T "xt:$name/$(get_after_e $@)" -n "xt:${name/*@/}" )
+
+echo ${xterm} ${options[@]} ${fgcolor[@]} ${colors[@]} ${font[@]} ${title[@]} $@
+${xterm} ${options[@]} ${fgcolor[@]} ${colors[@]} ${font[@]} ${title[@]} $@ &
+disown
+exit 0
+########################################################################
+121 205 205             DarkSlateGray3
+ 82 139 139             DarkSlateGray4
+
+(show (color-24-value-to-name
+        (color-mix '(121 205 205) '(82 139 139) 0.5)))
+==> "#65acac"
+
+
+exit 0
+#### pjb-xterm                        -- 2004-03-06 10:16:44 -- pascal   ####

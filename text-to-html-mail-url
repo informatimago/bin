@@ -1,0 +1,8 @@
+#!/bin/csh
+cat | nema -from next -to ascii -a \
+| sed -e 's/	/%09/g' -e 's/ /%20/g' -e 's/"/%22/g' -e 's/\&/%26/g' \
+	-e 's/:/%3a/g' \
+	-e 's/</%3c/g' -e 's/>/%3e/g' -e 's/\?/%3f/g' -e 's/$/%0d%0a/' \
+| tr -d '\012' ' '
+
+exit 0

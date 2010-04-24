@@ -1,0 +1,19 @@
+#!/bin/bash
+#(read l;read l;/usr/bin/osascript)<"$0";exit $?
+/usr/bin/osascript -s s <<EOF
+
+set fileInfo to do shell script "cd ~; ls"
+return fileInfo
+
+
+tell application "Finder"
+    if folder "Applications" of startup disk exists then
+        return count files in folder "Applications" of startup disk
+    else
+        return 0
+    end if
+end tell
+
+
+EOF
+#### ascript                          --                     --          ####

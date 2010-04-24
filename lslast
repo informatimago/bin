@@ -1,0 +1,5 @@
+#!/bin/csh -f -b
+
+	ls -1 | sort -t. +1n | tail -20
+
+

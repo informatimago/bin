@@ -1,0 +1,150 @@
+#!/bin/bash
+pname="$(basename "$0")"
+
+
+# default implementation:
+
+function eject(){
+    local ignore
+    read -p 'Please eject the CDROM, and type RET' ignore
+}
+
+function wait_cd(){
+    local cd="$1"
+    local ignore
+    printf "Waiting for the CD %s\n" "$cd"
+    read -p "Please insert a CDROM, and type RET when it's ready" ignore
+}
+
+
+# system specific override:
+
+case "$(uname)" in
+Darwin)
+    function eject(){
+        drutil eject
+    }
+    function wait_cd(){
+        local cd="$1"
+        local gotit=0
+        while [ $gotit -eq 0 ] ; do
+            if  df | grep -q -s /dev/disk1  ; then
+                gotit=1
+            else
+                printf "Waiting for the CD %s\n" "$cd"
+                sleep 1
+            fi
+        done
+    }
+    ;;
+linux)
+    function eject(){
+        command eject
+    }
+    ;;
+esac
+
+
+function cpcd(){
+    local dir="$1"
+    wait_cd "${dir}"
+    mkdir -p "${dir}"
+    ( cd "${dir}" ;\
+      cd-info > cddb.txt ;\
+      cdparanoia --query 2> cdparanoia.txt ;\
+      cdparanoia --output-wav --batch ;\
+      eject ;\
+      printf "Compressing in background.\n" ;\
+      for f in *.wav ; do \
+          flac --silent -V --compression-level-8 ${f} >> flac.log && rm ${f} ;\
+      done & )
+}
+
+
+function usage(){
+    printf "%s usage:\n" "$pname"
+    printf "   %s -h|--help\n" "$pname"
+    printf "   %s -b|--batch \$start [-f|--directory-format \$format]\n" "$pname"
+    printf "   %s \$directory\n" "$pname"
+}
+
+
+dir=''
+start=''
+format='cd%02d'
+
+function parse_arguments(){
+    while [ $# -gt 0 ] ; do
+        arg="$1" ; shift
+        case "$arg" in
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -b|--batch)
+            if [ $# -gt 0 ] ; then
+                start="$1" ; shift
+            else
+                printf "Missing the start index after %s\n" "$arg"
+                usage
+                exit 1
+            fi
+            ;;
+        -f|--directory-format)
+            if [ $# -gt 0 ] ; then
+                format="$1" ; shift
+            else
+                printf "Missing the directory format string after %s\n" "$arg"
+                usage
+                exit 1
+            fi
+            ;;
+        -*)
+            printf "Invalid option: %s\n" "$arg"
+            usage
+            exit 1
+            ;;
+        *)
+            if [ "$dir" = '' ] ; then
+                dir="$arg"
+            else
+                printf "Too many arguments: %s\n" "$arg"
+                usage
+                exit 1
+            fi
+            ;;
+        esac
+    done
+
+    if [ "$dir" = '' -a "$start" = '' ] ; then
+        printf "Please give either -b \$start or $directory.\n"
+        usage
+        exit 1
+    fi
+
+    if [ "$dir" != '' -a "$start" != '' ] ; then
+        printf "-b \$start and $directory are mutually exclusive.\n"
+        usage
+        exit 1
+    fi
+}
+
+
+parse_arguments $@
+
+if [ "$start" != '' ] ; then
+    case "$start" in
+    *[^0-9]*)
+        printf "Invalid start index, it must be an integer, not '%s'\n" "$start"
+        usage
+        exit 1
+        ;;
+    esac
+    index=$start
+    while true ; do 
+        cpcd "$(printf "$format" "$index")"
+        index=$(( $index + 1 ))
+    done
+else
+    cpcd "${dir}"
+fi

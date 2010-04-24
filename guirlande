@@ -1,0 +1,6 @@
+#!/bin/sh
+cd ~/public_html/img
+/bin/ls -1 *.jpg | while read img ; do
+    xv -root -quit $img 
+    sleep 60
+done

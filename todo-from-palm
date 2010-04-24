@@ -1,0 +1,27 @@
+#!/bin/bash
+if [ -z "$1" ] ; then
+    echo "No argument: processing stdin."
+    file=/dev/stdin
+else
+    file="$1"
+fi
+nema -from macintosh -to isolatin1  < "$file" \
+| lc -u \
+| awk -F'	' '
+BEGIN {
+    format="%-10s %-10s %3s %-10s %s\n";
+    printf format,"Limit date","Completion","Pri","Category","Task title";
+    priority["Highest"]=" 5 ";
+    priority["High"]=" 4 ";
+    priority["Medium"]=" 3 ";
+    priority["Low"]=" 2 ";
+    priority["Lowest"]=" 1 ";
+}
+{
+    printf format,$2,$4,priority[$5],$6,$1;
+}
+' \
+| sort +0.26 -0.36 +0.22r -0.25 +0.0 -0.10
+exit 0
+
+#### todo-from-palm                   -- 2003-09-19 03:23:01 -- pascal   ####

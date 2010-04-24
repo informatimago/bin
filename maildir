@@ -1,0 +1,29 @@
+#!/bin/csh -f
+
+	set ARCHIVER=(/local/bin/gtar cf -)
+	set ARCH_EXT=tar
+	set COMPRESSOR=/local/bin/gzip
+	set COMP_EXT=gz
+	set ENCODER=/usr/bin/uuencode
+	set ENCO_EXT=uu
+	set MAILER=(/usr/ucb/Mail -s)
+
+	set pname="$0"
+	set pname=$pname:t
+	set pname=$pname:r
+
+	if ( $#argv < 2) then
+		echo "${pname} usage:"
+		echo "	${pname} email_address ./directory ..."
+		exit 1
+	endif
+
+	set destinataire="$1"
+	shift
+
+	foreach dir ( $* )
+		$ARCHIVER $dir | $COMPRESSOR | $ENCODER "${dir}.$ARCH_EXT.$COMP_EXT" | $MAILER "${dir}.$ARCH_EXT.$COMP_EXT.$ENCO_EXT" "$destinataire"
+	end
+	exit 0
+#end
+

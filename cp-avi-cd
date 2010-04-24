@@ -1,0 +1,165 @@
+#!/bin/bash
+export _SYSEXITS_H=1
+export EX_OK=0
+export EX__BASE=64
+export EX_USAGE=64
+export EX_DATAERR=65
+export EX_NOINPUT=66
+export EX_NOUSER=67
+export EX_NOHOST=68
+export EX_UNAVAILABLE=69
+export EX_SOFTWARE=70
+export EX_OSERR=71
+export EX_OSFILE=72
+export EX_CANTCREAT=73
+export EX_IOERR=74
+export EX_TEMPFAIL=75
+export EX_PROTOCOL=76
+export EX_NOPERM=77
+export EX_CONFIG=78
+export EX__MAX=78
+
+volset=''
+volume=''
+path=''
+
+function beep () {
+    echo -en "\007"
+}
+
+
+function check_volset () {
+    local volset="$1"
+    local rest="${volset//[A-Z0-9_]/}"
+    if [ -n "$rest" ] ; then
+        echo "Invalid characters in volset ($rest)." > /dev/stderr
+        echo -n ''
+    elif [ ${#volset} -gt 278 ] ; then
+        echo "Volset too long (max=278 characters)." > /dev/stderr
+        echo -n ''
+    else
+        echo -n "$volset"
+    fi
+}
+
+
+function check_volume () {
+    local volume="$1"
+    local rest="${volume//[A-Z0-9_]/}"
+    if [ -n "$rest" ] ; then
+        echo "Invalid characters in volume ($rest)." > /dev/stderr
+        echo -n ''
+    elif [ ${#volume} -gt 32 ] ; then
+        echo "Volume too long (max=32 characters)." > /dev/stderr
+        echo -n ''
+    else
+        echo -n "$volume"
+    fi
+}
+
+
+function check_path () {
+    local path="$1"
+    if [ ! -r "$path" ] ; then
+        echo "Can't read '$path'." > /dev/stderr
+        echo -n ''
+    elif [ ! -f "$path" ] ; then
+        echo "'$path' is not a file!" > /dev/stderr
+        echo -n ''
+    elif file -b "$path" | grep -q -s AVI ; then
+        echo -n "$path"
+    else
+        echo "'$path' is not an AVI file!" > /dev/stderr
+        echo -n ''
+    fi
+}
+        
+
+
+function usage () {
+    echo "Usage:"
+    echo "   $(basename $0) [volset [volume]]"
+}
+
+
+for arg ; do
+    case "$arg" in
+    -h|--help)
+        usage
+        exit $EX_OK
+        ;;
+     *)
+        if [ -z "$volset" ] ; then
+            volset=$(check_volset "$arg")
+        elif [ -z "$volume" ] ; then
+            volume=$(check_volume "$arg")
+        else
+            echo "Too many arguments."
+            usage
+            exit $EX_USAGE
+        fi
+        ;;
+    esac
+done
+
+echo ''
+echo '--- COPYING AN AVI CD ---'
+echo ''
+
+while [ -z "$volset" ] ; do
+    echo -n "Enter volset: "
+    read volset
+    volset=$(check_volset "$volset")
+done
+
+while [ -z "$volume" ] ; do
+    echo -n "Enter volume: "
+    read volume
+    volume=$(check_volume "$volume")
+done
+
+
+###
+### Copying ORIGINAL CD on hard disk.
+###
+
+echo -n "Insert ORIGINAL CD and press RETURN:"
+beep ; read line
+
+mount /cdrom
+if [ $(find /cdrom/. -name \*.avi -print|wc -l) -ne 1 ] ; then
+    find /cdrom/. -name \*.avi -print
+    echo "Not exactly one AVI on this CD. handle manually."
+    eject
+    exit $EX_DATAERR
+fi
+
+echo -n "Copying... "
+path="$(find /cdrom/. -name \*.avi -print)"
+cp "$path" /alter/bandes/graves
+echo "completed with status $?"
+umount /cdrom
+eject
+
+
+###
+### Burning file from hard disk to VIRGIN CD.
+###
+
+echo -n "Insert VIRGIN CD and press RETURN:"
+beep ; read line
+
+path=/alter/bandes/graves/"$(basename $path)"
+chmod a+r "$path"
+echo $(dirname $0)/grave "${volset:q}" "${volume:q}" "${path:q}"
+$(dirname $0)/grave "$volset" "$volume" "$path" && rm -f "$path"
+
+
+#END#
+
+
+
+
+
+
+

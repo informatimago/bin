@@ -1,0 +1,11 @@
+#!/bin/csh
+
+	# max-time,wait-time,play-time
+	set period=( 23:59,00:10,01:40 )
+	set noisecmd=~pascal/bin/noise_one
+	set logfile=/dev/null
+
+		
+	/local/etc/antiburglar/sound "$period" "$noisecmd" "$logfile"
+
+#END

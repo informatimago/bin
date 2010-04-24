@@ -1,0 +1,11 @@
+#!/bin/bash
+find . -type f -print | while read f ; do
+     date=$(ls -l $f | awk '{print $6}')
+     g=$(basename "$f"|sed -e "s/[-0-9][-0-9][-0-9][-0-9]*/-$date/")
+     if [ "$g" != "$(basename "$f")" ] ; then
+         echo "$g"
+         mv "$f" "$(dirname "$f")/$g"
+     fi
+done
+
+#### bd-date                          -- 2004-03-14 02:34:38 -- pascal   ####

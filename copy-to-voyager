@@ -1,0 +1,1 @@
+rsync --exclude movies --exclude=.ssh --exclude=.gnupg -vaRHSx -W --progress -e ssh . voyager.informatimago.com:/home/pjb

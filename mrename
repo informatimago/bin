@@ -1,0 +1,39 @@
+#!/bin/csh
+# Usage: mrename old-substring new-substring files 
+
+	if ( ${#argv} < 3 ) then
+		echo mrename usage: $0 old-substring new-substring files...
+		exit 1
+	endif
+	
+	set oldsub="$1"
+	shift
+	set newsub="$1"
+	shift
+	
+	if ( "$oldsub" == "$newsub" ) then
+		echo mrename usage: `basename $0` old-substring new-substring files...
+		echo '                'old-substring must differ from new-substring!
+		exit 1
+	endif
+	
+	foreach f ( $* )
+		if ( "${f:t}" =~ *${oldsub}* ) then
+			set new=`echo ${f:t} | sed -e "s/$oldsub/$newsub/"`
+			if ( "${f:t}" == "${f}" ) then
+				if ( -e "${new}" ) then
+					echo "${new} already exists, ${f} not renamed."
+				else
+					mv "${f}" "${new}"
+				endif
+			else
+				if ( -e "${f:h}/${new}" ) then
+					echo "${f:h}/${new} already exists, ${f} not renamed."
+				else
+					mv "${f:h}/${f:t}" "${f:h}/${new}"
+				endif
+			endif
+		endif		
+	end
+	
+#END

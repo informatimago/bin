@@ -1,0 +1,18 @@
+#!/bin/csh
+
+set fname="$<"
+while ( "$fname" != "" )
+	if ( -e "${fname}.$$.single" ) then
+		echo "exists already:               ${fname}.$$.single"
+	else
+		mv "${fname}" "${fname}.$$.single"
+		/mac/bin/fcnvt -i single -d "${fname}.$$.single" "${fname}" \
+			&&	( \
+					echo "doubled:                      ${fname}" ;\
+					rm "${fname}.$$.single" ) \
+			||	echo "status ${status}:                    ${fname}.$$.single"
+	endif
+	set fname="$<"
+end
+
+#end

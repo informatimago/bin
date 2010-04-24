@@ -1,0 +1,14 @@
+#!/bin/bash
+if [ -n "$1" ] ; then
+   cd "$1"
+fi
+
+echo -n 'Number of functions:    '
+find . \( -name \*.c -o -name \*.m -o -name \*.cc -o -name \*.lisp -o -name \*.el \) -exec cat {} \;  |egrep -i '^ *PROCEDURE|^ *METHOD|^(    |	)-\([^)]*\)|^ *\(DEFUN|^ *\(DEFMACRO|^ *\(DEFMETHOD|^(    |	)[a-z][a-z0-9_* ]* [a-z_][:a-z0-9_]* *\(.*\) *$'|wc -l
+
+echo -n 'Number of loops:        '
+find . \( -name \*.c -o -name \*.m -o -name \*.cc -o -name \*.lisp -o -name \*.el \) -exec cat {} \;  |egrep -i '\(DO(\*|LIST|TIMES)? |\(LOOP |\(WHILE |\(UNTIL |\<while *\(|\<do *{|\<for *\('|wc -l
+
+
+
+

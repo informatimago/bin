@@ -1,0 +1,559 @@
+#!/bin/bash
+#******************************************************************************
+#FILE:              religion
+#LANGUAGE:          bash
+#SYSTEM:            POSIX
+#USER-INTERFACE:    POSIX
+#DESCRIPTION
+#    This  script is a religion code generator, explainer and editor.
+#    (See http://www.galactic-guide.com/articles/2R10.html)
+#USAGE
+#    religion -h
+#AUTHORS
+#    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
+#MODIFICATIONS
+#    2002-03-22 <PJB> Creation.
+#BUGS
+#    Please report them to the author.
+#LEGAL
+#    Copyright Pascal J. Bourguignon 2002 - 2002.
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#******************************************************************************
+pname="$(basename $0)"
+pblan="${pname//?/ }"
+
+religiondb="$HOME/.religions"
+# could be a common file such as /usr/local/share/lib/religions or whatever..
+
+
+fmt --help > /dev/null 2>&1 ; gnufmt=$?
+
+function fmt () {
+    local width
+    local goal
+    local files=""
+    if [ 0 -eq $gnufmt ] ; then
+        command fmt $@
+    else
+        while [ $# -ge 1 ] ; do
+            case "$1" in
+            -w)
+                if [ $# -le 1 ] ; then
+                    echo "fmt: missing argument after '$1'." 1>&2
+                    exit 1
+                fi
+                shift
+                width="$1"
+                ;;
+            --width=*)
+                width="${1/--width=/}"
+                ;;
+            -[0-9]|-[0-9][0-9]|-[0-9][0-9][0-9]|-[0-9][0-9][0-9][0-9])
+                width="${1/-/}"
+                ;;
+            -*)
+                echo "fmt: invalid or non emulated argument '$1'." 1>&2
+                exit 1
+                ;;
+            *)
+                files="$files $1"
+                ;;
+            esac
+            shift
+        done
+        if [ -n "$width" ] ; then
+            goal=$(( $width - 1 ))
+        fi
+        command fmt $goal $width $files
+    fi
+}
+
+function usage () {
+    echo ""
+    echo "${pname} usage:"
+    echo ""
+    echo "    ${pname} -g|--generate | -G|--generate-and-explain \\"
+    echo "    ${pblan} | -i|--interactive | (-e|--explain) CODE \\"
+    echo "    ${pblan} | -h|--help | -v|--version | -c|--copyright"
+    echo ""
+    echo "See also: http://www.galactic-guide.com/articles/2R10.html"
+    echo ""
+}
+
+numdeity=(\
+    "A:All powerful, all knowing, benevolent." \
+    "B:All powerful, but one can usually pull pranks due to lack of all knowingness, benevolent." \
+    "C:All knowing, but who the hell really cares due to lack of all powerfulness, benevolent." \
+    "D:Neither all knowing nor all powerful, but just kind of there, benevolent." \
+    "E:All powerful, all knowing, malevolent." \
+    "F:All powerful, but one can usually pull pranks due to lack of all knowingness, malevolent." \
+    "G:All knowing, but who the hell really cares due to lack of all powerfulness, malevolent." \
+    "H:Neither all knowing nor all powerful, but just kind of there, malevolent." \
+    "I:Whoever happens to be leader of the people at the time." \
+    "J:Everything and everybody is part of the god." \
+    "K:Everything and everybody, except for people members of the religion don't like, is part of god." \
+    "L:God is a head of lettuce named Ralph." \
+    "?:Unknown." \
+    )
+
+afterdeath=(\
+    "0:Everybody goes to a nice place." \
+    "1:Members of the religion go to a nice place, everybody else goes to an unpleasant place." \
+    "2:Members of the religion go to an unpleasant place, everybody else goes to a nice place." \
+    "3:Everybody goes to an unpleasant place." \
+    "4:Nobody goes anywhere." \
+    "5:Really bad people are forced to work in all night convenience stores in New Jersey." \
+    "6:Everybody is reincarnated." \
+    "7:Only people who deserve punishment are reincarnated." \
+    "?:Unknown." \
+    )
+
+#organization:
+# A representing very organized, Z representing chaos. Follow this by a
+# hyphen to make it easier to find the next section. 
+
+#bubba:
+# The next number represents the percentage of members that are named
+# "Bubba." Do this on a scale from 0 to 9, with 0 meaning that nobody is named
+# Bubba and 9 meaning that everyone is named Bubba. Southern Baptists are
+# rated a 5 and the First Congregational Church of Bubba is a 9. 
+
+policy=(\
+    "A:Handed down from a single source." \
+    "B:Voted upon by a collection of elders." \
+    "C:Voted upon by everybody." \
+    "D:Chosen by a random number generator." \
+    "E:Determined by careful computer analysis." \
+    "F:Determined by combatants representing each view playing Super Mario Brothers." \
+    "Z:Nobody has ever tried to change the policy, so nobody knows just yet." \
+    "?:Unknown." \
+    )
+
+#numspellings:
+# Then follows a digit representing the number of ways one can spell the name
+# of the religion. 
+
+place=(\
+    "A:No meetings." \
+    "B:A building set aside for the purpose." \
+    "C:A building which is also the gym for the local high school." \
+    "D:Outside." \
+    "E:In an airport or bus terminal." \
+    "F:In a submarine." \
+    "G:In a graveyard or mausoleum." \
+    "F:In a bathtub or jacuzzi." \
+    "?:Unknown." \
+    )
+
+function random () {
+    # return one of its arguments, randomly.
+    local num=$(( 1 + $RANDOM % $# ))
+    echo ${!num}
+}
+
+function car () {
+    # return what is before : in its argument.
+    echo ${1/:*/}
+}
+
+function isupper () {
+    case "$1" in
+    A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z)
+        echo yes
+        ;;
+    *)
+        ;;
+    esac
+}
+
+function isdigit () {
+    case "$1" in
+    0|1|2|3|4|5|6|7|8|9)
+        echo yes
+        ;;
+    *)
+        ;;
+    esac
+}
+
+
+function lookup_name () {
+    local code="$1"
+    touch "$religiondb"
+    egrep "^${code}:" "$religiondb" | sed -e "s/^${code}://" 
+}
+
+
+function generate () {
+    local num="$(car $(random "${numdeity[@]}"))"
+    local aft="$(car $(random "${afterdeath[@]}"))"
+    local org=$(random A B C D E F G H I J K L M N O P Q R S T U V W X Y Z)
+    local bub=$(random 0 1 2 3 4 5 6 7 8 9)
+    local pol="$(car $(random "${policy[@]}"))"
+    local spe=$(random 0 1 2 3 4 5 6 7 8 9)
+    local pla="$(car $(random "${place[@]}"))"
+    echo $num$aft$org-$bub$pol$spe$pla
+}
+
+
+function line_code () {
+    echo "$1" | { IFS=: read code libelle ; echo "$code" ; }
+}
+
+function line_libelle () {
+    echo "$1" | { IFS=: read code libelle ; echo "$libelle" ; }
+}
+
+
+function get_libelle_for_code () {
+    local code="$1"
+    shift
+    while [ $# -ge 1 ] ; do
+        if [ "$code" = "$(line_code "$1")" ] ; then
+            echo "$(line_libelle "$1")"
+            return;
+        fi
+        shift
+    done
+}
+
+
+    
+function explain () {
+    local code="$1"
+    set $(echo "$code" | sed -e 's/^\(.\)\(.\)\(.\)-\(.\)\(.\)\(.\)\(.\)$/\1 \2 \3 \4 \5 \6 \7/' )
+    local num=$1
+    local aft=$2
+    local org=$3
+    local bub=$4
+    local pol=$5
+    local spe=$6
+    local pla=$7
+    local lib
+
+    echo " -------------------------------------------------------------------"
+    echo " RELIGION CODE:            $num$aft$org-$bub$pol$spe$pla"
+
+    if [ "$code" != "$num$aft$org-$bub$pol$spe$pla" ] ; then
+        echo "${pname}: Invalid religion code. Please. use format: lnl-nlnl"
+        echo "${pblan}  with 'l' a majuscule letter and 'n' a digit."
+        exit 2
+    fi
+
+    echo " RELIGION CHARACTERISTICS: "
+
+    local spaces="                          "
+
+    lib=$(get_libelle_for_code "$num" "${numdeity[@]}")
+    if [ -z "$lib" ] ; then
+        echo " INVALID DEITY CODE '$num'."
+    else
+        echo -n "                    DEITY: "
+        echo "$lib" | fmt -w 40 | sed -e '2,$s/^/ '"$spaces/"
+    fi
+
+    local lib=$(get_libelle_for_code "$aft" "${afterdeath[@]}")
+    if [ -z "$lib" ] ; then
+        echo " INVALID AFTER DEATH CODE '$aft'."
+    else
+        echo -n "              AFTER DEATH: "
+        echo "$lib" | fmt -w 40 | sed -e '2,$s/^/ '"$spaces/"
+    fi
+
+    if [ "?" = "$org" ] ; then
+        echo "       ORGANIZATION LEVEL: Unknown."
+    elif [ -z $(isupper $org) ] ; then
+        echo " INVALID ORGANIZATION LEVEL CODE '$org' (SHOULD BE AN UPPER CASE LETTER)."
+    else
+        echo "       ORGANIZATION LEVEL: $org ( A=VERY ORGANIZED, Z=CHAOS )."
+    fi
+
+    if [ "?" = "$bub" ] ; then
+        echo " % OF MEMBERS NAMED BUBBA: Unknown."
+    elif [ -z $(isdigit $bub) ] ; then
+        echo " INVALID BUBBA CODE '$bub' (SHOULD BE A DIGIT)."
+    else
+        echo " % OF MEMBERS NAMED BUBBA: ${bub}0 %"
+    fi
+
+    local lib=$(get_libelle_for_code "$pol" "${policy[@]}")
+    if [ -z "$lib" ] ; then
+        echo " INVALID POLICY CODE '$pol'."
+    else
+        echo -n "                   POLICY: "
+        echo "$lib" | fmt -w 40 | sed -e '2,$s/^/ '"$spaces/"
+    fi
+
+    if [ "?" = "$spe" ] ; then
+        echo " NUM OF SPELLINGS OF NAME: Unknown."
+    elif [ -z $(isdigit $spe) ] ; then
+        echo " INVALID SPELLINGS NUMBER '$spe' (SHOULD BE A DIGIT)."
+    else
+        echo " NUM OF SPELLINGS OF NAME: ${spe}"
+    fi
+
+    local lib=$(get_libelle_for_code "$pla" "${place[@]}")
+    if [ -z "$lib" ] ; then
+        echo " INVALID PLACE OF CULT CODE '$pla'."
+    else
+        echo -n "            PLACE OF CULT: "
+        echo "$lib" | fmt -w 40 | sed -e '2,$s/^/ '"$spaces/"
+    fi
+    echo " -------------------------------------------------------------------"
+}
+
+function yesno () {
+    local msg="$1"
+    local rep=""
+    while [ -z "$rep" ] ; do
+        echo -n "$msg"
+        read rep
+        case "$rep" in
+        1|t|T|true|True|TRUE|v|V|vrai|Vrai|VRAI|verdad|Verdad|VERDAD|y|Y|yes|Yes|YES|o|O|oui|Oui|OUI|j|J|ja|Ja|JA|d|D|da|Da|DA|s|S|si|Si|SI|p|P|positif|Positif|POSITIF|a|A|affirmative|Affirmative|AFFIRMATIVE|affirmatif|Affirmatif|AFFIRMATIF|yep|Yep|YEP|yeah|Yeah|YEAH|ouais|Ouais|OUAIS)
+            rep=Y
+            ;;
+        0|nil|Nil|NIL|f|F|false|False|FALSE|faux|Faux|FAUX|falso|Falso|FALSO|n|N|no|No|NO|non|Non|NON|nein|Nein|NEIN|niet|Niet|NIET|negatif|Negatif|NEGATIF|negative|Negative|NEGATIVE)
+            rep=N
+            ;;
+        *)
+            rep=""
+            ;;
+        esac
+    done > /dev/tty
+    echo $rep
+}
+
+function choose () {
+    local msg="$1"
+    shift
+    local valid=""
+    local code
+    local lib
+    local arg
+
+    while [ -z "$valid" ] ; do
+        echo ""
+        echo " -----  ------------------------------------------------------------"
+        echo " CODE   DESCRIPTION"
+        echo " -----  ------------------------------------------------------------"
+        for arg ; do
+            code=$(line_code "$arg")
+            lib=$(line_libelle "$arg")
+            echo -n "   ${code}    "
+            echo "$lib" | fmt -w 60 | sed -e '2,$s/^/        /'
+        done
+        echo " -----  ------------------------------------------------------------"
+        echo -n "$msg"
+        read code
+        if [ -z "$(get_libelle_for_code $code "$@")" ] ; then
+            echo " INVALID CODE '$code'."
+            sleep 1
+        else
+            valid=yes
+        fi
+    done > /dev/tty
+    echo $code
+}
+    
+function choose_l () {
+    local msg="$1"
+    shift
+    local valid=""
+    local code
+  
+    while [ -z "$valid" ] ; do
+        echo ""
+        echo -n "$msg"
+        read code
+        if [ "$code" = "?" ] ; then
+            valid=yes
+        elif [ -z "$(isupper "$code")" ] ; then
+            echo " INVALID CODE '$code'. SHOULD BE AN UPPER CASE LETTER OR '?'."
+        else
+            valid=yes
+        fi
+    done > /dev/tty
+    echo $code
+}
+
+function choose_n () {
+    local msg="$1"
+    shift
+    local valid=""
+    local code
+  
+    while [ -z "$valid" ] ; do
+        echo ""
+        echo -n "$msg"
+        read code
+        if [ "$code" = "?" ] ; then
+            valid=yes
+        elif [ -z "$(isdigit "$code")" ] ; then
+            echo " INVALID CODE '$code'. SHOULD BE A DIGIT OR '?'."
+        else
+            valid=yes
+        fi
+    done > /dev/tty
+    echo $code
+}
+
+
+function choose_b () {
+    local msg="$1"
+    shift
+    local valid=""
+    local code
+  
+    while [ -z "$valid" ] ; do
+        echo ""
+        echo -n "$msg"
+        read code
+        if [ "$code" = "?" ] ; then
+            valid=yes
+        else
+            case "$code" in 
+            [0-9]|[0-9][0-9]|[0-1][0-9][0-9])
+                if [ $code -le 100 ] ; then
+                    valid=yes
+                else
+                    echo " PERCENTAGE TOO BIG $code% !. SHOULD BE BETWEEN 0 and 100, OR '?'."
+                fi
+                ;;
+            *)
+                echo " INVALID PERCENTAGE '$code'. SHOULD BE BETWEEN 0 and 100, OR '?'."
+                ;;
+            esac
+        fi
+    done > /dev/tty
+    echo $(( $code / 10 ))
+}
+
+function interactive () {
+    local rep=N
+    local code
+    while [ $rep != Y ] ; do
+        echo " -------------------------------------------------------------------"
+        echo " LET'S SEE WHAT KIND OF RELIGION YOU WANT..."
+        echo ""
+        local num=$(choose   " PLEASE CHOOSE A DEITY: "        "${numdeity[@]}")
+        local aft=$(choose   " PLEASE CHOOSE AN AFTER DEATH: " "${afterdeath[@]}")
+        local org=$(choose_l " PLEASE CHOOSE AN ORGANIZATION LEVEL (A=VERY ORGANIZED, Z=CHAOS): ")
+        local bub=$(choose_b " PLEASE CHOOSE A BUBBA PERCENTAGE: ")
+        local pol=$(choose   " PLEASE CHOOSE A POLICY: "       "${policy[@]}")
+        local spe=$(choose_n " PLEASE CHOOSE A NUMBER OF SPELLINGS: ")
+        local pla=$(choose   " PLEASE CHOOSE A PLACE OF CULT: " "${place[@]}")
+        code="$num$aft$org-$bub$pol$spe$pla"
+        explain "$code"
+        rep=$(yesno " ARE SATISFIED WITH YOUR RELIGION (Y|N)? ")
+    done
+    local names="$(lookup_name "${code}")"
+    if [ -z "$names" ] ; then
+        local name=""
+        while [ -z "$name" ] ; do
+            echo -n " PLEASE ENTER A NAME FOR YOUR RELIGION: "
+            read name
+            echo " RELIGION CODE:    $code"
+            echo " RELIGION NAME:    $name"
+            if [ "Y" != $(yesno " IS THAT CORRECT (Y|N)? ") ] ; then
+                name=""
+            fi
+        done
+        echo "${code}:${name}" >> "$religiondb"
+        echo " -------------------------------------------------------------------"
+        echo " REGISTERED YOUR NEW RELIGION:"
+        echo " RELIGION CODE:    $code"
+        echo " RELIGION NAME:    $name"
+        echo " -------------------------------------------------------------------"
+    else
+        echo " -------------------------------------------------------------------"
+        echo " YOU CHOOSED THIS RELIGION:"
+        echo " RELIGION CODE:    $code"
+        echo " RELIGION NAME:    $names"
+        echo " -------------------------------------------------------------------"
+    fi
+}
+
+while [ $# -ge 1 ] ; do
+    case "$1" in
+    -g|--generate)
+        generate
+        exit 0
+        ;;
+    -G|--generate-and-explain)
+        r=$(generate)
+        echo $r 1>&2
+        explain $r
+        exit 0
+        ;;
+    -e|--explain)
+        if [ $# -le 1 ] ; then
+            echo "${pname}: Missing argument after '$1'."
+            usage
+            exit 1
+        fi
+        shift
+        code="$1"
+        explain $code
+        exit 0
+        ;;
+    -i|--interactive)
+        interactive
+        exit 0
+        ;;
+    -h|--help)
+        usage
+        exit 0
+        ;;
+    -v|--version)
+        echo "${pname} version 1.0"
+        exit 0
+        ;;
+    -c|--copyright)
+        echo "${pname} copyright and license:"
+        cat <<'EOF'
+
+    Copyright Pascal J. Bourguignon 2002 - 2002.
+
+    mailto:pjb@informatimago.com
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+EOF
+        exit 0
+        ;;
+    *)
+        echo "${pname}: Invalid argument '$1'."
+        usage
+        exit 1
+        ;;
+    esac
+    shift
+done
+echo "${pname}: Missing argument."
+usage
+exit 1

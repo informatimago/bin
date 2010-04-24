@@ -1,0 +1,64 @@
+#!/bin/bash
+if [ $# -eq 0 ] ; then
+    echo "Usage:"
+    echo "$0 \$column ..."
+    exit 1
+fi
+
+COLUMNS="$@"
+
+awk --assign columns_string="$COLUMNS" '
+BEGIN {
+    split(columns_string,columns);
+    for(i in columns){
+        min[i]="infinity";
+        max[i]="-infinity";
+        sum[i]=0;
+        cnt[i]=0;
+    }
+}
+
+{
+    for(i in columns){
+        val=$columns[i];
+        if((min[i]=="infinity")||(val<min[i])){
+            min[i]=val;
+        }
+        if((max[i]=="-infinity")||(max[i]<val)){
+            max[i]=val;
+        }
+        sum[i]+=val;
+        cnt[i]++;
+    }
+}
+    
+
+END {
+    printf "nbrecs %16f \n",NR;
+   
+    printf "minima ";
+    for(i in columns){
+        printf "%16f ",min[i];
+    }
+    printf "\n";
+
+    printf "maxima ";
+    for(i in columns){
+        printf "%16f ",max[i];
+    }
+    printf "\n";
+
+    printf "means  ";
+    for(i in columns){
+        printf "%16f ",sum[i]/cnt[i];
+    }
+    printf "\n";
+
+    printf "sums   ";
+    for(i in sum){
+        printf "%16f ",sum[i];
+    }
+    printf "\n";
+}
+'
+

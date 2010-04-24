@@ -1,0 +1,40 @@
+#!/bin/bash
+cat > /tmp/cwps.$$
+emacs /tmp/cwps.$$ --batch --eval '
+(require '\''cl)
+
+(defun count-words (start end)
+  (interactive "r")
+  (save-excursion
+    (goto-char start)
+    (let ((count 0))
+      (forward-word 1)
+      (while (<= (point) end)
+        (incf count)
+        (forward-word 1))
+      (message "%d words." count)
+      count)));;count-words
+
+(defun count-words-per-sentence (start end)
+  (interactive "*r")
+  (save-excursion
+    (let ((end (set-marker (make-marker) end)))
+      (block :exit
+        (goto-char start)
+        (forward-sentence)
+        (while (< (point) (marker-position end))
+          (let ((count (count-words start (point))))
+            (when (= 0 count) (return-from :exit))
+            (delete-region start (point))
+            (insert (format "%3d\n" count))
+            (setf start (point)))
+          (forward-sentence)))
+      (set-marker end nil))));;count-words-per-sentence
+
+(count-words-per-sentence (point-min) (point-max))
+(save-buffer 0)
+(kill-emacs)
+'
+cat /tmp/cwps.$$
+rm  /tmp/cwps.$$
+;;;; count-word-per-sentence          --                     --          ;;;;

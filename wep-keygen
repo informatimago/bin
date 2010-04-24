@@ -1,0 +1,9 @@
+#!/bin/bash
+read -p 'Enter the number of bits: 40, 64, 104, 128, 152, 232, or 256: ' bits
+case $bits in
+40|64|104|128|152|232|256) count=$(( $bits / 8 )) ;;
+*) echo "Not a valid number of bits: $bits" ; exit 1 ;;
+esac
+dd if=/dev/random bs=1 count=$count 2>/dev/null \
+| od -t x1 \
+| sed -e 's/^[^ ]*//' -e 's/ /-/g'

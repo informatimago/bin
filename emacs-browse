@@ -1,0 +1,4 @@
+#!/bin/bash
+# (emacs-pid)
+exec emacsclient -s /tmp/emacs$UID/server-392 \
+                 -e '(w3m-browse-url "'$1'")'

@@ -1,0 +1,19 @@
+#!/bin/bash
+awk '{
+    split(gensub("\\|","-","g"),a,"-");
+    d=a[1];
+    m=a[2];
+    y=a[3]+2000;
+    dv=a[4];
+    mv=a[5];
+    if((mv==12)&&(m==1)){
+        y--;
+    }else if((mv==1)&&(m==12)){
+        y++;
+    }
+    m=mv;
+    d=dv;
+    printf "%04d-%02d-%02d:%s\n",y,m,d,$0;
+}' \
+| sort \
+| awk '{print substr($0,index($0,":")+1)}'

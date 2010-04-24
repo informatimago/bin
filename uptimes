@@ -1,0 +1,47 @@
+#!/bin/bash
+
+cat ~/firms/afaa/REPORTS.mbox \
+|grep 'load average' \
+|awk '
+BEGIN{
+    days=0;
+    mins=0;
+    #last_line="";
+}
+
+function report(days,mins) {
+   #printf "%s\n",last_line;
+   printf "uptime %3d days %02d:%02d\n",days,mins/60,mins%60;
+}
+
+{
+    if($4=="days,"){
+        ndays=$3;
+        ntime=$5;
+    }else{
+        ndays=0;
+        ntime=$3;
+    }
+    if(index(ntime,":")==0){
+        nmins=ntime; # min,
+    }else{
+        split(ntime,atime,":");
+        nmins=atime[1]*60+atime[2];
+    }
+
+    if((days>ndays)||((days==ndays)&&(mins>nmins))){
+        # reset
+        report(days,mins);
+    }
+    #last_line=$0;   
+    days=ndays;
+    mins=nmins;
+}
+
+END {
+    report(days,mins);
+}
+'
+
+
+

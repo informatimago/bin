@@ -1,0 +1,55 @@
+#!/bin/bash
+pname=$(basename $0)
+fchmod=a+r
+dchmod=a+rx
+
+PATH=/usr/bin:/bin
+
+function usage () {
+    echo "${pname} usage:"
+    echo "    ${pname} [-ro|--read-only|-u|--owner|-g|--group] directory..."
+    echo " default      everybody can read, leave write as is."
+    echo " --read-only  nobody can write anything."
+    echo " --owner      only owner may write directories or files."
+    echo " --group      only owner and group may write directories or files."
+    echo ""
+    echo "   555 / 444    --read-only -ro"
+    echo "   755 / 644    --owner     -u "
+    echo "   775 / 664    --group     -g "
+}
+
+for arg ; do 
+    case "$arg" in 
+    --read-only|-ro)
+        fchmod=a+r,a-w
+        dchmod=a+rx,a-w
+        ;;
+    --owner|-u)
+        fchmod=a+r,u+w,go-w
+        dchmod=a+rx,u+w,go-w
+        ;;
+    --group|-g)
+        fchmod=a+r,ug+w,o-w
+        dchmod=a+rx,ug+w,o-w
+        ;;
+    --help|-h)
+        usage
+        exit 0
+        ;;
+    -*)
+        echo "${pname}: Invalid option '$arg'."
+        usage
+        exit 1
+        ;;
+    *)
+        find "$arg" -type d             -exec chmod $dchmod      {} \; &
+        find "$arg" -type f             -exec chmod $fchmod,og-x {} \; \
+                            -perm -0100 -exec chmod a+x          {} \; &
+        ;;
+    esac
+done
+wait
+#END#
+
+
+

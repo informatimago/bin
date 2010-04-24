@@ -1,0 +1,91 @@
+#!/bin/bash
+#iostat  $( (echo "-x /dev/hdd" ; echo "-x /dev/sda" ; echo "-x /dev/sdb" ;\
+#           awk '/hd[a-z] /{printf "-x /dev/%s\n",$4}'</proc/partitions) \
+#         | sort ) 1 \
+#
+#iostat $( awk '/disc/{printf "-x /dev/%s\n",$4}' < /proc/partitions | sort ) 1\
+#
+clear=0
+once=''
+while [ $# -gt 0 ] ; do 
+   case "$1" in
+   -e) clear=1 ; shift ;;
+   -n) once=$2 ; shift ; shift ;;
+   -h|--help) 
+       printf "Usage: %s [-e] [-1] [-h|--help]\n" "$0" 
+       exit 0 ;;
+   *)  printf "Error: Invalid argument: '%s'.\n" "$arg"
+       printf "Usage: %s [-e] [-1] [-h|--help]\n" "$0"
+       exit 1 ;;
+   esac
+done
+
+iostat -x 1 $once \
+| awk -v clear=$clear '
+BEGIN{
+    black=0;
+    red=1;
+    green=2;
+    yellow=3;
+    blue=4;
+    magenta=5;
+    cyan=6;
+    white=7;
+    do_invert=0;
+}
+function sgr(x){return(sprintf("%c[%dm",27,x));}
+function normal(){return(sgr(0));}
+function invert(){return(sgr(7));}
+function no_invert(){return(sgr(27));}
+function foreground(color){return(sgr(color+30));}
+function background(color){return(sgr(color+40));}
+function clear_screen () {return(sprintf("%cc",27));}
+function colorize(x){
+    if(do_invert){
+        if(x>10.0){ 
+            return(sprintf("%s%s%9s",background(yellow),foreground(black),x));}
+        else{
+            return(sprintf("%s%s%9s",background(black),foreground(white),x));}}
+    else{
+        if(x>10.0){
+            return(sprintf("%s%s%9s",background(white),foreground(blue),x));}
+        else{
+            return(sprintf("%s%s%9s",background(white),foreground(black),x));}}}
+/avg-cpu/{cpu=2;next;}
+{
+  if(cpu==1){
+    if(clear!=0){
+        printf "%s%s%s",clear_screen(),background(white),foreground(black);}
+    printf "%8s %9s%9s%9s\n",strftime("%H:%M:%S"),$2,$3,$4;
+  }else{
+    if($10==""){avr="";}
+    else if($10=="avgrq-sz"){avr=$10;}
+    else if($9>20000000.00){avr=sprintf("%9.2f",$9-42949672.96);} 
+    else{avr=sprintf("%9.2f",$9);} 
+
+    if($11==""){avq="";}
+    else if($11=="avgqu-sz"){avq=$10;}
+    else if($10>20000000.00){avq=sprintf("%9.2f",$10-42949672.96);} 
+    else{avq=sprintf("%9.2f",$10);} 
+
+    if($1=="Device:"){one="Dev";}
+    else if(substr($1,1,5)=="/dev/"){
+        one=gensub("/[a-z]*","","g",$1);
+        # one=gensub("ide/host","i",1,gensub("/bus","",1,gensub("/target","",1,gensub("/lun","",1,gensub("/disc","",1,gensub("/part","",1,substr($1,6)))))));
+        next;}
+    else if($2==""){one="";}
+    if(4==length(one)){
+        do_invert=1;printf "%s%s",background(black),foreground(white);}
+    if(one=="Dev"){
+        printf "%-7s%9s%9s%9s%9s%9s%9s%9s%9s%9s%9s",$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11;
+        devs=0;
+    }else{
+        printf("%-7s%9s%9s%9s%9s%9s%9s%9s%9s%9s%9s",one,colorize($1),colorize($2),colorize($3),colorize($4),colorize($5),colorize($6),colorize($7),colorize($8),avr,avq);
+    }
+    do_invert=0;printf "%s%s",background(white),foreground(black);
+    printf "%s\n",normal();
+  }
+  cpu--;}'
+
+exit 0
+

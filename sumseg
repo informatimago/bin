@@ -1,0 +1,39 @@
+#!/bin/bash
+pname=$(basename $0)
+tmp=/tmp
+
+function usage () {
+    echo "$pname usage:"
+    echo "    $pname size file"
+}
+
+
+for arg ; do
+    if [ -z "$size" ] ; then
+        size="$arg"
+    elif [ -z "$file" ] ; then
+        file="$arg"
+    else
+        usage
+        exit 1
+    fi
+done
+
+if [ -z "$size" -o -z "$file" ] ; then
+    usage
+    exit 1
+fi
+
+i=0
+segname=$(printf "%s/%s.%03d" "$tmp" "$file" $i)
+segment -s $size -n "$tmp/%s.%03d" -u $i "$file"
+while [ -r "$segname" ] ; do
+    md5sum "$segname"
+    rm -f "$segname"
+    i=$(( $i + 1 ))
+    segname=$(printf "%s/%s.%03d" "$tmp" "$file" $i)
+    segment -s $size -n "$tmp/%s.%03d" -u $i "$file"
+done
+
+
+#### sumseg                           -- 2003-04-14 08:56:41 -- pascal   ####

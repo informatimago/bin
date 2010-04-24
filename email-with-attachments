@@ -1,0 +1,167 @@
+#!/bin/sh
+#******************************************************************************
+#FILE:               email-with-attachment
+#LANGUAGE:           bash
+#SYSTEM:             POSIX
+#USER-INTERFACE:     POSIX
+#DESCRIPTION
+#
+#    This script builds a MIME email with the given files as attachments.
+#    A first text/plain section is inserted.
+#   
+#USAGE
+#    email-with-attachments files... > message
+#
+#
+#AUTHORS
+#    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
+#MODIFICATIONS
+#    2001-03-01 <PJB> Created.
+#BUGS
+#LEGAL
+#    Copyright Pascal J. Bourguignon 2001 - 2001
+#    GPL
+#******************************************************************************
+
+pname=`basename "$0"`
+pblan="`echo $pname|sed -e 's/./ /g'`"
+
+from="$USER@`hostname`"
+to="$USER@`hostname`"
+subject="Attached files."
+
+cat > /tmp/ewa.$$.head <<EOF
+From: $from
+To:  $to
+Subject: $subject
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MIME-BOUNDARY"
+
+This is a multi-part message in MIME format.
+
+--MIME-BOUNDARY
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+
+
+EOF
+
+cat > /tmp/ewa.$$.attachment <<EOF
+
+--MIME-BOUNDARY
+Content-Transfer-Encoding: base64
+Content-Type: TYPE; name="ATTACHMENTNAME"
+Content-Disposition: attachment; filename="ATTACHMENTNAME"
+
+EOF
+
+cat > /tmp/ewa.$$.tail<<EOF
+
+--MIME-BOUNDARY--
+
+That's all folks!
+
+EOF
+
+function clean { 
+    rm -f /tmp/ewa.$$.*
+}
+
+function usage {
+    echo "$pname usage:"
+    echo "    $pname files..."
+}
+
+
+for arg ; do
+    case "$arg" in
+    -h|--help)
+        usage
+        clean
+        exit 0
+        ;;
+    -*)
+        usage
+        clean
+        exit 1
+        ;;
+    *)
+        files="${files} ${arg:q}"
+        echo $arg >> /tmp/ewa.$$.head   
+        ;;
+    esac
+done
+
+
+
+function get_mime_type {
+    # Bon, on va faire simple pour commencer...
+    case "`echo $1|tr 'A-Z' 'a-z'`" in
+    # images
+    *.jpeg|*.jpg)
+        echo image/jpeg
+        ;;
+    *.tiff|*.tif)
+        echo image/tiff
+        ;;
+    *.gif)
+        echo image/gif
+        ;;
+    # sons
+    *.au|*.snd)
+        echo application/x-au
+        ;;
+    *.aiff)
+        echo application/x-aiff
+        ;;
+    *.mpeg|*.mpg)
+        echo video/mpeg
+        ;;
+    # textes
+    *.text|*.txt)
+        echo text/plain
+        ;;
+    *.html|*.htm)
+        echo text/html
+        ;;
+    # binaires
+    *.tar.gz)
+        echo application/x-gtar
+        ;;
+    *.gz)
+        echo application/x-gzip
+        ;;
+    *.tar)
+        echo application/x-tar
+        ;;
+    *.pdf)
+        echo application/pdf
+        ;;
+    *.ps|*.eps)
+        echo application/postscript
+        ;;
+    *)
+        echo application/x-octetstream
+        ;;
+    esac
+}
+
+
+
+
+
+cat /tmp/ewa.$$.head                  >  /tmp/ewa.$$.message
+for attachmentname in $files ; do
+    type=`get_mime_type $attachmentname`
+    sed -e "s:ATTACHMENTNAME:$attachmentname:" \
+        -e "s:TYPE:$type:" \
+        < /tmp/ewa.$$.attachment      >> /tmp/ewa.$$.message
+    mmencode < "$attachmentname"      >> /tmp/ewa.$$.message
+done
+cat /tmp/ewa.$$.tail                  >> /tmp/ewa.$$.message
+cat /tmp/ewa.$$.message
+clean
+exit 0
+
+#### email-with-attachments           --                     --          ####

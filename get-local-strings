@@ -1,0 +1,272 @@
+#!/bin/sh
+#******************************************************************************
+#FILE:				get-local-strings
+#LANGUAGE:			sh
+#SYSTEM:			UNIX
+#USER-INTERFACE:	None
+#DESCRIPTION
+#	$Header$
+#	This script extract localized strings from GNUstep sources and generate 
+#	string table files.
+#USAGE
+#	get-local-string --help
+#AUTHORS
+#	<PJB> Pascal J. Bourguignon
+#MODIFICATIONS
+#	$Log$
+#	1999/07/29 <PJB> Creation.
+#   1999/07/29 <PJB> Upgraded to OpenStep. Localizable.strings' the default.
+#                    (Expecting @"strings" instead of "string").
+#BUGS
+#   - A lot.
+#   - it should accept @"xxx"\
+#                      @"yyy" for @"xxxyyy".
+#LEGAL
+#	Copyright Pascal J. Bourguignon 1999 - 1999
+#
+#	All right reserved
+#   This script is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU  General Public
+#   License as published by the Free Software Foundation; either
+#   version 2 of the License, or (at your option) any later version.
+#
+#   This script is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#   General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public
+#   License along with this library; see the file COPYING.LIB.
+#   If not, write to the Free Software Foundation,
+#   59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+#******************************************************************************
+
+pname="`basename "$0"`"
+
+### Options.
+files=""
+append=0
+only_print_output_names=0
+no_more_option=0
+
+
+
+usage()
+{
+	echo "${pname} usage:"
+	echo ''
+	echo "  ${pname} [-h|--help] [-n|--only-print-output-names]"
+	echo '           [-a|--append] [-|--files] <file>...'
+	echo ''
+	echo 'Will extract all localized strings from the files passed as '
+	echo 'argument, creating one .strings file for each table, whatever '
+	echo 'bundle or framework it may come from, or Localizable.strings '
+	echo 'for strings that go to no perticuliar table. '
+	echo ''
+	echo 'With -a or --append, the output files are appended to, not '
+	echo 'overwritten.'
+	echo ''
+	echo 'However, with the -n or --only-print-output-names option, it will '
+	echo 'only print out the name of the .strings files that would be '
+	echo 'created or appended to, but no actual file writting is done.'
+	echo ''
+	echo "The '-' or --files options may be used to introduce files whose "
+	echo "name begin with a '-'."
+	echo ''
+	echo 'Note that the files are pre-processed to remove all cpp directive '
+	echo 'such as #include, #ifdef, #define, etc, and then processed thru '
+	echo 'cpp with a special set of macros used to extract the localized '
+	echo "strings. You can see the consequences.  One day, we'll have a "
+	echo 'more sophisticated alternative.'
+	echo '' 
+	echo 'The processed macros are:'
+	echo '      GSLocalizedString, and GSLocalizedStringFromTable,'
+	echo '      NSLocalizedString, and NSLocalizedStringFromTable,'
+	echo '      NSLocalizedStringFromTableInBundle, and'
+	echo '      NSLocalizedStringFromTableInFramework.'
+	echo ''
+	echo 'The macro invocations should not be split on several lines without '
+	echo 'an \ escape for the new-lines.'
+	echo ''
+}
+#usage
+
+
+add_file()
+{
+	local arg="$1"
+	if [ -r "$arg" ] ; then
+		files="$files $arg"
+	else
+		echo "${pname}: Unfound or unreadable file: '$arg'; ignored."
+	fi
+}
+#add_file
+
+
+
+make_macros()
+{
+cat <<EOF
+
+#define GSLocalizedString(key,comment) \
+:GET-LOCAL-STRING:Localizable:GLS-KEY:key:GLS-COMMENT:comment:GLS-END:
+
+#define GSLocalizedStringFromTable(key,tbl,comment) \
+:GET-LOCAL-STRING:tbl:GLS-KEY:key:GLS-COMMENT:comment:GLS-END:
+
+#define NSLocalizedString(key, comment) \
+:GET-LOCAL-STRING:Localizable:GLS-KEY:key:GLS-COMMENT:comment:GLS-END:
+
+#define NSLocalizedStringFromTable(key, tbl, comment) \
+:GET-LOCAL-STRING:tbl:GLS-KEY:key:GLS-COMMENT:comment:GLS-END:
+
+#define NSLocalizedStringFromTableInBundle(key, tbl, bundle, comment) \
+:GET-LOCAL-STRING:tbl:GLS-KEY:key:GLS-COMMENT:comment:GLS-END:
+
+#define NSLocalizedStringFromTableInFramework(key, tbl, fpth, comment) \
+:GET-LOCAL-STRING:tbl:GLS-KEY:key:GLS-COMMENT:comment:GLS-END:
+
+
+EOF
+}
+#make_macros
+
+
+cons_anytables()
+{
+	anytables="${anytables}${table}:"
+}
+
+append_to_table()
+{
+	if echo "$filtables"|grep -q ":${table}:" ; then
+		echo "$key = ${key}; /* $comment */" >> "${table}.strings"
+	else
+		filtables="${filtables}${table}:"
+		echo "/* From $file */"              >> "${table}.strings"
+		echo "$key = ${key}; /* $comment */" >> "${table}.strings"
+	fi
+}
+#append_to_table
+
+create_table()
+{
+	if echo "$filtables"|grep -q ":${table}:" ; then
+		echo "$key = ${key}; /* $comment */" >> "${table}.strings"
+	else
+		filtables="${filtables}${table}:"
+		echo "/* From $file */"               > "${table}.strings"
+		echo "$key = ${key}; /* $comment */" >> "${table}.strings"
+	fi
+}
+#create_table
+
+							  ##########
+							  ## main ##
+							  ##########
+
+##DEBUG##echo "${pname}: starting..."
+for arg ; do
+	##DEBUG##echo "${pname}: processing $arg" 
+	case "$arg" in
+	-h|--help)
+		echo ''
+		usage
+		exit 0
+		;;
+	-a|--append)
+		append=1
+		;;
+	-n|--only-print-output-names)
+		only_print_output_names=1
+		;;
+	-|--files)
+		no_more_option=1
+		;;
+	-*)
+		if [ $no_more_option != 0 ] ; then
+			add_file "$arg"
+		else
+			echo ''
+			echo "${pname}: Invalid option '$arg'"
+			echo ''
+			sleep 2
+			usage
+			exit 1
+		fi
+		;;
+	*)
+		add_file "$arg"
+		;;
+	esac
+done
+
+
+if [ "x$files" = "x" ] ; then
+	echo ''
+	echo "${pname}: Missing some file arguments."
+	echo ''
+	sleep 2
+	usage
+	exit 1
+fi
+
+
+tmpsource="/tmp/get-local-strings.$$.source"
+tmptables="/tmp/get-local-strings.$$.tables"
+tmpstring="/tmp/get-local-strings.$$.strings"
+tmpglobal="/tmp/get-local-strings.$$.global"
+
+touch "$tmpglobal"
+
+anytables=":"
+
+for file in $files ; do
+	filtables=":"
+	###echo "${pname}: processing $file"
+	make_macros               > $tmpsource
+    echo "#file $file"        >> $tmpsource
+    echo "#1"                 >> $tmpsource
+	sed -e 's/^#.*//' < $file >> $tmpsource
+	/lib/cpp $tmpsource - \
+	| sed \
+		-e '/:GET-LOCAL-STRING:/!d' \
+		-e 's/.*GET-LOCAL-STRING://' \
+		-e 's/:GLS-END:.*//' \
+		-e 's/\\/:GLS-ANTISLASH:/g' \
+	| while read line ; do
+		key="`    echo "$line"|sed -e 's/:GLS-ANTISLASH:/\\\\/g' -e 's/.*:GLS-KEY:[ 	]*@//'      -e 's/[	 ]*:GLS-COMMENT:.*//'`"
+		table="`  echo "$line"|sed -e 's/:GLS-ANTISLASH:/\\\\/g' -e 's/^[	 ]*@"*//'               -e 's/"*[ 	]*:GLS-KEY:.*//'`"
+		comment="`echo "$line"|sed -e 's/:GLS-ANTISLASH:/\\\\/g' -e 's/.*:GLS-COMMENT:[ 	]*@"//' -e 's/"[ 	]*$//'`"
+
+		if [ $only_print_output_names -ne 0 ] ; then
+			echo "${table}.strings" >> "$tmptables"
+		else
+			if [ $append -ne 0 ] ; then
+				append_to_table
+			else
+				if echo "$anytables"|grep -q ":${table}:" ; then
+					append_to_table
+				else
+					cons_anytables 
+					create_table
+				fi
+			fi
+		fi
+		echo "anytables=$anytables" > "$tmpglobal"
+	done
+	. "$tmpglobal"
+
+done
+
+if [ $only_print_output_names -ne 0 ] ; then
+	sort -u $tmptables
+fi
+
+#rm -f $tmpsource $tmptables $tmpstring
+
+exit 0
+#END
+
+

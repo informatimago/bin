@@ -1,0 +1,8 @@
+#!/bin/csh
+
+	set dir="/LocalLibrary/Sounds"
+	set filelist=( `find "$dir" -name '*.snd' -depth -print | grep .snd\$ ` )
+ 	@ r = ` random | tr - \  ` % ${#filelist} + 1 
+	sndplay $filelist[$r]
+
+#end

@@ -1,0 +1,2 @@
+#!/bin/bash
+exec xterm +sb -bg green -fg black -fn '-*-courier-bold-r-*-*-24-*-*-*-*-*-*-*' -e '/usr/games/bin/atc -g Atlantis'

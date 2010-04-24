@@ -1,0 +1,45 @@
+#!/bin/bash
+pname=`basename "$0"`
+pblan=`echo "$pname"|sed -e 's/./ /g'`
+
+function usage () {
+    echo "${pname} usage:"
+    echo "    ${pname} [-p|--pretty|-np|--no-pretty|-h|--help|FILE]..."
+} #usage
+
+
+pgm_no_pretty='{print $0;}'
+pgm_pretty='{
+    name=$2;
+    if(substr(name,length(name)-1,2)==",v"){
+        name=substr(name,1,length(name)-2);
+    }
+    printf " %-30s %-9s%10s %8s %-8s %-8s\n",name,$3,$4,$5,$6,$7;
+}'
+pgm="$pgm_no_pretty"
+
+for f in $@ ; do
+    case "$f" in
+    -p|--pretty)
+        pgm="$pgm_pretty"
+        ;;
+    -np|--no-pretty)
+        pgm="$pgm_no_pretty"
+        ;;
+    -h|--help)
+        usage
+        exit 0
+        ;;
+    -*)
+        echo "${pname}: Invalid option '$f'."
+        usage
+        exit 1
+        ;;
+    *)
+        echo $f:
+        strings $f \
+        | sed -n -e 's/.*\(\$Id:.*\$\).*/\1/p' \
+        | awk "$pgm"
+        ;;
+    esac
+done

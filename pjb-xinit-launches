@@ -1,0 +1,60 @@
+#!/bin/sh
+#-------------------------------------- LAUNCHING TOOLS --------------------
+WIDTH=`xwininfo -root|sed -e '/Width/!d' -e 's/ *Width: *//'`
+HEIGHT=`xwininfo -root|sed -e '/Height/!d' -e 's/ *Height: *//'`
+
+GAUCHE=`expr ${WIDTH} - 66`
+LARGEUR=65
+ALTITUDE=${HEIGHT}
+HAUTEUR=0
+
+BGCOLOR='#a0f0d0'
+LIGHTBGCOLOR='#d0f0d0'
+
+#------------------------ xclock ---
+HAUTEUR=16
+ALTITUDE=`expr $ALTITUDE - ${HAUTEUR} + 1`  # special formula
+xclock -digital \
+    -bg ${BGCOLOR} -fg DarkBlue \
+    -hd SlateBlue1 -hl SlateBlue4 \
+    -geometry 150x${HAUTEUR}+650+$ALTITUDE \
+    -fn '-misc-fixed-*-r-*-*-10-*-*-*-*-*-*-*' \
+    -update 1  -padding 2 &
+
+#------------------------ desk tool ---
+HAUTEUR=65
+ALTITUDE=`expr $ALTITUDE - ${HAUTEUR}`   # special formula
+
+#------------------------ xapm ---
+apm -m > /tmp/apm.log 2>&1
+if [ $? -eq 0 ] ; then
+    HAUTEUR=20
+    ALTITUDE=`expr $ALTITUDE - ${HAUTEUR} - 1`  # standard formula
+    xapm \
+	-bg ${BGCOLOR} -fg DarkBlue \
+	-geometry ${LARGEUR}x${HAUTEUR}+${GAUCHE}+${ALTITUDE} \
+	-delay 60 &
+else
+   xmessage -center -button 'Really too bad !' "`cat /tmp/apm.log`" &
+fi
+
+#------------------------ xload ---
+HAUTEUR=65
+ALTITUDE=`expr $ALTITUDE - ${HAUTEUR} - 1` # standard formula
+xload \
+    -bg ${BGCOLOR} -fg DarkBlue \
+    -hl SlateBlue4 \
+    -geometry ${LARGEUR}x${HAUTEUR}+${GAUCHE}+${ALTITUDE} \
+    -update 5 -jumpscroll 12 -nolabel &
+
+#------------------------ rclock ---
+HAUTEUR=65
+ALTITUDE=`expr $ALTITUDE - ${HAUTEUR} - 1` # standard formula
+rclock \
+    -bg ${BGCOLOR} -fg DarkBlue \
+    -geometry ${LARGEUR}x${HAUTEUR}+${GAUCHE}+$ALTITUDE \
+    -fn '-misc-fixed-*-r-*-*-10-*-*-*-*-*-*-*' \
+    -update 1 &
+
+
+##END##

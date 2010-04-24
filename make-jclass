@@ -1,0 +1,105 @@
+#!/bin/csh -f
+# makejclass <classname> [ <superclass> ]
+#set echo=1
+
+set pname=$0 ; set pname=${pname:t}
+set Replacer=/tmp/$pname.$$
+set Extension=java
+
+set ClassName=--undefined--
+set SuperClass=--undefined--
+set InterfaceList=()
+
+foreach arg ( $*:q )
+	if ( "${arg}" =~ -* ) then
+		echo 'Usage:'
+		echo '	makejclass <classname> [ <superclass> [ <interface> ... ] ]'
+		echo 'Create a file named <classname>.java'
+		echo 'containting a Java class template.'
+		exit 1
+	else if ( ${ClassName:q} == --undefined-- ) then
+		set ClassName="${arg}"
+	else if( ${SuperClass:q} == --undefined-- ) then
+		set SuperClass="${arg}"
+	else
+		set InterfaceList=( ${InterfaceList:q} ${arg:q} )
+	endif
+end
+
+if ( ${ClassName} == --undefined-- ) then
+	echo 'Usage:'
+	echo '	makejclass <classname> [ <superclass> [ <interface> ... ] ]'
+	echo 'Create a file named <classname>.java'
+	echo 'containting a Java class template.'
+	exit 1
+endif
+
+if ( ${SuperClass} == --undefined-- ) then
+	set SuperClass=Object
+endif
+
+if ( ${#InterfaceList} == 0 ) then
+	set InterfaceString=''
+	set SuperClass=Object
+else
+	set InterfaceString="`echo '@#implements '|tr '@#' '\012\011'`"
+	set Separator=''
+	foreach Interface ( $InterfaceList:q )
+		set InterfaceString=$InterfaceString:q$Separator$Interface
+		set Separator=','
+	end
+endif
+
+
+echo "Creating ${ClassName}.${Extension}..."
+cat > ${ClassName}.${Extension} << EOF 
+/******************************************************************************
+FILE:               ${ClassName}.java
+LANGUAGE:           JAVA
+SYSTEM:             JDK 1.1.6
+USER-INTERFACE:     AWT
+DESCRIPTION
+	This is the main class for the SAMAID application.
+AUTHORS
+	PJB: Pascal J. Bourguignon <pjb@informatimago.com>
+MODIFICATIONS
+BUGS
+LEGAL
+	Copyright Pascal J. Bourguignon <pjb@informatimago.com> 1998 - 2004
+	Copyright Latymer Designs Ltd   <latymer@usa.net>       1998 - 1998
+	All Rights Reserved.
+******************************************************************************/
+package latymer.XXXXXX;
+import latymer.XXXXXX;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.lang.*;
+import java.net.*;
+import java.text.*;
+import java.util.*;
+
+class ${ClassName} 
+	extends ${SuperClass}${InterfaceList}
+{
+	static public String rcsid="\$Id\$";
+	
+
+
+	public ${ClassName}()
+	{
+	}//${ClassName};
+	
+	
+
+}//${ClassName};
+
+EOF
+
+eofTag ${ClassName}.${Extension} >> ${ClassName}.${Extension}
+
+exit 0
+#END
+
+#### make-jclass                      --                     --          ####

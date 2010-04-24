@@ -1,0 +1,59 @@
+#!/bin/bash
+if [ $# = 0 ] ; then
+    set -x .
+fi
+halfline="======================================="
+line="$halfline$halfline"
+find $* -name \*.mp3 -print | while read m ; do
+    if [ ! -r "${m/.mp3/.ogg}" ] ; then
+     echo "$line"
+     echo === "$m"
+     echo "$line"
+     echo "--- mp3 to wav"
+     mpg123 -w "${m/.mp3/.wav}" "$m"
+     echo " -> status $?"
+     echo "--- wav to ogg"
+     oggenc -b 128 -M 160 "${m/.mp3/.wav}" -o "${m/.mp3/.ogg}"
+     echo " -> status $?"
+     if [ -r "${m/.mp3/.inf}" ] ; then
+         echo "--- comment ogg"
+         vorbiscomment -w "${m/.mp3/.ogg}" -c "${m/.mp3/.inf}"
+         echo " -> status $?"
+     fi
+     rm "${m/.mp3/.wav}"
+     fi
+done
+exit 0
+
+for i in *.inf ; do
+    d="${i/.inf/}"
+    pushd "$d"
+    for f in *.mp3 ; do
+        f="${f/.mp3/}"
+        track="`echo $f|sed -e 's/ - .*$//'`"
+        title="`echo $f|sed -e 's/^.* - //'`"
+        sed -e "s/TITLE=.*/TITLE=$title/" \
+            -e "s/TRACKNUMBER=.*/TRACKNUMBER=$track/" \
+            -e "s/ORGANIZATION=/ORGANIZATION=Producer: /" \
+            < "../$i" > "${f}.inf"
+    done
+    popd
+done
+exit 0
+
+
+
+for f in [A-Z]* ; do cat > "${f}.inf" <<EOF
+ARTIST=Pink Floyd
+ALBUM=$f
+TITLE=
+VERSION=
+TRACKNUMBER=
+ORGANIZATION=
+GENRE=
+DESCRIPTION=
+DATE=
+LOCATION=
+COPYRIGHT=
+EOF
+done

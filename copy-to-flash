@@ -1,0 +1,22 @@
+#!/bin/bash
+TEMP=/tmp/pjb-flash
+find $TEMP -type d -exec chmod 777 {} \;  2>&1 >/dev/null || true
+rm -rf $TEMP
+mkdir $TEMP
+cd ~
+tar zcf $TEMP/homefiles.tar.gz   $( find .??*  * \( -type d -prune \) -o \( -name \*~ -prune \) -o \( -type f -print \) ) 
+cd $TEMP
+mkdir -p src/lisp src/pjb works firms
+cp -a ~/private . 
+cp -a ~/src/public    src
+cp -a ~/src/pjb/{linc,lse,cl-lse,pa,domingo,vacation} src/pjb/
+cp -a ~/works/{uomta,palm,oloron,metre*,initprog}  works
+cp -a ~/firms/wizards firms/
+rm -rf works/initprog/{lispbox-original,lispbox-pjb,books} firms/wizards/old src/public/{lisp-*,lisp.optimized,llgpl} works/oloron/{src,mirrors}
+find private  -name www.\* -prune  -exec rm -rf {} \;
+find . \( -name \*~ -o -name \*.a -o -name \*.o -o -name \*.x86f -o -name \*.fas -o -name \*.lib -o -name \*.fasl -o -name OBJ-\* \) -prune -exec rm -rf {} \; 
+for f in firms private src works ; do 
+    tar zcf ${f}.tar.gz $f && rm -rf $f
+done
+du -shc *
+#cp -a * /mnt/flash/pjb/

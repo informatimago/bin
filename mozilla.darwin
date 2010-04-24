@@ -1,0 +1,21 @@
+#!/bin/bash
+if [ $(uname) != Darwin ] ; then
+unset $( env | egrep -v '^(HOME|TERM|DISPLAY|SHELL|LOGNAME|PATH)='|sed 's/=.*//' )
+export LC_ALL=C
+export      MOZILLA_HOME=/opt/mozilla
+export MOZILLA_FIVE_HOME=/opt/mozilla
+export   LD_LIBRARY_PATH=/opt/mozilla:/opt/mozilla/plugins
+export      LIBRARY_PATH=/opt/mozilla:/opt/mozilla/components
+export        SHLIB_PATH=/opt/mozilla
+export           LIBPATH=/opt/mozilla
+export        ADDON_PATH=/opt/mozilla
+export       MOZ_PROGRAM=/opt/mozilla/mozilla-bin
+export       MOZ_TOOLKIT=
+export         moz_debug=0
+export      moz_debugger=
+env
+. /usr/X11R6/bin/mozilla
+else
+. /sw/bin/mozilla
+fi
+#### mozilla                          --                     --          ####

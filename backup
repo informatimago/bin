@@ -1,0 +1,123 @@
+#!/bin/bash
+#******************************************************************************
+#FILE
+#	~pascal/bin/backup
+#DESCRIPTION
+#	Backups.
+#AUTHORS
+#	<PJB> Pascal J. Bourguignon
+#MODIFICATIONS
+#	1992-10-05 <PJB> Creation.
+#   2001-12-16 <PJB> Updated.
+#LEGAL
+#	Copyright Pascal J. Bourguignon 1992 - 2001
+#	All rights reserved.
+#******************************************************************************
+set -x
+umask 077
+
+spooldir=/babyboom/backups
+date=$(date "+%Y%m%d%H%M")
+tar=tar
+taroptions=" --create --bzip2 --one-file-system --sparse --file=- "
+pgp=gpg
+pgpoptions=" -c --passphrase-fd 6 "
+pgpext=gpg
+
+
+echo -n "Enter passphrase: "
+read password1
+echo ''
+echo -n "Repeat passphrase: "
+read password2
+echo ''
+if [ "$password1" != "$password2" ] ; then
+    echo "Passphrases don't match."
+    exit 1
+fi
+
+
+
+passp=/tmp/pipe-$$ 
+trap "rm -f $passp" 0
+mknod $passp p 
+
+echo "$password1" > $passp &
+time \
+$tar $taroptions \
+    --directory=/ \
+    --exclude=local/ftp \
+    --exclude=local/src \
+    --exclude=local/users/oracle \
+    --exclude=local/users/pascal \
+    --exclude=local/html/users/pascal \
+    --exclude=local/html/mirrors \
+    local \
+| $pgp $pgpoptions 6< $passp > $spooldir/$date-local-1.tar.bz.$pgpext
+
+
+echo "$password1" > $passp &
+time \
+$tar $taroptions \
+    --directory=/ \
+    local/src \
+    local/html/users/pascal \
+    local/html/mirrors \
+    local/users/oracle \
+| $pgp $pgpoptions 6< $passp > $spooldir/$date-local-2.tar.bz.$pgpext
+
+
+echo "$password1" > $passp &
+time \
+$tar $taroptions \
+    --directory=/local/users \
+    --exclude=pascal/firms \
+    --exclude=pascal/tmp \
+    pascal \
+| $pgp $pgpoptions 6< $passp > $spooldir/$date-pascal-1.tar.bz.$pgpext
+
+
+echo "$password1" > $passp &
+time \
+$tar $taroptions \
+    --directory=/local/users \
+    pascal/firms \
+    pascal/tmp \
+| $pgp $pgpoptions 6< $passp > $spooldir/$date-pascal-2.tar.bz.$pgpext
+
+
+ls -lt $spooldir
+exit 0
+#-----------------------------------------------------------------------
+
+
+	cd ~pascal
+
+if ( 0 ) then
+	mkdir /sanfrancisco/pascal
+
+	echo --- Copying dot and files from ~pascal to /sanfrancisco/pascal...
+	cp -rp .??*  @notes Stationery* Active.datebk /sanfrancisco/pascal
+	
+	foreach d ( ./Apps ./Mailboxes ./bin ./firms ./job ./private  )
+
+		echo --- Copying $d from ~pascal to /sanfrancisco/pascal...
+		find $d -depth -print | cpio -pdmuv /sanfrancisco/pascal
+
+	end
+	rm -if /sanfrancisco/pascal/.dir.tiff
+
+	mkdir /sanfrancisco/pascal/works /sanfrancisco/pascal/src
+	mkdir /sanfrancisco/pascal/works /sanfrancisco/pascal/works
+endif
+#	foreach d ( ./net ./upmc ./src/* ./works/* )
+	foreach d ( ./src/tools ./src/unix ./src/yaccfiles )
+
+		echo --- Taring $d from ~pascal to /sanfrancisco/pascal...
+		tar cvf - $d | compress > /sanfrancisco/pascal/${d}.tar.Z
+
+	end
+
+	exit 0
+#END
+#--------------------------------------------------------------------------

@@ -1,0 +1,169 @@
+#!/bin/bash
+#******************************************************************************
+#FILE:               clean-paths
+#LANGUAGE:           bash
+#SYSTEM:             POSIX
+#USER-INTERFACE:     POSIX
+#DESCRIPTION
+#
+#    This scripts builds an isomorphe directory hierarchy with the names
+#    cleaned up (removing most special and non ASCII characters).
+#
+#    This script can also be named reproduce-changes, in which case it will
+#    only output commands that can be used to reproduce the destination
+#    directory from the source directory.
+#
+#AUTHORS
+#    <PJB> Pascal J. Bourguignon 
+#MODIFICATIONS
+#    2002-09-16 <PJB> Creation.
+#    2002-09-17 <PJB> Added reproduce-changes.
+#BUGS
+#LEGAL
+#    LGPL
+#
+#    Copyright Pascal J. Bourguignon 1992 - 2002
+#
+#    This library is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU Lesser General Public
+#    License as published by the Free Software Foundation; either
+#    version 2 of the License, or (at your option) any later version.
+#
+#    This library is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    Lesser General Public License for more details.
+#
+#    You should have received a copy of the GNU Lesser General Public
+#    License along with this library; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+#
+#******************************************************************************
+pname="$(basename $0)"
+pdire="$(dirname  $0)"
+pblan="${pname//?/ }"
+
+#script=/tmp/sysexits.$$
+#trap "/bin/rm -f $script" 0
+#grep '#define' /usr/include/sysexits.h|sed -e 's/#define[ 	][ 	]*\([^ 	][^ 	]*\)[ 	][ 	]*\([0-9][0-9]*\).*/export \1=\2/' > $script
+#. $script
+
+export _SYSEXITS_H=1
+export EX_OK=0
+export EX__BASE=64
+export EX_USAGE=64
+export EX_DATAERR=65
+export EX_NOINPUT=66
+export EX_NOUSER=67
+export EX_NOHOST=68
+export EX_UNAVAILABLE=69
+export EX_SOFTWARE=70
+export EX_OSERR=71
+export EX_OSFILE=72
+export EX_CANTCREAT=73
+export EX_IOERR=74
+export EX_TEMPFAIL=75
+export EX_PROTOCOL=76
+export EX_NOPERM=77
+export EX_CONFIG=78
+export EX__MAX=78
+
+
+function usage () {
+    echo "${pname} usage:"
+    echo "    ${pname} [--symbolic-links|-L|--hard-links|-H|--copy|-C] \\"
+    echo "    ${pblan} [--print-commands|-n] [--help|-h] [-t|--test] \\"
+    echo "    ${pblan} \$srcdir \$dstdir"
+}
+
+src=""
+dst=""
+options=""
+do=exec
+
+for arg ; do
+    case "$arg" in
+    -L|--symbolic-links)
+        options="$options :symbolic-link"
+        ;;
+    -H|--hard-links)
+        options="$options :hard-link"
+        ;;
+    -C|--copy)
+        options="$options :file-copy"
+        ;;
+    -n|--print-commands)
+        options="$options :print-commands"
+        ;;
+    -h|--help)
+        usage
+        exit $EX_OK
+        ;;
+    -t|--test)
+        do=echo
+        ;;
+    *)
+        if [ -z "$src" ] ; then
+            src="$arg"
+        elif [ -z "$dst" ] ; then
+            dst="$arg"
+        else
+            echo "${pname}: '$arg' is superfluous"
+            echo "${pname}: I already have both  source and destination directories."
+            usage
+            exit $EX_USAGE
+        fi
+    esac
+done
+
+if [ ! -d "$src" ] ; then
+    echo "${pname}: first argument must be the source directory, not '$src'."
+    usage
+    exit $EX_DATAERR
+fi
+
+
+CIP=/usr/share/lisp/packages/com/informatimago
+
+if [ "$pname" = "reproduce-changes" ] ; then
+
+    ## just output a script to reproduce $dst from $src
+
+    if [ ! -d "$dst" ] ; then
+        echo "${pname}: second argument must be the target directory, not '$dst'."
+        usage
+        exit $EX_DATAERR
+    fi
+
+    $do emacs -nw  --batch  --no-site-file  --no-init-file  --eval "
+    (progn
+       (add-to-list 'load-path \"$CIP/emacs\")
+       (load \"$pdire/clean-paths\" nil t)
+       (reproduce-changes \"$src\" \"$dst\" $options)
+    )
+    "
+
+else
+
+    ## actually produce a cleaned-up $dst from $src (or just output a script
+    ## to this effect if --print-commands  is given).
+
+    if [ -x "$dst" ] ; then
+        echo "${pname}: second argument must be the destination of a new directory"
+        echo "${pname}: '$dst' already exists."
+        usage
+        exit $EX_DATAERR
+    fi
+
+    $do emacs -nw  --batch  --no-site-file  --no-init-file  --eval "
+    (progn
+       (add-to-list 'load-path \"$CIP/emacs\")
+       (load \"$pdire/clean-paths\" nil t)
+       (clean-paths \"$src\" \"$dst\" $options)
+    )
+    "
+
+fi
+
+#END#
+

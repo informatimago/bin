@@ -1,0 +1,127 @@
+#!/bin/bash
+pname="$(basename $0)"
+pblan="${pname//?/ }"
+
+recursive=0
+declare -a items
+nitems=0
+action=tolower
+
+function usage () {
+    echo "${pname} usage:"
+    echo "    ${pname} [-h|--help] [-r|--recursive] "
+    echo "    ${pblan} [-l|--to-lower|-u|--to-upper] file_or_directory..."
+}
+
+
+if [ $# -eq 0 ] ; then
+    echo "${pname}: Missing arguments."
+    usage
+    exit 1
+fi
+
+for arg ; do
+    case "$arg" in
+    -h|--help)
+        usage
+        exit 0
+        ;;
+    -r|--recursive)
+        recursive=1
+        ;;
+    -u|--to-upper)
+        action=toupper
+        ;;
+    -l|--to-lower)
+        action=tolower
+        ;;
+    -*)
+        echo "${pname}: Invalid option '$arg'."
+        usage
+        exit 1
+        ;;
+    *)
+        items[$nitems]="$arg"
+        nitems=$(( $nitems + 1 ))
+        ;;
+    esac
+done
+
+function tolower () {
+    echo "$1" | tr 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' 'abcdefghijklmnopqrstuvwxyz'
+}
+
+function toupper () {
+    echo "$1" | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+}
+
+function dorename () {
+    local item="$1"
+    dir=$(dirname "$item")
+    nam=$($action "$(basename $item)")
+    if [ "$(dirname $item)/$(basename $item)" != "$dir/$nam" ] ; then
+        if [ -e "$dir/$nam" ] ; then
+            echo "${pname}: Target alread exists: '$dir/$nam'. Skipping."
+        else
+            mv "$item" "$dir/$nam"
+        fi
+    fi
+}
+
+
+if [ $recursive -eq 0 ] ; then
+    # single
+    for item in "${items[@]}" ; do
+        dorename "$item"
+    done
+else
+    # recursive
+    for item in `find "${items[@]}" -depth -print` ; do
+        dorename "$item"
+    done
+fi
+
+exit 0
+########################################################################
+#!/bin/csh -f -b
+
+echo 'A TESTER AVANT USAGE'
+exit 1
+
+set pname="$0"
+set pname="$pname:t"
+switch ( "$pname" )
+case renametolower:
+case tolower:
+	set action=(tr '[A-Z]' '[a-z]')
+	breaksw
+case renametoupper:
+case toupper:
+	set action=(tr '[a-z]' '[A-Z]')
+	breaksw
+default:
+	echo 'Usage: renametolower file...'
+	echo 'Usage: renametoupper file...'
+	echo 'Please correct symlinks.'
+	exit 1
+	breaksw
+endsw
+	
+foreach oldname ( $* )
+	set path="`dirname $oldname:q`"
+	set name="`basename $oldname:q`"
+	set newname="$path/`echo $name:q|$action`"
+	
+	if ( $oldname:q == $newname:q ) then
+		echo $oldname:q '===' $newname:q
+	else
+		echo $oldname:q '>>>' $newname:q
+		mv   $oldname:q       $newname:q
+	endif
+end
+
+exit 0
+
+
+
+

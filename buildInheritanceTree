@@ -1,0 +1,208 @@
+#!/bin/sh
+pname="`basename "$0"`"
+
+#
+#
+
+Cxx_header=hh
+Cxx_implem=cc
+Cxx_superc=BpObject
+Cxx_name="C++"
+
+ObjC_header=h
+ObjC_implem=m
+ObjC_superc=NSObject
+ObjC_name="Objective-C"
+
+Java_header=
+Java_implem=java
+Java_superc=Object
+Java_name="Java"
+
+
+
+
+usage()
+{
+	echo "${pname} usage:"
+	echo ''
+	echo "  ${pname} [lflag|tflag|-h|--help|<file>]..."
+	echo ''
+	echo   '  +-------------+------------------+--------+--------+'
+	echo   '  | language    |  lflag           | header | implem |'
+	echo   '  +-------------+------------------+--------+--------+'
+	printf '  | %-11s | -cp --C++  C++   | .%-5s | .%-5s |\n' \
+		   "$Cxx_name" "$Cxx_header" "$Cxx_implem"
+	printf '  | %-11s | -oc --ObjC ObjC  | .%-5s | .%-5s |\n' \
+		   "$ObjC_name" "$ObjC_header" "$ObjC_implem"
+	printf '  | %-11s | -j  --Java Java  | .%-5s | .%-5s |\n' \
+		   "$Java_name" "$Java_header" "$Java_implem"
+	echo   '  +-------------+------------------+--------+--------+'
+	echo ''
+	echo '  Will analyse the source files and extract the class hierarchy.'
+	echo '  The language is automatically determined from the extension of'
+	echo '  the file, or forced by the lflag.'
+	echo ''
+	echo '  tflag may be one of:'
+	echo '    -a|--alphabetic   sort the classes alphabetically at each '
+	echo '                      level of the hierarchy.'
+	echo '    -d|--deepest-last sort the subtrees so that the deepest one'
+	echo '                      are displayed last.'
+	echo ''
+
+}
+#usage
+
+
+
+language="automatic"
+Cxx_files=""
+ObjC_files=""
+Java_files=""
+tree_options=""
+
+							  ##########
+							  ## main ##
+							  ##########
+##DEBUG##echo "${pname}: starting..."
+for arg ; do
+	##DEBUG##echo "${pname}: processing $arg"
+	case "$arg" in
+	-h|--help)
+		echo ''
+		usage
+		exit 0
+		;;
+	-a|--alphabetic)
+		tree_options="$tree_options -a"
+		;;
+	-d|--deepest-last)
+		tree_options="$tree_options -d"
+		;;
+	-cp|--c++|--C++)
+		language=Cxx
+		header="$Cxx_header"
+		implem="$Cxx_implem"
+		superc="$Cxx_superc"
+		laname="$Cxx_name"
+		;;
+	-oc|--objc|--ObjC)
+		language=ObjC
+		header="$ObjC_header"
+		implem="$ObjC_implem"
+		superc="$ObjC_superc"
+		laname="$ObjC_name"
+		;;
+	-j|--java|--Java)
+		language=Java
+		header="$Java_header"
+		implem="$Java_implem"
+		superc="$Java_superc"
+		laname="$Java_name"
+		;;
+	-*)
+		echo ''
+		echo "${pname}: Invalid option \"$arg\""
+		echo ''
+		sleep 2
+		usage
+		exit 1
+		;;
+	*)
+		case "$language" in
+		automatic)
+			case "$arg" in
+			*.hpp|*.hh|*.H|*.HH|*.hxx|*.cpp|*.cc|*.C|*.CC|*.cxx)
+				Cxx_files="${Cxx_files} $arg"
+				;;
+			*.h|*.m)
+				ObjC_files="${ObjC_files} $arg"
+				;;
+			*.java)
+				Java_files="${Java_files} $arg"
+				;;
+			*)
+				echo "${pname}: Unknown file extension; what language is this?"
+				exit 1
+				;;
+			esac
+			;;
+		Cxx)
+			Cxx_files="${Cxx_files} $arg"
+			;;
+		ObjC)
+			ObjC_files="${ObjC_files} $arg"
+			;;
+		Java)
+			Java_files="${Java_files} $arg"
+			;;
+		*)
+			echo "${pname}: Internal error: invalid language=$language"
+			exit 1
+			;;
+		esac
+		;;
+	esac
+done
+
+
+
+if [ -z "$Cxx_files$ObjC_files$Java_files" ] ; then
+	echo "${pname}: Missing file arguments."
+	sleep 2
+	usage
+	exit 1
+fi
+
+
+tmpfile=/tmp/indent-tree.$$
+
+
+if [ "x$Cxx_files" != "x" ] ; then
+	cat $Cxx_files \
+	| sed -n -f $0.sed \
+	| grep -v '(' \
+	| sort -u \
+	| awk 'BEGIN {FS="	"}
+{if(NF>2){for(i=2;i<=NF;i++){printf "%s\t%s\n",$1,$i;}}else{print;}}' \
+	> $tmpfile
+	indent-tree $tree_options $tmpfile
+fi
+
+
+if [ "x$ObjC_files" != "x" ] ; then
+	cat  $ObjC_files \
+	| egrep '@interface[ 	].*:' \
+	| sed \
+		-e 's/,//g' \
+		-e 's/<[A-Za-z0-9_]*>//g' \
+		-e 's/[ 	]*@interface[ 	]*\([A-Za-z0-9_][A-Za-z0-9_]*\)[ 	]*:[ 	]*\([A-Za-z0-9_][A-Za-z0-9_]*\).*/\1 \2/' \
+	| tr ' ' '\011' \
+	> $tmpfile
+	indent-tree $tree_options $tmpfile
+fi
+
+
+if [ "x$Java_files" != "x" ] ; then
+	echo "${pname}: Sorry, not yet implemented for Java sources."
+	exit 1
+fi
+
+exit 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### buildInheritanceTree             --                     --          ####

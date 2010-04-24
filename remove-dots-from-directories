@@ -1,0 +1,110 @@
+#!/bin/csh -f
+
+set pname="$0"
+set pname="`basename $pname:q`"
+set usage="Usage: $pname:q -h|--help | \
+		-f|--force [-v|--verbose|-d|--debug]... [-] directory ..."
+set quiet=1
+set debug=0
+set checkoptions=1
+set directories=()
+set force=0
+
+if ( $#argv == 0 ) then
+	echo $usage:q
+	exit 1
+endif
+
+foreach arg ( $*:q )
+	if ( $checkoptions ) then
+		switch ( $arg:q )
+		case -h:
+		case --help:
+			echo $usage:q
+			exit 1
+		case -v:
+		case --verbose:
+			set quiet=0
+			breaksw
+		case -d:
+		case --debug:
+			set quiet=0
+			set debug=1
+			breaksw
+		case -f:
+		case --force:
+			set force=1
+			breaksw
+		case -:
+			set checkoptions=0
+			breaksw
+		case -*:
+			echo "Invalid option: $arg:q"
+			echo $usage:q
+			exit 1
+		default:
+			set directories=($directories:q "$arg:q")
+			breaksw
+		endsw
+	else
+		set directories=($directories:q "$arg:q")
+	endif
+end
+
+if ( ! $force ) then
+	echo $usage:q
+	echo "Warning: This tool will remove dots even from NeXT file packages,"
+	echo "         thus they'll become plain directories. To acknowledge that"
+	echo "         you indeed want this to happen, you must use the --force"
+	echo "         option."
+	exit 2
+endif
+
+set matchedirectories=(`find $directories -type d -name '*.*' -print|sort -r`)
+
+if ( $debug ) then
+	echo pname=$pname
+	echo debug=$debug
+	echo quiet=$quiet
+	echo checkoptions=$checkoptions
+	echo directories=$directories:q
+	echo matchedirectories=$matchedirectories:q
+endif
+
+if ( $#directories == 0 ) then
+	echo $usage:q
+	echo "You must specify the root directory where to find the "
+	echo "dotted-directories."
+	exit 3
+endif
+
+foreach dir ( $matchedirectories )
+	
+	set dirname=`dirname $dir`
+	set basename=`basename $dir`
+	set newroot="`echo $basename:q | sed -e 's/\./-/g'`"
+	set newname=$newroot:q
+	set i=0
+	while ( -e "$dirname/$newname" ) 
+		set newname=$newroot:q-$i
+		@ i++
+	end
+	
+	if ( ! $quiet ) then
+		if ( $debug ) then
+			echo '#' $dir:q @ $dirname:q @ $basename:q @ $newname:q
+		else
+			echo '#' $dir
+		endif
+	endif
+
+	if ( $debug ) then
+		echo mv $dirname:q/$basename:q $dirname:q/$newname:q
+	else
+		mv $dirname:q/$basename:q $dirname:q/$newname:q
+	endif
+	
+end
+
+exit 0
+#end

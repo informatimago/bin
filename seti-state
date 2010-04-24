@@ -1,0 +1,207 @@
+#!/bin/bash
+#******************************************************************************
+#FILE:              seti-state
+#LANGUAGE:          bash
+#SYSTEM:            UNIX
+#USER-INTERFACE:    tty
+#DESCRIPTION
+#    This script gather seti statistics from several running processes via ssh
+#    and format the output.
+#USAGE
+#    seti-state
+#    (edit the script to set the list of host and seti directories).
+#AUTHORS
+#    <PJB> Pascal J. Bourguignon
+#MODIFICATIONS
+#    2001-??-?? <PJB> Creation.
+#    2002-04-19 <PJB> Improved to avoid several ssh process per host.
+#BUGS
+#    You tell me.
+#LEGAL
+#    Copyright Pascal J. Bourguignon 2001 - 2002
+#
+#    This script is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU  General Public
+#    License as published by the Free Software Foundation; either
+#    version 2 of the License, or (at your option) any later version.
+#
+#    This script is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public
+#    License along with this library; see the file COPYING.LIB.
+#    If not, write to the Free Software Foundation,
+#    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+#******************************************************************************
+tmp=/tmp/seti-$$
+trap "/bin/rm -rf ${tmp}" 0
+mkdir $tmp
+sta=$tmp/state
+cmd=$tmp/comms
+
+# Step 1:
+# We generate a ssh command to each host to get the data we want
+# in the following format : host=directory=file=field=value
+# (We need the `file' name just to sort out homonym fields).
+# ssh outputs are piped to a awk to format the result as wanted and &'ed.
+awk '
+BEGIN{ apostrophe=39; space=32; }
+/^HOST /{ host=$2; indi=""; seti_num=0; next; }
+/^INDI /{ host=$2; indi=$3; seti_num=0; next; }
+/^SETI /{ setis[seti_num++]=$2; next; }
+/^SSH */{ 
+    if(seti_num>1){
+        seti_option="{";
+        for(i=0;i<seti_num-1;i++){
+            seti_option=seti_option setis[i] ",";
+        }
+        seti_option=seti_option setis[seti_num-1] "}";
+    }else{
+        seti_option=setis[0];
+    }
+    if(indi!=""){
+        command="ssh -q " host " ssh -q " indi;
+        name=indi;
+        quote=apostrophe;
+    }else{
+        command="ssh -q " host;
+        name=host;
+        quote=space;
+    }
+    printf("%s %c egrep -e \"^cpu=\\|^prog=\\|^name=\\|^nresults=\" %s%c "\
+           "< /dev/null | awk %c{printf(\"%s=%%s=%%s\\n\","\
+           "gensub(\"([^/:]*.sah):.*\",\"=\\\\1\",\"\",$0),"\
+           "gensub(\"^.*sah:\",\"\",\"\",$0));}%c  & \n",
+           command,quote,
+           sprintf("%s/{state,work_unit,user_info}.sah ",seti_option),
+           quote,apostrophe,name,apostrophe);
+}
+' > ${cmd} <<EOF
+HOST hermes.afaa.asso.fr
+SETI $HOME/setiathome\*
+SSH
+HOST sirius.intra.afaa.asso.fr
+SETI $HOME/.kernel
+SSH
+HOST galatea.informatimago.com
+SETI $HOME/setiathome\*
+SSH
+HOST larissa.informatimago.com
+SETI $HOME/setiathome\*
+SSH
+HOST thalassa.informatimago.com
+SETI $HOME/setiathome\*
+SSH
+EOF
+# HOST burgondc.informatimago.com
+# SETI $HOME/setiathome\*
+# SSH
+#
+# INDI hermes.afaa.asso.fr sirius.intra.afaa.asso.fr
+# SETI $HOME/.kernel
+# SSH
+# INDI hermes.afaa.asso.fr socrate.intra.afaa.asso.fr 
+# SETI $HOME/.kernel
+# SSH
+#
+# HOST pinaud.afaa.asso.fr
+# SETI $HOME/tmp/setiathome/processing/wu0
+# SETI $HOME/tmp/setiathome/processing/wu1
+# SETI $HOME/tmp/setiathome/processing/wu2
+# SETI $HOME/tmp/setiathome/processing/wu3
+# SETI $HOME/tmp/setiathome/processing/wu4
+# SETI $HOME/tmp/setiathome/processing/wu5
+# SETI $HOME/tmp/setiathome/processing/wu6
+# SETI $HOME/tmp/setiathome/processing/wu7
+# SETI $HOME/tmp/setiathome/processing/wu8
+# SETI $HOME/tmp/setiathome/processing/wu9
+# SSH
+
+
+# cat ${cmd} ; exit 0
+
+# Step 2:
+# We run the commands in parallel to gather the results, 
+# and wait for them to finish.
+. ${cmd} > ${sta}
+wait
+
+# Step 3:
+# We sort the output data (to have the last name field from the right file),
+# and format it to output.
+sort < ${sta} \
+| awk -F=  '
+function reset_job() {
+    name="";
+    prog=0;
+    cpu=0;
+}
+
+function print_job () {
+    if((name!="")&&(prog!=0)){
+        split(strftime("%d %H %M %S",cpu/prog),item," ");
+        split(strftime("%d %H %M %S",cpu/prog*(1-prog)),rest," ");
+        printf "%-10s %5.3f  %2d-%02d:%02d:%02d  %2d-%02d:%02d:%02d  %s\n",
+            gensub("\\..*","","",host),
+            prog,
+            item[1]-1,item[2],item[3],item[4],
+            rest[1]-1,rest[2],rest[3],rest[4],
+            name;
+    }
+}
+
+
+BEGIN {
+    host="";
+    dir="";
+    nresults=0;
+    reset_job();
+    line="---------- -----  -----------  -----------  -----------------------------------";
+    printf "%s\n",line;
+    printf "CPU        Progr  Batch Time   Completion   Job Name\n"
+    printf "%s\n",line;
+}
+
+
+{
+    nhost=$1;
+    ndir=$2;
+    field=$4;
+    value=$5;
+
+    if((nhost!=host)||(ndir!=dir)){
+        print_job();
+        reset_job();
+        host=nhost;
+        dir=ndir;
+    }
+
+    if(field=="nresults"){
+        if(nresults<value){
+            nresults=value;
+        }
+    }else if(field=="name"){
+        name=value;
+    }else if(field=="prog"){
+        prog=value;
+    }else if(field=="cpu"){
+        cpu=value;
+    }
+    next;
+}
+
+END{
+    print_job();
+    printf "%s\n",line;
+    if(nresults>0){
+        printf "%-10s %5d\n---------- -----\n","# Results",nresults;
+    }
+}
+'
+# That's all folks.
+exit 0
+#END#
+
+#### seti-state                       -- 2003-04-18 18:09:40 -- pascal   ####

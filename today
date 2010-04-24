@@ -1,0 +1,77 @@
+#!/bin/sh
+tmpdir=/tmp/today.$$
+mkdir $tmpdir
+trap 'rm -rf ${tmpdir}' exit
+
+echo ''
+echo 'Getting devise quote...'
+echo ';; Please  use ~/bin/today to update this file.' > ~/.emacs-devises~
+if get-devises >> ~/.emacs-devises~  ; then
+    mv ~/.emacs-devises~ ~/.emacs-devises
+    echo 'Complete.'
+    echo ''
+    echo 'You may want to run "M-x load-file ~/.emacs-devise" in emacs...'
+else
+    echo 'Failed.'
+fi
+echo ''
+
+
+echo 'Getting UserFriendly cartoon...'
+cd $tmpdir
+rm -f index.html
+wget -q http://www.userfriendly.org/static/index.html
+imgurl=`sed -e 's/</@</g' < index.html | tr '@' '\012' | grep cartoons/archives/0 | sed -e 's/.*http/http/' -e 's/".*//'`
+echo "Getting $imgurl"
+wget -q $imgurl
+xv `basename $imgurl`  &
+rm -f index.html
+
+
+
+echo 'Getting Dilbert cartoon...'
+cd $tmpdir
+rm -f index.html
+wget -q http://www.dilbert.com/comics/dilbert/index.html
+imgurl=`sed -e 's/</@</g' < index.html | tr '@' '\012' | grep 'SRC="/comics/dilbert/archive/images/dilbert' | sed -e 's-.*SRC="-http://www.dilbert.com-' -e 's/".*//'`
+echo "Getting $imgurl"
+wget -q $imgurl
+xv `basename $imgurl`  &
+rm -f index.html
+
+
+
+### echo 'Getting HelpDesk cartoon...'
+### cd $tmpdir
+### wget -q http://linuxtoday.com:80/helpdex/
+### yearmonth=`date +%Y/%m`
+### imgurl=`sed -e 's/</@</g' < index.html | tr '@' '\012' | grep $yearmonth | sed -e 's-.*SRC="-http://linuxtoday.com-' -e 's/".*//'`
+### echo "Getting $imgurl"
+### #<IMG SRC="/helpdex/2000/09/inge.jpg" border="0" width="750" height="303" ALT="Title for Pic">
+### wget -q $imgurl
+### xv `basename $imgurl`  &
+### rm -f index.html
+### 
+### 
+### echo 'Getting Rudy Park cartoon...'
+### cd $tmpdir
+### imgurl=http://www.rudypark.com/cartoons/rudypark.jpg
+### echo "Getting $imgurl"
+### wget -q $imgurl
+### xv `basename $imgurl`  &
+### rm -f index.html
+
+
+
+echo 'Getting Cartoon4Fun cartoon...'
+cd $tmpdir
+wget -q http://www.cartoons4fun.com/c4f.shtml
+imgurl=`tr '<' '\012' < c4f.shtml  | grep 'The Daily Toon' | sed -e 's-.*src="-http://www.cartoons4fun.com/-' -e 's-".*--'`
+echo "Getting $imgurl"
+wget -q $imgurl
+xv `basename $imgurl`  &
+rm -f c4f.shtml
+
+sleep 10
+rm -rf $tmpdir
+#END

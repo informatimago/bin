@@ -1,0 +1,13 @@
+#!/bin/bash
+lock="$1.lock"
+trap "rm -f \"$lock\"" 0
+echo $$ > "$lock" || exit 1
+while [ "$(cat "$lock")" -ne "$$" ] ; do
+    while [ -x "$lock" ] ; do
+        sleep 5
+    done
+    echo $$ > "$lock"
+done
+mv "$1" "$2"
+rm -f "$lock"
+#### movemail                         -- 2003-10-27 01:10:45 -- pascal   ####

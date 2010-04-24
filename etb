@@ -1,0 +1,2 @@
+#!/bin/bash
+exec mplayer -ontop 'mms://a217.l881320216.c8813.e.lm.akamaistream.net/D/217/8813/v0001/reflector:20216'

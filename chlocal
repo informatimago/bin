@@ -1,0 +1,30 @@
+#!/bin/sh
+if [ "$#" = 0 ]; then
+	echo "$0 usage: "
+	echo "$0 [-u] directory..."
+	echo "It will set recusively the listed directories and their files"
+	echo "for access as local files."
+	echo "-u => set owner as local also."
+	exit 1
+fi
+if [ "$1" = "-u" ]; then
+	shift
+	setuser=1
+else
+	setuser=0
+fi
+
+user=local
+group=local
+
+if [ $setuser = 1 ]; then
+	find $@ -type d -exec chown $user.$group {} \; -exec chmod 775 {} \;
+	find $@ -type f -exec chown $user.$group {} \; \
+		-exec chmod a+r {} \; \
+		-exec chmod o-w {} \;
+else
+	find $@ -type d -exec chgrp $group {} \; -exec chmod 775 {} \;
+	find $@ -type f -exec chgrp $group {} \; \
+		-exec chmod a+r {} \; \
+		-exec chmod o-w {} \;
+fi

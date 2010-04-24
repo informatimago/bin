@@ -1,0 +1,629 @@
+#!/bin/bash
+#******************************************************************************
+#FILE:              get-cams
+#LANGUAGE:          bash
+#SYSTEM:            UNIX
+#USER-INTERFACE:    X window
+#DESCRIPTION
+#    This script periodically gather webcam pictures on the web and dispatch
+#    onto X displays.
+#USAGE
+#    aca-get --help
+#    Edit the cameras and displays arrays in this script to match your needs.
+#AUTHORS
+#    <PJB> Pascal J. Bourguignon
+#MODIFICATIONS
+#    2002-??-?? <PJB> Creation.
+#BUGS
+#    You tell me.
+#LEGAL
+#    Copyright Pascal J. Bourguignon 2002 - 2002
+#
+#    This script is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU  General Public
+#    License as published by the Free Software Foundation; either
+#    version 2 of the License, or (at your option) any later version.
+#
+#    This script is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public
+#    License along with this library; see the file COPYING.LIB.
+#    If not, write to the Free Software Foundation,
+#    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+#******************************************************************************
+pname="$(basename $0)"
+pblan="${pname//?/ }"
+
+
+
+##
+## BEGIN CONFIGURATION
+##
+# camera names and displays names are used to build bash variable names.
+# Dashes are replaced by underlines. All other characters must be valid
+# for bash variable names, and care should be take to avoid name collision.
+camtitle=( \
+    "Camera Name          Zon Dly Wide High  URL" \
+    "-------------------- --- --- ---- ----  ----------------------------------------" \
+)
+cameras=( \
+"Noumea               +12  60  768  512  http://webcam.kaori.nc/webcam.jpg" \
+"Sidney               +10  60  480  360  http://www.lss.com.au/webcam/webcaml.jpg" \
+"Kyoto                 +9  60  320  240  http://www3.kyoto-kcg.ac.jp/daimon/current.jpg" \
+"Seto-Bridge           +9  60  320  240  http://info-bridge.santec.co.jp/setobridge/setob.jpg" \
+"Perth-1               +8  60  320  240  http://www.aceonline.com.au/~livecam/cam1/livecam.jpg" \
+"Perth-2               +8  60  320  240  http://www.aceonline.com.au/~livecam/cam2/livecam.jpg" \
+"Perth-3               +8  60  320  240  http://www.aceonline.com.au/~livecam/cam3/livecam.jpg" \
+"Bangkok               +7  60  320  240  http://www.cyberworksconsulting.com/images/webcam/capture.jpg" \
+"Novosibirsk           +5  60  320  240  http://webcam.telefun.ru/cgi-bin/w3cam.cgi" \
+"Moscow                +3  60  512  384  http://cards.mnc.ru/image/512/mos32.jpg" \
+"Gdansk                +2  60  320  240  http://www.gdansk.gda.pl/um_green/k_kamera/cam2.jpg" \
+"Jerusalem             +2  60  320  240  http://aish1.com/wall/thewall92.jpg" \
+"Oxford-Circus         +0  60  320  240  http://www.fujiint.co.uk/street/FIP.jpg" \
+"La-Manga              +0  30  352  288  http://www.informatimago.com/webcams/webcam.jpeg" \
+"Gran-Canarias         -1  60  640  472  http://www.condor.de/common/webcams/CF150312.jpg" \
+"Isafjordur            -1  60  352  288  http://www.snerpa.is/vedur/isafjord.jpg" \
+"Isumerit              -2  60  320  240  http://iserit.greennet.gl/sajare/isummeritwebcam/webcam.jpg" \
+"Rio-de-Janeiro        -3  60  352  288  http://www.uol.com.br/aliwebcam2/pao_de_acucar.jpg" \
+"Buenos-Aires          -4  60  352  288  http://www.offspring.com.ar/webcam/buenos_aires01.jpg" \
+"New-York              -5  60  320  240  http://www.abc45online.com/skycpk.jpg" \
+"Acapulco-1            -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg22.jpg" \
+"Acapulco-2            -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg23.jpg" \
+"Cancun-1              -6  60  704  576  http://www.vialidad.telmex.net/fotos/fg24.jpg" \
+"Cancun-2              -6  60  704  576  http://www.vialidad.telmex.net/fotos/fg25.jpg" \
+"Chihuahua-1           -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg30.jpg" \
+"Chihuahua-2           -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg33.jpg" \
+"Guadalajara-1         -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg11.jpg" \
+"Guadalajara-2         -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg12.jpg" \
+"LaPaz                 -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg14.jpg" \
+"Mazatlan              -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg13.jpg" \
+"Mexico-Oriente-1      -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg8.jpg" \
+"Mexico-Oriente-2      -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg20.jpg" \
+"Mexico-Oriente-3      -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg21.jpg" \
+"Mexico-Poniente-1     -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg1.jpg" \
+"Mexico-Poniente-2     -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg17.jpg" \
+"Mexico-Sur-1          -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg5.jpg" \
+"Mexico-Sur-2          -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg7.jpg" \
+"Mexico-Sur-3          -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg9.jpg" \
+"Mexico-Sur-4          -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg10.jpg" \
+"Mexico-Sur-5          -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg19.jpg" \
+"Mexico-Sur-6          -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg27.jpg" \
+"Mexico-Sur-7          -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg32.jpg" \
+"Monterrey-1           -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg15.jpg" \
+"Monterrey-2           -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg16.jpg" \
+"NuevoLaredo           -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg26.jpg" \
+"Reynosa               -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg28.jpg" \
+"Veracruz              -7  60  704  576  http://www.vialidad.telmex.net/fotos/fg29.jpg" \
+"Vallarta              -8  60  352  288  http://images.earthcam.com/affiliates/cheeseburger/puertovallarta.jpg" \
+"San-Francisco-Bay     -8  60  400  300  http://webmarin.com/images/wc/Camera.jpg" \
+"San-Francisco-Golden  -8  60  320  240  http://www.mapwest.com/webcam/ggbridgecam.jpg" \
+"Vancouver-Island      -9  60  352  288  http://www.shawniganlakecondo.com/webcam/webcam32.jpg" \
+"Ruby                 -10  60  640  480  http://akweathercams.faa.gov/wxdata/Ruby/images/current/hugecam2.jpg" \
+"Kodiak               -10  60  640  480  http://akweathercams.faa.gov/wxdata/kodiak/images/current/hugecam4.jpg" \
+"Honolulu-Small       -11  60  128   96  http://www.hawaii-malinda.com/live/s1.jpg" \
+"Honolulu-Big         -11  60  640  480  http://www.hawaii-malinda.com/live/1.jpg" \
+"Honolulu-Harbor      -11  60  640  480  http://www.hawaiiocean.com/oceanonline/Channel.jpg" \
+"Cancun-Norte-small    -6  60  352  288  http://www.vialidad.telmex.net/fotos/f24.jpg" \
+"Cancun-Sur-small      -6  60  352  288  http://www.vialidad.telmex.net/fotos/f25.jpg" \
+"Acapulco-1-small      -7  60  352  288  http://www.vialidad.telmex.net/fotos/f22.jpg" \
+"Acapulco-2-small      -7  60  352  288  http://www.vialidad.telmex.net/fotos/f23.jpg" \
+)
+
+
+# 1|Periférico Norte, Paseo de las Palmas y Presidente Masarik|Col. Chapultepec Morales(Zona Poniente)|
+# 5|Av. Patriotismo, pasando Extremadura (Eje 7 Sur)|Col. Mixcoac(Zona Sur)|
+# 7|Periférico Sur, antes de Paseo de la Magdalena|Col. Jardínes Pedregal(Zona Sur)|
+# 8|Viaducto Miguel Alemán, entre Eje 3 Oriente y Añil|Col. Granjas México(Zona Oriente)|
+# 9|Av. Universidad y Av. Coyoacan|Col. del Valle(Zona Sur)|
+# 10|Av. Revolución y Dr. Zamora y Duque (antes de Viaducto)|Col. Escandón(Zona Sur)|
+# 11|Cruce de Av.Vallarta y Av. Chapultepec|Col. Americana(Guadalajara, Jalisco)|
+# 12|Federalismo Norte y Circunvalación|Federalismo(Guadalajara, Jalisco)|
+# 13|21 de marzo 14 y 16 Pte.|(Mazatlán, Sinaloa)|
+# 14|Clima|Ocampo y Altamirano(La Paz, Baja California Sur)|
+# 15|Av. Constitución, Centro|(Monterrey, Nuevo León)|
+# 16|Av. Gonzalitos y Nevado de Toluca Col. Urdiales|Col. Urdiales(Monterrey, Nuevo León)|
+# 17|Carretera México-Toluca km. 14.5|Col. Lomas de Bezares(Zona Poniente)|
+# 19|Av. Insurgentes Sur|Col. Copilco el Bajo(Zona Sur)|
+# 20|Calzada Ignacio Zaragoza y Av.Telecomunicaciones|U.H. Rotaria(Zona Oriente)|
+# 21|Calzada Ermita Iztapalapa 1628|Col. San Miguel(Zona Oriente)|
+# 22|Av. farallón del Obispo #2|Frente a la Costera(Acapulco, Guerrero)|
+# 23|Costera Miguel Alemán y Av. del Mar|Fracc. Club Deportivo(Acapulco, Guerrero)|
+# 24|Boulevard Kukulkan Km.10 Zona Hotelera, Frente al Centro de Convenciones|(Cancún, Quintana Roo)|
+# 25|Boulevard Kukulkan Km.10 Zona Hotelera, Frente al Centro de Convenciones|(Cancún, Quintana Roo)|
+# 26|Avenida González y Benito Juárez Centro (Puente Internacional 1)|(Nuevo Laredo, Tamaulipas)|
+# 27|Río Churubusco pasando Av. Universidad|Col. del Valle(Zona Sur)|
+# 28|Boulevard Hidalgo|Col. Simón Rodríguez(Reynosa, Tamaulipas)|
+# 29|Zamora y Rayón|Centro(Veracruz, Veracruz)|
+# 30|Av. Universidad No. 2731|Col. Universidad(Chihuahua, Chihuahua)|
+# 32|Periférico Sur 3585|(Zona Sur)|
+# 33|El Paso Texas|(Cd. Juárez, Chihuahua)|
+
+
+# (defun gen-tiles (name display width height htiles vtiles)
+#     (let ( (hincrem (/ width  htiles))
+#            (vincrem (/ height vtiles)) )
+#         (for j 0 (1- vtiles)
+#             (for i 0 (1- htiles)
+#                 (printf "    \"%-14s%-8s%5d%5d  %s\" \\\n" 
+#                         (format "%s-%02d" name (+ i (* j htiles)))
+#                         (format "%d,%d" (* i hincrem) (* j vincrem))
+#                         hincrem vincrem display)
+#                         ))))
+# (gen-tiles "galatea"   "galatea.informatimago.com:0.0"  800  600 5 5)
+# (gen-tiles "thalassa" "thalassa.informatimago.com:0.0" 1280 1024 5 5)
+
+
+
+distitle=(\
+    "Disp.Name     Offset   Wide High  X screen" \
+    "------------- -------- ---- ----  ---------------------------------------" )
+displays=(\
+    "thalassa-full 0,0      1280 1024  thalassa.informatimago.com:0.0" \
+    "thalassa-tl   0,0       640  512  thalassa.informatimago.com:0.0" \
+    "thalassa-tr   640,0     640  512  thalassa.informatimago.com:0.0" \
+    "thalassa-bl   0,512     640  512  thalassa.informatimago.com:0.0" \
+    "thalassa-br   640,512   640  512  thalassa.informatimago.com:0.0" \
+    "galatea-full  0,0       800  600  galatea.informatimago.com:0.0" \
+    "galatea-tl    0,0       400  300  galatea.informatimago.com:0.0" \
+    "galatea-tr    400,0     400  300  galatea.informatimago.com:0.0" \
+    "galatea-bl    0,300     400  300  galatea.informatimago.com:0.0" \
+    "galatea-br    400,300   400  300  galatea.informatimago.com:0.0" \
+    "galatea-00    0,0       160  120  galatea.informatimago.com:0.0" \
+    "galatea-01    160,0     160  120  galatea.informatimago.com:0.0" \
+    "galatea-02    320,0     160  120  galatea.informatimago.com:0.0" \
+    "galatea-03    480,0     160  120  galatea.informatimago.com:0.0" \
+    "galatea-04    640,0     160  120  galatea.informatimago.com:0.0" \
+    "galatea-05    0,120     160  120  galatea.informatimago.com:0.0" \
+    "galatea-06    160,120   160  120  galatea.informatimago.com:0.0" \
+    "galatea-07    320,120   160  120  galatea.informatimago.com:0.0" \
+    "galatea-08    480,120   160  120  galatea.informatimago.com:0.0" \
+    "galatea-09    640,120   160  120  galatea.informatimago.com:0.0" \
+    "galatea-10    0,240     160  120  galatea.informatimago.com:0.0" \
+    "galatea-11    160,240   160  120  galatea.informatimago.com:0.0" \
+    "galatea-12    320,240   160  120  galatea.informatimago.com:0.0" \
+    "galatea-13    480,240   160  120  galatea.informatimago.com:0.0" \
+    "galatea-14    640,240   160  120  galatea.informatimago.com:0.0" \
+    "galatea-15    0,360     160  120  galatea.informatimago.com:0.0" \
+    "galatea-16    160,360   160  120  galatea.informatimago.com:0.0" \
+    "galatea-17    320,360   160  120  galatea.informatimago.com:0.0" \
+    "galatea-18    480,360   160  120  galatea.informatimago.com:0.0" \
+    "galatea-19    640,360   160  120  galatea.informatimago.com:0.0" \
+    "galatea-20    0,480     160  120  galatea.informatimago.com:0.0" \
+    "galatea-21    160,480   160  120  galatea.informatimago.com:0.0" \
+    "galatea-22    320,480   160  120  galatea.informatimago.com:0.0" \
+    "galatea-23    480,480   160  120  galatea.informatimago.com:0.0" \
+    "galatea-24    640,480   160  120  galatea.informatimago.com:0.0" \
+    "thalassa-00   0,0       256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-01   256,0     256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-02   512,0     256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-03   768,0     256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-04   1024,0    256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-05   0,204     256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-06   256,204   256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-07   512,204   256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-08   768,204   256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-09   1024,204  256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-10   0,408     256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-11   256,408   256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-12   512,408   256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-13   768,408   256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-14   1024,408  256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-15   0,612     256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-16   256,612   256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-17   512,612   256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-18   768,612   256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-19   1024,612  256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-20   0,816     256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-21   256,816   256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-22   512,816   256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-23   768,816   256  204  thalassa.informatimago.com:0.0" \
+    "thalassa-24   1024,816  256  204  thalassa.informatimago.com:0.0" \
+    )
+##
+## END CONFIGURATION
+##
+ 
+ 
+
+
+# Some functions:
+
+function line_name () {
+    echo "$1" | { read name rest ; echo "$name" ; }
+}
+
+function find_line_named () {
+    local name="$1"
+    local lname
+    shift
+    while [ $# -ge 1 ] ; do
+        lname=$(line_name "$1")
+        if [ "$name" = "$lname" ] ; then
+            echo "$1"
+            return
+        else
+            shift
+        fi
+    done
+    echo ""
+}
+
+function cam_name () {
+    echo "$1" | { read name zone delay width height url rest ; echo "$name" ; }
+}
+function cam_zone () {
+    echo "$1" | { read name zone delay width height url rest ; echo "$zone" ; }
+}
+function cam_delay () {
+    echo "$1" | { read name zone delay width height url rest ; echo "$delay" ; }
+}
+function cam_width () {
+    echo "$1" | { read name zone delay width height url rest ; echo "$width" ; }
+}
+function cam_height () {
+    echo "$1" | { read name zone delay width height url rest ; echo "$height" ; }
+}
+function cam_url () {
+    echo "$1" | { read name zone delay width height url rest ; echo "$url" ; }
+}
+
+
+function dis_name () {
+    echo "$1" | { read name offset width height screen rest ; echo "$name" ; }
+}
+function dis_offset () {
+    echo "$1" | { read name offset width height screen rest ; echo "$offset" ; }
+}
+function dis_width () {
+    echo "$1" | { read name offset width height screen rest ; echo "$width" ; }
+}
+function dis_height () {
+    echo "$1" | { read name offset width height screen rest ; echo "$height" ; }
+}
+function dis_screen () {
+    echo "$1" | { read name offset width height screen rest ; echo "$screen" ; }
+}
+
+
+
+
+function make_symbol () {
+    echo ${1//-/_}_$2
+}
+
+function refvar () {
+    echo ${!1}
+}
+    
+function setvar () {
+    eval $1=\""$2"\"
+}
+
+   
+
+function usage () {
+    echo ""
+    echo "${pname} usage:"
+    echo ""
+    echo "   ${pblan} [ --help | --test | --delay DELAY | --one-shoot  ] \\"
+    echo "   ${pname} [ --camera CAMNAME [ --keep PATH ] \\"
+    echo "   ${pblan}     --display DISPNAME [ --display DISPNAME ]... ]... \\"
+    echo ""
+    echo "The following options may be abreviated:"
+    echo "   --camera    -camera    -cam  -c"
+    echo "   --display   -display   -dis  -d"
+    echo "   --delay     -delay     -del  -D"
+    echo "   --one-shoot -one-shoot -one  -o"
+    echo "   --keep      -keep            -k"
+    echo "   --test      -test            -t"
+    echo "   --help      -help            -h"
+    echo ""
+    echo "Takes a list of cameras, & displays them each on a list of displays."
+    echo "Order of arguments is important. The syntax is:"
+    echo "  [delay|oneshoot] ( camera [keep] display... )..."
+    echo "--one-shoot implies --delay 0."
+    echo "--help list the available cameras and displays too."
+    echo "--test don't do anything but prints what would be done."
+}
+   
+function cmd () {
+    if [ -z $test ] ; then
+        $@
+    else
+        echo $@
+    fi
+}
+
+function get_and_dispatch () {
+    local index="$1"
+    local cames="$2"
+    local screens="$3"
+    
+    local came
+    local screen
+    local disp
+
+    # get
+    for came in $cames ; do
+        local camline="$(find_line_named "$came" "${cameras[@]}")"
+        local url="$(cam_url "$camline")"
+        local ext="$(refvar $(make_symbol $came ext))"
+        local picture_numb=$(echo 000000$index|sed -e 's/.*\(......\)/\1/')
+        local picture_file
+        local keep="$(refvar $(make_symbol $came keep))"
+        if [ -z "$keep" ] ; then
+            picture_file="${tmpdir}/${came}${ext}"
+        else
+            picture_file="${keep}${picture_numb}${ext}"
+        fi
+        setvar $(make_symbol $came picture_file) "$picture_file"
+
+        cmd wget -o "${picture_file}.log" -O "$picture_file" "$url"
+    done
+
+    # dispatch
+    for screen in $screens ; do
+        local xscreen=$(refvar $(make_symbol $screen screen))
+        local xliargs=""
+        for disp in $(refvar $(make_symbol $screen displays)) ; do
+            local disline="$(find_line_named $disp "${displays[@]}")"
+            local offset=$(dis_offset "$disline")
+            local came=$(refvar $(make_symbol $disp camera))
+            local xzoom=$(refvar $(make_symbol "${disp}_${came}" xzoom))
+            local yzoom=$(refvar $(make_symbol "${disp}_${came}" yzoom))
+            local picture_file=$(refvar $(make_symbol $came picture_file))
+            xliargs="${xliargs} -at ${offset} -xzoom ${xzoom} -yzoom ${yzoom}"
+            xliargs="${xliargs} ${picture_file}"
+        done
+        while [ ! -r $tick ] ; do sleep 1 ; done
+        rm -f $tick  ; # echo toc `date`
+        cmd xli -display $xscreen -quiet -smooth -onroot -border '#444' $xliargs || ( echo xli exited with status $? ; echo xli -display $xscreen -quiet -smooth -onroot -border '#444' $xliargs )
+    done
+}
+
+
+# Global options:
+tmpdir=/tmp/$(basename $0).$$
+tick=${tmpdir}/tick
+delay=60
+oneshoot=
+test=
+
+# came came came
+# keep keep
+# disp disp
+
+cames=""
+keeps=""
+disps=""
+
+# ${keep}_camera=$came
+# ${disp}_camera=$came
+
+
+# Argument processing:
+came=""
+while [ $# -ge 1 ] ; do
+    case "$1" in
+    -t|-test|--test)
+        test=yes
+        ;;
+
+    -p|--processes)
+        ps ax | egrep 'g[e]t-cam'
+        exit $?
+        ;;
+
+    -k|--kill)
+        kill `ps ax | egrep 'g[e]t-cam' | awk '{print $1}'`
+        exit $?
+        ;;
+
+    -c|-cam|-camera|--camera)
+        if [ $# -le 1 ] ; then
+            echo "${pname}: Missing argument after '$1'."
+            usage
+            exit 1
+        fi
+        shift
+        came="$1"
+        camline="$( find_line_named "$came" "${cameras[@]}" )"
+        if [ -z "$camline" ] ; then
+            echo "${pname}: No camera named: '$came'. Use --help to get list."
+            exit 2
+        fi
+        cames="${cames} ${came}"
+        ;;
+        
+    -k|-keep|--keep)
+        if [ $# -le 1 ] ; then
+            echo "${pname}: Missing argument after '$1'."
+            usage
+            exit 1
+        fi
+        shift
+        if [ -z "$came" ] ; then
+            echo "${pname}: Syntax error: --keep before any --camera"
+            usage
+            exit 1
+        fi
+        keep="$1"
+        keeps="${keeps} ${keep}"
+        # We store the keep into the camera because keeps are PATHS.
+        setvar $(make_symbol "$came" keep) "$keep"
+        ;;
+        
+    -d|-dis|-display|--display)
+        if [ $# -le 1 ] ; then
+            echo "${pname}: Missing argument after '$1'."
+            usage
+            exit 1
+        fi
+        shift
+        if [ -z "$came" ] ; then
+            echo "${pname}: Syntax error: --display before any --camera"
+            usage
+            exit 1
+        fi
+        disp="$1"
+        disline="$( find_line_named "$disp" "${displays[@]}" )"
+        if [ -z "$disline" ] ; then
+            echo "${pname}: no display named: '$disp'. Use --help to get list."
+            exit 2
+        fi
+        disps="${disps} ${disp}"
+        setvar $(make_symbol $disp camera) "$came"
+        ;;
+
+    -D|-del|-delay|--delay)
+        if [ $# -le 1 ] ; then
+            echo "${pname}: missing argument after '$1'."
+            usage
+            exit 1
+        fi
+        shift
+        delay="$1"
+        ;;
+
+    -o|-one-shoot|--one-shoot)
+        oneshoot=yes
+        ;;
+
+    -h|-help|--help)
+        usage
+        echo ""
+        echo "${camtitle[1]}"
+        echo "${camtitle[0]}"
+        echo "${camtitle[1]}"
+        for line in "${cameras[@]}" ; do
+            echo "$line"
+        done
+        echo "${camtitle[1]}"
+        echo ""
+        echo "${distitle[1]}"
+        echo "${distitle[0]}"
+        echo "${distitle[1]}"
+        for line in "${displays[@]}" ; do
+            echo "$line"
+        done
+        echo "${distitle[1]}"
+        echo ""
+        exit 0
+        ;;
+
+    *)
+        echo "${pname}: Invalid option '$1'."
+        usage
+        exit 1
+        ;;
+    esac
+    shift
+done
+
+if [ -z "$cames" ] ; then
+    echo "${pname}: Missing a camera."
+    usage
+    exit 1
+fi
+if [ -z "$keeps$disps" ] ; then
+    echo "${pname}: Missing a display or a keep."
+    usage
+    exit 1
+fi
+
+
+
+
+#  echo "cameras:  $cames"
+#  echo "keeps:    $keeps"
+#  echo "displays: $disps"
+#  for c in $cames ; do
+#      echo keep   of ${c}: $( refvar $(make_symbol $c keep) )
+#  done
+#  for d in $disps ; do
+#      echo camera of ${d}: $( refvar $(make_symbol $d camera) )
+#  done
+#  exit 0
+
+
+
+
+screen_num=0
+screens=""
+
+function screen_with_x_screen () {
+    local xscreen="$1"
+    for screen in $screens ; do 
+        if [ "$(refvar $(make_symbol $screen screen))" = "$xscreen" ] ; then
+            echo $screen
+            return
+        fi
+    done
+}
+
+function prepare () {
+    local cames="$1"
+    local disps="$2"
+    for came in $cames ; do
+        local camline="$(find_line_named "$came" "${cameras[@]}")"
+        local url="$(cam_url "$camline")"
+        local ext="$(echo "$url"|sed -e 's/.*\(\.[^\.]*\)$/\1/')"
+        setvar $(make_symbol $came ext) $ext
+    done
+    for disp in $disps ; do
+        #echo camera of ${disp}: $( refvar $(make_symbol $disp camera) )
+        local disline="$( find_line_named "$disp" "${displays[@]}" )"
+        local xscreen=$(dis_screen "$disline")
+        #echo xscreen of display $disp = $xscreen \( disline = $disline \)
+        local screen=$(screen_with_x_screen $xscreen)
+        if [ -z "$screen" ] ; then
+            screen=screen_${screen_num}
+            screen_num=$(( $screen_num + 1 ))
+            setvar $(make_symbol $screen screen) $xscreen
+            screens="${screens} ${screen}"
+        fi
+        local screen_displays=$(make_symbol $screen displays) 
+        setvar $screen_displays "$(refvar $screen_displays) $disp"
+
+        local disline="$(find_line_named $disp "${displays[@]}")"
+        local dwidth=$(dis_width "$disline")
+        local dheight=$(dis_height "$disline")
+        local came=$(refvar $(make_symbol $disp camera))
+        local camline="$(find_line_named $came "${cameras[@]}")"
+        local cwidth=$(cam_width "$camline")
+        local cheight=$(cam_height "$camline")
+        local xzoom=$(( 100 * $dwidth  / $cwidth ))
+        local yzoom=$(( 100 * $dheight / $cheight ))
+        setvar $(make_symbol "${disp}_${came}" xzoom) $xzoom
+        setvar $(make_symbol "${disp}_${came}" yzoom) $yzoom
+    done
+}
+
+
+prepare "$cames" "$disps"
+
+clock_pid=0
+trap ' kill $clock_pid ; rm -rf "${tmpdir}" ' 0
+mkdir "${tmpdir}"
+
+# Let's start working for real...
+if [ -n "$oneshoot" ] ; then
+    touch $tick
+    get_and_dispatch 0 "$cames" "$screens"
+else
+    ( set -- tic-tac ; while touch $tick ; do # echo tic `date` 
+        sleep $delay ; done ) &
+    clock_pid=$!
+
+    set -- get-and-dispatch
+    index=0
+    while get_and_dispatch $index "$cames" "$screens" ; do
+        index=$(( $index + 1 ))
+    done
+fi
+
+exit 0
+

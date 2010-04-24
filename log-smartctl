@@ -1,0 +1,9 @@
+#!/bin/bash
+date=$(date +%Y%m%dT%H%M00)
+for dev in $* ; do
+    diskid=$(hdparm -i /dev/$dev|awk -F'[,=]' '/Model/{printf "%s-%s-%s\n",gensub(" ","_","g",$2),$4,$6}')
+    # echo "$diskid"
+    # echo "/var/log/smartctl.${diskid}.${dev}.${date}"
+    smartctl -a /dev/$dev > /var/log/smartctl.${diskid}.${dev}.${date}
+done
+sync

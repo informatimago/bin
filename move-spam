@@ -1,0 +1,13 @@
+#!/bin/bash
+rm -rf ~/mail/SPOOL/spam.mbox
+if [ -s ~/mail/spam.mbox ] ; then
+    # archive to /d6/pjb/antispam-data
+    cat ~/mail/spam.mbox >> /net/d6/pjb/antispam-data/spam-$(date +%Y%m).mbox
+    # to larissa for spamassassin
+    mv ~/mail/spam.mbox ~/mail/SPOOL/
+    touch  ~/mail/spam.mbox
+    file=$(date +%Y%m%d%H%M%S)-$$-spam.mbox
+    scp -B -q ~/mail/SPOOL/spam.mbox larissa:/var/spool/spam/incoming/$file
+    ssh larissa mv /var/spool/spam/incoming/$file /var/spool/spam/processing/
+fi
+

@@ -1,0 +1,57 @@
+#!/bin/bash
+
+action=normal
+
+for arg ; do
+    case "$arg" in
+    --browsers)
+        action=browser
+        ;;
+    *)
+        ;;
+    esac
+done
+
+
+case $action in
+normal)
+    awk_program='\
+        BEGIN{\
+            FS="|"; \
+        }\
+        {\
+            printf "----------------------------------------\n"; \
+            printf "    %s\n",$1; \
+            printf "    %s\n",$4; \
+            printf "    %s\n",$5; \
+            printf "    %s\n",$8; \
+            printf "    %s\n",$9; \
+        }'
+    function post_command () {
+        cat
+    }
+    ;;
+browser)
+    awk_program='\
+        BEGIN{\
+            FS="|"; \
+        }\
+        {\
+            printf "    %s\n",$9; \
+        }'
+    function post_command () {
+        sort -u
+    }
+
+    ;;
+esac
+
+
+cat \
+| sed \
+    -e '/ 408 /d' \
+    -e '/\] \"HEAD \//d' \
+    -e 's/^\([^ ][^ ]*\) *\([^ ][^ ]*\) *\([^ ][^ ]*\) *\(\[[^]]*\]\) *\("[^"]*"\) *\([^ ][^ ]*\) *\([^ ][^ ]*\) *\("[^"]*"\) *\("[^"]*"\)$/\1|\2|\3|\4|\5|\6|\7|\8|\9/' \
+| awk $awk_program \
+| post_command
+

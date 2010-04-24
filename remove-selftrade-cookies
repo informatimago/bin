@@ -1,0 +1,4 @@
+#!/bin/bash
+cd ~/.netscape
+cp cookies cookies~
+grep -v -i selftrade < cookies~ > cookies

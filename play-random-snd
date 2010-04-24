@@ -1,0 +1,75 @@
+#!/bin/csh
+#******************************************************************************
+#FILE
+#	@random
+#DESCRIPTION
+#	This script plays all .snd files found recursively in its directory.
+#AUTHORS
+#	<PJB> Pascal J. Bourguignon
+#MODIFICATIONS
+#	1992/07/08 <PJB> Creation.
+#	1992/09/18 <PJB> Added playscore playing.
+#	1992/11/27 <PJB> Added check for scoredir since it no more exists on 3.0.
+#LEGAL
+#	Copyright Pascal J. Bourguignon 1992 - 1992
+#	All rights reserved.
+#******************************************************************************
+
+set startdir="`dirname $0`"
+set scoredir="/NextLibrary/Music/Scores"
+set out=/dev/console
+
+echo 'Playing all sounds from '$startdir  >> $out
+echo '    and all scores from '$scoredir at random. >> $out
+
+set filelist=( `find "$startdir" -type f -name '*.snd' -depth -print | grep .snd` )
+if ( -d $scoredir ) then
+set filelist=( $filelist `find "$scoredir" -type f -name '*.playscore' -depth -print | grep .playscore` ) 
+endif
+
+@ x=0
+@ n=$#filelist
+@ c=$n
+while ( $c > 0 )
+	@ l = `random`
+	if ( $l < 0 ) then
+		@ l = - $l
+	endif
+	@ l = ( $l % $n ) + 1
+	set f="$filelist[$l]"
+	while ( $f == "DONE" )
+		@ l = ${l} + 1
+		if ( $l > $n ) then
+			@ l = 1
+		endif
+		set f="$filelist[$l]"
+	end
+	set filelist[$l]="DONE"
+	echo "$f" >> $out
+	switch ( "$f" )
+	case "*.playscore":
+		playscore -q "$f" >> $out
+		breaksw
+	case "*.snd":
+		sndplay "$f" >> $out
+		breaksw
+	default:
+		echo $0: Unknown file extension $f >> $out
+		breaksw
+	endsw
+	@ c = ${c} - 1
+end
+exit 0
+
+# for debugging:
+foreach f ( $filelist )
+echo $f
+end
+
+@ x = 1
+foreach z ( $filelist )
+	echo \[$x\] $z
+	@ x = $x + 1
+end
+
+#END

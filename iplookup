@@ -1,0 +1,9 @@
+#!/bin/bash
+network=$1
+host=$2
+[ -n "$host" ] || host=1
+while [ $host -lt 255 ] ; do
+    ( ping -c 2 $network.$host > /dev/null 2>&1 && echo $network.$host )&
+    host=$(( $host + 1 ))
+done
+#### iplookup                         --                     --          ####

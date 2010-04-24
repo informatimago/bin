@@ -1,0 +1,10 @@
+#!/local/bin/perl
+
+while(<>){
+	chop;
+	if($_ =~ /^#/){
+		next;
+	}
+	($ref,$mov,$num,$txt,$pct)=split(/,/);
+	printf "%s\n",$txt;
+}

@@ -1,0 +1,22 @@
+#!/bin/bash
+iostat -d 1 \
+| awk '
+BEGIN{
+    dirty=1;
+}
+/^$/{
+    dirty=1;
+    next;
+}
+{
+    if(dirty){
+        printf "%cc",0x1b;
+        dirty=0;
+    }
+    print $0;
+}
+'
+
+#END#
+
+

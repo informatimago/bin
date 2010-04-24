@@ -1,0 +1,93 @@
+#!/bin/bash
+pname="`basename $0`"
+pblan="`echo $pname|sed -e 's/./ /g'`"
+prob=1
+TOP=1000000
+
+function usage {
+    echo "$pname usage:"
+    echo ""
+    echo "    $pname [--help|--probability=F|--one-file] [--] file..."
+    echo ""
+    echo "F begin a number between 0.0 and 1.0,"
+    echo ""
+    echo "With --one-file, prints one of the files, selected with "
+    echo "equiprobability. Tgis is the default."
+    echo ""
+    echo "With --probability=F, prints a selection of files, each file having "
+    echo "probability F of being selected (which means that a mean "
+    echo "of F*{nb of files} files are printed).  Only one --probability is "
+    echo "taken into account (the last)."
+    echo ""
+}
+
+allfile=0
+onefile=1
+nfile=0
+
+for arg ; do
+    case "$arg" in
+    --help|-h)
+        usage
+        exit 0
+        ;;
+    --one-file)
+        onefile=1
+        ;;
+    --probability=[01].[0-9]*)
+        onefile=0
+        number="`echo $arg|sed -e 's/--probability=//'`"
+        prob=`echo $number $TOP \* p | dc | sed -e 's/\..*//'`
+        if [ $TOP -le $prob ] ; then
+            echo "${pname}: number too big: $number"
+            usage
+            echo 2        
+        fi
+        ;;
+    --probability=*)
+        number="`echo $arg|sed -e 's/--probability=//'`"
+        echo "${pname}: invalid number: $number"
+        usage
+        echo 2        
+        ;;
+    --)
+        allfiles=1
+        ;;
+    -*)
+        if [ $allfiles -ne 0 ] ; then
+            files[$nfile]="$arg"
+            nfile=$(( $nfile + 1 ))
+        else
+            echo "${pname}: invalid option: $arg"
+            usage
+            echo 1
+        fi
+        ;;
+    *)
+        files[$nfile]="$arg"
+        nfile=$(( $nfile + 1 ))
+        ;;
+    esac
+done
+
+# echo ${nfile}
+# echo ${files[@]}
+if [ $onefile -ne 0 ] ; then
+    echo ${files[$(( 1 + $( ~/bin/random  ${#files[@]} ) ))]}
+else
+    for arg in "${files[@]}" ; do
+        if [ `random $TOP` -le $prob ] ; then
+            echo $arg
+        fi
+    done
+fi
+
+exit 0
+
+
+
+
+
+
+
+

@@ -1,0 +1,12 @@
+#!/bin/bash
+# repeat a command until it's status is 0.
+"$@"
+repeat=$?
+while [ $repeat -ne 0 ] ; do
+    sleep 30
+    date
+    "$@"
+    repeat=$?
+done
+exit 0
+#### insiste                          -- 2003-03-05 15:23:16 -- pascal   ####

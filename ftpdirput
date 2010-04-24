@@ -1,0 +1,54 @@
+#!/bin/csh -v
+
+
+	set system=""
+	set user=""
+	set password=""
+	set directory=""
+	set binary=1
+
+	set script=/tmp/ftp.$$
+	foreach arg ( $* )
+		switch ( $arg ) 
+		case -s*:
+			set system="`echo "$arg" | sed -e 's/^-s//'`"
+			breaksw
+		case -u*:
+			set user="`echo "$arg" | sed -e 's/^-u//'`"
+			breaksw
+		case -p*:
+			set password="`echo "$arg" | sed -e 's/^-p//'`"
+			breaksw
+		case -d*:
+			set directory="`echo "$arg" | sed -e 's/^-d//'`"
+			breaksw
+		case -b:
+			set binary=1
+			breaksw
+		case -a:
+		case -t:
+			set binary=0
+			breaksw
+		case -*:
+			echo "${0}: invalid option ($arg). Ignored."
+			breaksw
+		default:
+			echo ftp $system '<< EOFTP'> $script	
+			echo $user >> $script
+		#	echo $password >> $script
+			echo cd "$directory" >> $script
+			echo prompt >> $script
+			if ( $binary ) then
+				echo bin >> $script
+			else
+				echo ascii >> $script
+			endif
+			find $arg -type f -exec echo put {} '>>' $script \;
+			echo EOFTP >> $script
+			source $script
+			breaksw
+		endsw
+	end
+	rm -f $script >& /dev/null
+	exit 0
+#end

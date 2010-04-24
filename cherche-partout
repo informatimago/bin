@@ -1,0 +1,23 @@
+#!/bin/sh
+
+find / -type f -print | while read path ; do
+
+    case "$path" in
+    *.gz|*.tgz|*.taz|*.Z|*.z)
+        gunzip   < $path | egrep -q -s "$@"        && echo trouvé: $path
+        ;;
+    *.bz2|*.tbz2|*.bz|*.tbz)
+        bunzip2  < $path | egrep -q -s "$@"        && echo trouvé: $path
+        ;;
+    *.zip)
+        unzip -p   $path | egrep -q -s "$@"        && echo trouvé: $path
+        ;;
+    *)
+                           egrep -q -s "$@" $path  && echo trouvé: $path
+        ;;
+    esac
+
+done
+
+
+#END

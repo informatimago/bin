@@ -1,0 +1,29 @@
+#!/bin/sh
+#******************************************************************************
+#FILE
+#	/users/pascal/bin/address
+#DESCRIPTION
+#	This script greps an address from ~/private/info/personnes.txt.
+#AUTHORS
+#	<PJB> Pascal J. Bourguignon
+#MODIFICATIONS
+#	1993/12/20 <PJB> Creation.
+#	1994/03/19 <PJB> Added -i option to grep.
+#LEGAL
+#	Copyright Pascal J. Bourguignon 1993 - 1993
+#	All rights reserved.
+#******************************************************************************
+if [ $# -eq 0 ] ; then
+    echo 'Usage: address word...'
+    exit 1
+fi
+for f in $* ; do
+	echo '......................................'
+	grep -i "$f" ~/private/info/personnes.txt \
+    | sed -e 's/[|\^][|\^]*/|/g' \
+    | tr '|' '\012'
+done
+echo '......................................'
+exit 0
+#end
+

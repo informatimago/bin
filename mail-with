@@ -1,0 +1,33 @@
+#!/bin/bash
+email="$1"
+shift
+if [ "$#" -eq 0 ] ; then
+    files=( /hermes/var/log/maillog /janus-?/var/log/mail )
+else
+    files=( "$@" )
+fi
+for file in "${files[@]}" ; do
+case "$file" in
+*.Z|*.gz) zcat  "$file" ;;
+*) cat "$file" ;;
+esac \
+| egrep "postfix.*${email}"  \
+| awk -v file="$file" '
+BEGIN{
+    sep="";
+    reg="";
+}
+{
+    reg=reg sep  substr($6,0,length($6)-1);
+    sep="|";
+}
+END{
+    if(reg!=""){
+        system(sprintf("zegrep %c%s%c \"%s\"\n",34,reg,34,file));
+    }
+}'
+done
+exit 0
+#END#
+
+

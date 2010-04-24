@@ -1,0 +1,324 @@
+#!/bin/csh -f 
+#*****************************************************************************
+#FILE
+#	archive, unarchive, viewarchive, rezip
+#							!! SYMBOLIC LINKS ON archive ==> Edit archive !!
+#DESCRIPTION
+#	When named archive,     this script runs tar and compress on directories.
+#	When named unarchive,   this script runs uncompress, tar -x on 
+#													directory.tar.Z files.
+#	When named viewarchive, this script runs uncompress, tar -t on 
+#													directory.tar.Z files.
+#	Run it without argument for help.
+#AUTHORS
+#	<PJB> Pascal J. Bourguignon
+#MODIFICATIONS
+#	1992/07/08 <PJB> Added this comment.
+#	1993/09/13 <PJB> Renamed archive, unarchive; added -v option for unarchive.
+#						Corrected argument processing.
+#	1994/06/30 <PJB> Added gzip support.
+#LEGAL
+#	Copyright Pascal J. Bourguignon 1992 - 1993
+#	All rights reserved.
+#*****************************************************************************
+
+unset echo
+
+#BEGIN configuration: Choose between one set or the other :
+
+#set GNU=0
+#set NOP=/bin/cat
+#set TAR=/usr/bin/tar
+#set ZIP=/usr/bin/compress
+#set ZIPEXT=Z
+#set DATE=(/bin/date|tr ' +:' '___')
+
+set p=/local/bin/#`/local/bin/uname -s`
+
+set GNU=1
+set NOP=/bin/cat
+set GNUTAR=/bin/tar #/usr/bin/gnutar
+set TAR=/bin/tar
+set ZIP=/bin/gzip
+set ZIPEXT=gz
+set DATE="`date +%Y%m%d`"       #"`$p/Date -sd`"
+set TIME="`date +%Y%m%d%H%M%S`" #"`$p/Date -sd``$p/Date -st`"
+
+set quiet='v'				# verbose is default
+set aoptions='cf'
+set uoptions='xpof'
+set uoptions_for_root='xpf'
+set loptions='tf'
+
+#END configuration.
+
+
+
+set list=()
+set date=''
+set error=0
+
+switch ( $0 )
+case "viewarchive":
+case "*/viewarchive":
+	set action=list
+	set message=Listing
+	set options=$loptions
+	breaksw
+case "unarchive":
+case "*/unarchive":
+	set action=unarchive
+	set message=Unarchiving
+	set options=$uoptions
+	if ( "$USERNAME" == "root" ) then
+		set options=$uoptions_for_root
+	endif
+	breaksw
+case "archive":	# should be last for it is a poststring of previous ones.
+case "*/archive":
+	set action=archive
+	set message=Archiving
+	set options=$aoptions
+	breaksw
+case "rezip":
+case "*/rezip":
+	if ( ! $GNU ) then
+		echo "I can rezip only when I'm configured with GNU gtar and gzip."
+		set error=1
+	endif
+	set action=rezip
+	set message="Converting from"
+	set options=""
+	breaksw
+default:
+	set error=1
+	breaksw
+endsw
+set gziplevel=""
+
+if ( $error == 0 ) then
+	foreach item ( $* )
+		switch ( "$item" )
+		case -[0-9]:
+			set gziplevel=$item
+			breaksw
+		case "-d":
+			set date="-$DATE"
+			breaksw
+		case "-t":
+			set date="-$TIME"
+			breaksw
+		case "-q":
+			set quiet=''
+			breaksw
+		case "-v":
+			if ( $action == unarchive ) then
+				set action=list
+			else
+				set error=1
+			endif
+			breaksw
+		case "-*":
+			set error=1
+			breaksw
+		default:
+			set list=($list "$item")
+			breaksw
+		endsw
+	end
+endif
+
+if ( ${#list} == 0 ) then
+	set error=1	# we want to see the help message.
+endif
+
+if ( $error == 0 ) then
+	switch ( $action )
+	case archive:
+		foreach dir ( $list )
+			if ( $quiet == 'v') then
+				echo "${message} '${dir}' ..."
+			endif
+			$TAR ${quiet}${options} - "./${dir}" \
+				| $ZIP ${gziplevel} > "${dir}${date}.tar.${ZIPEXT}" 
+		end
+		breaksw
+	case unarchive:
+	case list:
+		foreach arch ( $list )
+			switch ( $arch )
+			case *.tar:
+				set ARCHIVER=($TAR ${quiet}${options} -)
+				set COMPRESSOR=$NOP
+				breaksw
+			case *.tar.Z:
+			case *.tar.z:
+			case *.tar.gz:
+			case *.tar.gzip:
+			case *.tgz:
+			case *.taz:
+				set ARCHIVER=($TAR ${quiet}${options} -)
+				set COMPRESSOR=($ZIP -d)
+				breaksw
+			case *.gnutar:
+				set ARCHIVER=($GNUTAR ${quiet}${options} -)
+				set COMPRESSOR=$NOP
+				breaksw
+			case *.gnutar.Z:
+			case *.gnutar.z:
+			case *.gnutar.gz:
+			case *.gnutar.gzip:
+				set ARCHIVER=($GNUTAR ${quiet}${options} -)
+				set COMPRESSOR=($ZIP -d)
+				breaksw
+			case *.Z:
+			case *.z:
+			case *.gz:
+			case *.gzip:
+				set ARCHIVER=$NOP
+				set COMPRESSOR=($ZIP -d)
+				breaksw
+			default:
+				if ( $GNU ) then
+					set extlist=(gz gzip Z z)
+				else
+					set extlist=(Z)
+				endif
+				set abort=1
+				if ( -f ${arch}.tar ) then
+					set abort=0
+					set arch=${arch}.tar
+					set ARCHIVER=($TAR ${quiet}${options} -)
+					set COMPRESSOR=$NOP
+				else
+					foreach ext ( ${extlist} )
+						if ( -f ${arch}.tar.${ext} ) then
+							set abort=0
+							set arch=${arch}.tar.${ext}
+							set ARCHIVER=($TAR ${quiet}${options} -)
+							set COMPRESSOR=($ZIP -d)
+							break
+						endif
+					end
+				endif
+				if ( $abort ) then
+					echo "I don't know how to $action the file '$arch'."
+					continue   # foreach.
+				endif
+				breaksw
+			endsw
+			$COMPRESSOR < $arch | $ARCHIVER
+		end
+		breaksw
+#	case unarchive:
+#	case list:
+#		set lnlist=()
+#		@ i=0
+#		while ( $i < $#list ) 
+#			@ i++
+#			switch ( $list[$i] )
+#			case *.tgz:
+#				set lnname=$$_$i.tar.gz
+#				set lnlist=($lnlist $lnname)
+#				ln -s $list[$i] $lnname
+#				set list[$i]=$lnname
+#				breaksw
+#			default:
+#				breaksw
+#			endsw
+#		end
+#		if ( $GNU ) then
+#			set extlist=(gz Z z)
+#		else
+#			set extlist=(Z)
+#		endif
+#		foreach dir ( $list )
+#			set abort=1
+#			foreach ext ( ${extlist} )
+#				switch ( ${dir} )
+#				case *.tar.${ext}:
+#					set abort=0
+#					break	# the foreach loop.
+#				default:
+#					breaksw
+#				endsw
+#				if ( ${abort} ) then
+#					foreach ext ( ${extlist} )
+#						if ( -f ${dir}.tar.${ext} ) then
+#							set dir=${dir}.tar.${ext}
+#							set abort=0
+#							break ; break # 2 foreach loop.
+#						endif
+#					end
+#				endif
+#			end
+#			if ( ${abort} ) then
+#				echo "Cannot find '${dir}' or '${dir}.tar.Z'"
+#			else
+#				if ( $quiet == 'v') then
+#					echo "${message} '${dir}' ..."
+#				endif
+#				$ZIP -d < "${dir}" | $TAR ${quiet}${options} - 
+#			endif
+#		end
+#		if ( $#lnlist != 0 ) then
+#			rm -f $lnlist
+#		endif
+		breaksw
+	case rezip:
+		set abort=1
+		foreach dir ( $list )
+			switch ( ${dir} )
+			case *.Z:
+				set old=compress
+				set abort=0
+				breaksw
+			case *.z:
+				set old=pack
+				set abort=0
+				breaksw
+			case *.gz:
+				set old=gzip
+				set abort=0
+				echo 'Warning: reziping a gziped file. '
+				echo '(May be changing compression factor?)'
+				breaksw
+			default:
+				breaksw
+			endsw
+			if ( ${abort} ) then
+				echo "Cannot find '${dir}'."
+			else
+				if ( $quiet == 'v') then
+					echo "${message} ${old} to gzip '${dir}' ..."
+				endif
+				$ZIP -d < "${dir}" | $ZIP ${gziplevel} > "${dir}.gz"
+				if ( $quiet == 'v') then
+					/bin/ls -l "${dir}" 
+				endif
+				mv "${dir}.gz" "${dir:r}.gz"
+				if ( $quiet == 'v') then
+					/bin/ls -l "${dir:r}.gz" 
+				endif
+			endif
+		end
+		breaksw
+	default:
+		set error=1
+		breaksw
+	endsw
+endif
+
+if ( $error != 0 ) then
+	echo 'Usage :'
+	echo '  archive   [-q] [-d] <dir> ...         # create archives: dir.tar.Z'
+	echo '  unarchive [-q]      <dir.tar.Z> ...   # extract directories: dir/'
+	echo '  unarchive [-q] -v   <dir.tar.Z> ...   # list files in <dir.tar.Z>'
+	echo '  #  -q option: quiet mode; -d option: add date to archive name'
+	echo '	rezip     [-q] <archive.{Z,z,gz}> ... # recompress with gzip'
+	exit 1
+else
+	exit 0
+endif
+
+#END archive.

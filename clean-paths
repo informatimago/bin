@@ -1,0 +1,577 @@
+#!/usr/local/bin/clisp -ansi -q   -Kfull  -E iso-8859-1 -on-error debug
+;; -*- mode:lisp; coding:iso-8859-1 -*-
+;;*****************************************************************************
+;;FILE:               clean-paths
+;;LANGUAGE:           Common-Lisp
+;;SYSTEM:             Common-Lisp
+;;USER-INTERFACE:     Common-Lisp
+;;DESCRIPTION
+;;
+;;    This scripts builds an isomorphe directory hierarchy with the names
+;;    cleaned up (removing most special and non ASCII characters).
+;;
+;;    A second entry point issues mkdir & ln commands to reproduce 
+;;    a target directory hierarchy from a source directory hierarchy 
+;;    on the same file system (using the inode as file identification).
+;;
+;;    Entry points: clean-paths
+;;                  reproduce-changes
+;;
+;;AUTHORS
+;;    <PJB> Pascal J. Bourguignon 
+;;MODIFICATIONS
+;;    2003-03-28 <PJB> Converted from elisp to Common-Lisp.
+;;    2003-02-08 <PJB> Merged bash script in here and use emacs-script.
+;;    2002-09-16 <PJB> Creation.
+;;BUGS
+;;LEGAL
+;;    LGPL
+;;
+;;    Copyright Pascal J. Bourguignon 1992 - 2003
+;;
+;;    This script is free software; you can redistribute it and/or
+;;    modify it under the terms of the GNU Lesser General Public
+;;    License as published by the Free Software Foundation; either
+;;    version 2 of the License, or (at your option) any later version.
+;;
+;;    This library is distributed in the hope that it will be useful,
+;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;    Lesser General Public License for more details.
+;;
+;;    You should have received a copy of the GNU Lesser General Public
+;;    License along with this library; if not, write to the Free Software
+;;    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+;;
+;;*****************************************************************************
+
+(SETQ *LOAD-VERBOSE* nil)
+
+;; clean the imported packages:
+(MAPC (LAMBDA (USED) (UNUSE-PACKAGE USED "COMMON-LISP-USER"))
+      (REMOVE (FIND-PACKAGE "COMMON-LISP") 
+              (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))))
+
+(progn 
+  (defvar *directories*  '())
+  (defun get-directory (key &optional (subpath ""))
+    (unless *directories*
+      (with-open-file (dirs (make-pathname :name "DIRECTORIES" :type "TXT"
+                                           :version nil :case :common
+                                           :defaults (user-homedir-pathname)))
+        (loop
+           :for k = (read dirs nil dirs)
+           :until (eq k dirs)
+           :do (push (string-trim " " (read-line dirs)) *directories*)
+           :do (push (intern (substitute #\- #\_ (string k))
+                             "KEYWORD") *directories*))))
+    (unless (getf *directories* key)
+      (error "~S: No directory keyed ~S" 'get-directory key))
+    (merge-pathnames subpath (getf *directories* key) nil)))
+
+
+(SETF (LOGICAL-PATHNAME-TRANSLATIONS "PACKAGES") nil
+      (LOGICAL-PATHNAME-TRANSLATIONS "PACKAGES")
+      (list (list (make-pathname
+                   :host "PACKAGES"
+                   :directory '(:absolute :wild-inferiors)
+                   :name :wild
+                   :type :wild
+                   :version nil)
+                  (get-directory :share-lisp "packages/**/*.*"))
+            (list (make-pathname
+                   :host "PACKAGES"
+                   :directory '(:absolute :wild-inferiors)
+                   :name :wild
+                   :type nil
+                   :version nil)
+                  (get-directory :share-lisp "packages/**/*"))))
+
+
+(or (ignore-errors (load #P"PACKAGES:COM;INFORMATIMAGO;COMMON-LISP;PACKAGE"))
+    (load #P"PACKAGES:COM;INFORMATIMAGO;COMMON-LISP;PACKAGE.LISP"))
+(IMPORT 'PACKAGE:DEFINE-PACKAGE)
+
+
+;;; (DEFINE-PACKAGE COM.INFORMATIMAGO.CLISP.CLEAN-PATH
+;;;   (:NICKNAMES CLEAN-PATH)
+;;;   (:DOCUMENTATION
+;;;    "This scripts builds an isomorphe directory hierarchy with the names
+;;;     cleaned up (removing most special and non ASCII characters).
+;;;    ")
+;;;   (:FROM COMMON-LISP :IMPORT :ALL)
+;;;   (:USE  EXT)
+;;;   (:USE  REGEXP)
+;;;   (:USE  LINUX)
+;;;   (:FROM COM.INFORMATIMAGO.COMMON-LISP.UTILITY :IMPORT :ALL)
+;;;   (:FROM COM.INFORMATIMAGO.COMMON-LISP.STRING  :IMPORT :ALL)
+;;;   (:USE  COM.INFORMATIMAGO.CLISP.SCRIPT :AS "SCRIPT")
+;;;   (:EXPORT REMOTE ADD-REMOTE MAIN ));;COM.INFORMATIMAGO.CLISP.CLEAN-PATH
+
+(PACKAGE:LOAD-PACKAGE "COM.INFORMATIMAGO.COMMON-LISP.SOURCE-FORM")
+(PACKAGE:LOAD-PACKAGE "COM.INFORMATIMAGO.COMMON-LISP.UTILITY")
+(PACKAGE:LOAD-PACKAGE "COM.INFORMATIMAGO.COMMON-LISP.LIST")
+(PACKAGE:LOAD-PACKAGE "COM.INFORMATIMAGO.COMMON-LISP.ECMA048")
+(PACKAGE:LOAD-PACKAGE "COM.INFORMATIMAGO.COMMON-LISP.STRING")
+(PACKAGE:LOAD-PACKAGE "COM.INFORMATIMAGO.CLISP.SCRIPT")
+(PACKAGE:ADD-NICKNAME "COM.INFORMATIMAGO.CLISP.SCRIPT" "SCRIPT")
+(PACKAGE:LOAD-PACKAGE "COM.INFORMATIMAGO.CLISP.SUSV3")
+(PACKAGE:ADD-NICKNAME "COM.INFORMATIMAGO.CLISP.SUSV3" "SUSV3")
+(PACKAGE:LOAD-PACKAGE "COM.INFORMATIMAGO.CLISP.SUSV3-XSI")
+(PACKAGE:LOAD-PACKAGE "COM.INFORMATIMAGO.SUSV3.DIRENT")
+(PACKAGE:ADD-NICKNAME "COM.INFORMATIMAGO.SUSV3.DIRENT" "DIRENT")
+
+(SCRIPT:INITIALIZE)
+
+
+(DEFMACRO MEMQ (&REST ARGS)
+  `(MEMBER ,@ARGS :TEST (FUNCTION EQ)))
+
+
+
+(DEFUN FILE-DIRECTORY-P (PATH)
+  "
+RETURN:     Whether PATH is the path of an existing directory.
+"
+  (HANDLER-CASE
+      (EXT:PROBE-DIRECTORY (IF (CHAR= (CHAR PATH (1- (LENGTH PATH)))
+                                      (CHARACTER "/"))
+                             PATH (CONCATENATE 'STRING PATH "/")))
+    (ERROR () NIL)))
+
+
+
+(DEFUN FILE-EXISTS-P (PATH)
+  (OR (FILE-DIRECTORY-P PATH)
+      (PROBE-FILE PATH)))
+
+
+
+(DEFUN MODE-TO-STRING (MODE)
+  (FORMAT NIL "~A~A~A~A~A~A~A~A~A~A"
+          (CHAR "?pc?d?b?-?l?s???" (truncate (LOGAND MODE SUSV3:S-IFMT) 4096))
+          (IF (zerop (LOGAND MODE SUSV3:S-IRUSR)) "-" "r")
+          (IF (zerop (LOGAND MODE SUSV3:S-IWUSR)) "-" "w")
+          (IF (zerop (LOGAND MODE SUSV3:S-ISUID))
+              (IF (zerop (LOGAND MODE SUSV3:S-IXUSR)) "S" "s")
+              (IF (zerop (LOGAND MODE SUSV3:S-IXUSR)) "-" "x"))
+          (IF (zerop (LOGAND MODE SUSV3:S-IRGRP)) "-" "r")
+          (IF (zerop (LOGAND MODE SUSV3:S-IWGRP)) "-" "w")
+          (IF (zerop (LOGAND MODE SUSV3:S-ISUID))
+              (IF (zerop (LOGAND MODE SUSV3:S-IXGRP)) "S" "s")
+              (IF (zerop (LOGAND MODE SUSV3:S-IXGRP)) "-" "x"))
+          (IF (zerop (LOGAND MODE SUSV3:S-IROTH)) "-" "r")
+          (IF (zerop (LOGAND MODE SUSV3:S-IWOTH)) "-" "w")
+          (IF (zerop (LOGAND MODE SUSV3:S-ISUID))
+              (IF (zerop (LOGAND MODE SUSV3:S-IXOTH)) "T" "t")
+              (IF (zerop (LOGAND MODE SUSV3:S-IXOTH)) "-" "x"))))
+
+(DEFUN FILE-ATTRIBUTES (FILEPATH)
+  "
+RETURN:    A list of attributes of file FILEPATH.
+           Value is NIL if specified file cannot be opened.
+           If file does not exist, returns NIL.
+
+Otherwise, list elements are:
+ 0. t for directory, string (name linked to) for symbolic link, or nil.
+ 1. Number of links to file.
+ 2. File uid.
+ 3. File gid.
+ 4. Last access time, as an integers.
+ 5. Last modification time, likewise.
+ 6. Last status change time, likewise.
+ 7. Size in bytes.
+ 8. File modes, as a string of ten letters or dashes as in ls -l.
+ 9. t iff file's gid would change if file were deleted and recreated.
+10. inode number.
+11. Device number. 
+
+IMPLEMENTATION: Field 9 is not implemented and always T.
+                Symbolic link handling is not implemented.
+"
+  (MULTIPLE-VALUE-BIND (RES SBUF)  (SUSV3:STAT FILEPATH)
+    (IF (/= 0 RES)
+      NIL
+      (LIST
+       ;;  0. t for directory, string (name linked to) for symbolic link,
+       ;;     or nil.
+       (COND
+        ((SUSV3:S-ISDIR (SUSV3:stat-mode SBUF)) T)
+        ((SUSV3:S-ISLNK (SUSV3:stat-mode SBUF)) "")
+        (T NIL))
+       ;;  1. Number of links to file.
+       (SUSV3:stat-nlink SBUF)
+       ;;  2. File uid.
+       (SUSV3:stat-uid SBUF)
+       ;;  3. File gid.
+       (SUSV3:stat-gid SBUF)
+       ;;  4. Last access time, as an integer.
+       (SUSV3:stat-atime SBUF)
+       ;;  5. Last modification time, likewise.
+       (SUSV3:stat-mtime SBUF)
+       ;;  6. Last status change time, likewise.
+       (SUSV3:stat-ctime SBUF)
+       ;;  7. Size in bytes.
+       (SUSV3:stat-size SBUF)
+       ;;  8. File modes, as a string of ten letters or dashes as in ls -l.
+       (MODE-TO-STRING (SUSV3:stat-mode SBUF))
+       ;;  9. t iff file's gid would change if file were deleted and recreated.
+       ;; TODO: iff file's gid would change if file were deleted and recreated.
+       T
+       ;; 10. inode number.  
+       (SUSV3:stat-ino SBUF)
+       ;; 11. Device number.  
+       (SUSV3:stat-dev SBUF)  ))))
+
+
+(DEFUN FILE-INODE (PATH)
+  "
+RETURN: The inode of the file at `path'.
+"
+  (NTH 10 (FILE-ATTRIBUTES PATH)))
+
+
+(DEFUN FILE-SYMLINK-P (PATH)
+  "
+RETURN: Whether PATH refers to a symbolic-link.
+"
+  (STRINGP (NTH 0 (FILE-ATTRIBUTES PATH))))
+
+
+(DEFUN FILE-SYMBOLIC-LINK (PATH)
+  "
+PRE:    (file-symlink-p path)
+"
+  (NTH 0 (FILE-ATTRIBUTES PATH)))
+
+
+
+(DEFUN APPEND-SLASH-TO-PATH (PATH)
+  "
+RETURN:  If PATH terminates with a '/' then PATH
+         else a string with a '/' appended to PATH.
+"
+  (UNLESS (STRINGP PATH) (SETQ PATH (NAMESTRING PATH)))
+  (IF (CHAR= (CHARACTER "/") (CHAR PATH (1- (LENGTH PATH))))
+    PATH
+    (CONCATENATE 'STRING PATH "/")))
+
+
+(DEFUN ABSOLUTE-PATH (PATH)
+  "
+RETURN: A string containing an absolute path leading to PATH.
+"
+  (IF (CHAR= (CHARACTER "/") (CHAR PATH 0))
+    PATH
+    (CONCATENATE 'STRING (NAMESTRING (EXT:CD)) PATH)))
+
+
+(DEFUN DIRECTORY-FILES (DIRECTORY &OPTIONAL FULL MATCH NOSORT)
+  "
+IMPLEMENTATION: The options are not implemented.
+
+Return a list of names of files in DIRECTORY.
+There are three optional arguments:
+If FULL is non-nil, return absolute file names.  Otherwise return names
+ that are relative to the specified directory.
+If MATCH is non-nil, mention only file names that match the regexp MATCH.
+If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
+ NOSORT is useful if you plan to sort the result yourself.
+"
+  (let ((DIRPATH (IF FULL (APPEND-SLASH-TO-PATH (ABSOLUTE-PATH DIRECTORY)) ""))
+        (DIR     (dirent:OPENDIR DIRECTORY)))
+    (unwind-protect
+        (DO* ((ENTRY (dirent:readdir DIR) (dirent:readdir DIR))
+              (FILES '()))
+            ((NULL ENTRY) (IF NOSORT FILES (SORT FILES (FUNCTION STRING<=))))
+          (WHEN (OR (NOT MATCH) (REGEXP:MATCH MATCH (dirent:dirent-name ENTRY)))
+            (when (string= "" (dirent:dirent-name ENTRY))
+              (error "There's a bug with DIRENT:READDIR."))
+            (PUSH (CONCATENATE 'STRING DIRPATH (dirent:dirent-name ENTRY))
+                  FILES)))
+      (dirent:closedir dir))))
+
+
+(DEFUN FIND-FILE-WITH-INODE (DIRECTORY INODE)
+  "
+RETURN: The path to a file found under `directory' whose inode is `inode',
+        or nil if none found.
+"
+  (CAR
+   (SPLIT-STRING
+    (EXT:RUN-PROGRAM "find"
+                     :ARGUMENTS (LIST (SCRIPT:SHELL-QUOTE-ARGUMENT DIRECTORY)
+                                      "-inum" INODE "-print")
+                     :OUTPUT :STREAM)
+    "\n")))
+
+
+(DEFUN PRINT-USAGE ()
+  (FORMAT T "~A usage:~%~%" SCRIPT:*NAME*)
+  (FORMAT T "    ~A [--symbolic-links|-L|--hard-links|-H|--copy|-C] \\~%"
+          SCRIPT:*NAME*)
+  (FORMAT T "    ~V,A [--print-commands|-n] [--help|-h] \\~%"
+          (LENGTH SCRIPT:*NAME*) "")
+  (FORMAT T "    ~V,A $srcdir $dstdir~%~%" (LENGTH SCRIPT:*NAME*) ""))
+
+
+(DEFVAR *PRINT-COMMANDS* NIL 
+  "Whether commands should be printed instead of executed.")
+
+(DEFVAR CP-PATHS (MAKE-HASH-TABLE :SIZE 127)
+  "An table of paths of new items.")
+
+
+(DEFUN CP-PATH-REGISTER (PATH)
+  (SETF (GETHASH PATH CP-PATHS) PATH))
+
+(DEFUN CP-PATH-EXISTS-P (PATH)
+  (GETHASH PATH CP-PATHS))
+
+
+
+(DEFUN CP-HARD-LINK (SRC-PATH DST-PATH)
+  "
+DOES:    add an hard link from the item at src-path to dst-path.
+"
+  (CP-PATH-REGISTER DST-PATH)
+  (IF *PRINT-COMMANDS*
+    (FORMAT T "/bin/ln ~A ~A~%" 
+            (SCRIPT:SHELL-QUOTE-ARGUMENT SRC-PATH)
+            (SCRIPT:SHELL-QUOTE-ARGUMENT DST-PATH))
+    (SCRIPT:EXECUTE  "/bin/ln"  SRC-PATH DST-PATH)))
+
+
+(DEFUN CP-SYMBOLIC-LINK (SRC-PATH DST-PATH)
+  "
+DOES:    add a symbolic link from the item at src-path to dst-path.
+"
+  (CP-PATH-REGISTER DST-PATH)
+  (IF *PRINT-COMMANDS*
+    (FORMAT T "/bin/ln -s ~A ~A~%" 
+            (SCRIPT:SHELL-QUOTE-ARGUMENT SRC-PATH)
+            (SCRIPT:SHELL-QUOTE-ARGUMENT DST-PATH))
+    (SCRIPT:MAKE-SYMBOLIC-LINK SRC-PATH DST-PATH)))
+
+
+(DEFUN CP-COPY-FILE (SRC-PATH DST-PATH)
+  "
+DOES:    copy the item at src-path to dst-path.
+"
+  (CP-PATH-REGISTER DST-PATH)
+  (IF *PRINT-COMMANDS*
+    (FORMAT T "/bin/cp -p ~A ~A~%"
+            (SCRIPT:SHELL-QUOTE-ARGUMENT SRC-PATH)
+            (SCRIPT:SHELL-QUOTE-ARGUMENT DST-PATH))
+    (SCRIPT:COPY-FILE SRC-PATH DST-PATH NIL T)))
+
+
+(DEFUN CP-MAKE-DIRECTORY (PATH &OPTIONAL PARENTS)
+  (CP-PATH-REGISTER PATH)
+  (IF *PRINT-COMMANDS*
+    (FORMAT T "/bin/mkdir ~A ~A~%"
+            (IF PARENTS "-p" "")
+            (SCRIPT:SHELL-QUOTE-ARGUMENT PATH))
+    (SCRIPT:MAKE-DIRECTORY PATH PARENTS)))
+
+
+
+
+(DEFUN UNIQUE-NAME (DIR NAME &OPTIONAL ROOT COUNTER  EXTENSION)
+  "
+PRE:    (or (null counter)
+            (string= name (format \"%s-%d%s\" root counter extension)))
+RETURN: a unique name in the directory dir, formated as root-counter.extension
+"
+  (IF (CP-PATH-EXISTS-P (CONCATENATE 'STRING DIR "/" NAME))
+    (IF COUNTER
+      (UNIQUE-NAME DIR (FORMAT NIL "~A-~D~A" ROOT COUNTER EXTENSION)
+                   ROOT (1+ COUNTER) EXTENSION)
+      ;; first time: lets split the name.
+      (IF (REGEXP:MATCH "^\\(.+\\)\\(\\.[^\\.][^\\.]*\\)$" NAME)
+        (LET ((ROOT (REGEXP:MATCH-STRING 1 NAME))
+              (EXTENSION (REGEXP:MATCH-STRING 2 NAME)))
+          (UNIQUE-NAME DIR (FORMAT NIL "~A-~D~A" ROOT 0 EXTENSION)
+                       ROOT 0 EXTENSION))
+        (UNIQUE-NAME DIR (FORMAT NIL "~A-~D~A" NAME 0 "") NAME 0 "")))
+    NAME))
+
+
+
+(DEFUN CLEAN-PATH-DIRECTORY (SRCDIR DSTDIR COPY-ACTION)
+  "
+DOES:    recursively clean the paths from srcdir into dstdir.
+"
+  (DOLIST (ITEM (DIRECTORY-FILES SRCDIR))
+    (LET ((FITEM (CONCATENATE 'STRING SRCDIR "/" ITEM))
+          CNAME)
+      (WHEN (AND (STRING/= "." ITEM) (STRING/= ".." ITEM))
+        (SETQ CNAME (UNIQUE-NAME DSTDIR
+                                 (IF (NAME-IS-CLEAN-P ITEM)
+                                     ITEM
+                                     (CLEAN-NAME ITEM))))
+        (IF (FILE-DIRECTORY-P FITEM)
+            ;; a subdirectory
+            (LET ((SRCSUB (CONCATENATE 'STRING SRCDIR "/" ITEM))
+                  (DSTSUB (CONCATENATE 'STRING DSTDIR "/" CNAME)))
+              (CP-MAKE-DIRECTORY DSTSUB)
+              (CLEAN-PATH-DIRECTORY SRCSUB DSTSUB COPY-ACTION))
+            ;; a leaf node.
+            (LET ((SRCITEM (CONCATENATE 'STRING SRCDIR "/" ITEM))
+                  (DSTITEM (CONCATENATE 'STRING DSTDIR "/" CNAME)))
+              (FUNCALL COPY-ACTION SRCITEM DSTITEM)))))))
+
+
+(defun last-char (string) (aref string (1- (length string))))
+(DEFUN CLEAN-PATHS (SRCDIR DSTDIR KEYS)
+  "
+DOES:    builds a directory hierarchy dstdir similar to srcdir,
+         with file and directory names cleaned (removing spaces and other
+         special characters).
+
+keys:    may contain one of:
+         :hard-link           The files are hard linked.
+         :symbolic-link       The files are symbolically linked. (default)
+         :file-copy           The files are copied.
+"
+  (WHEN (char= #\/ (last-char srcdir))
+    (SETQ SRCDIR (SUBSEQ SRCDIR 0 (1- (LENGTH SRCDIR)))))
+  (WHEN (char= #\/ (last-char dstdir))
+    (SETQ DSTDIR (SUBSEQ DSTDIR 0 (1- (LENGTH DSTDIR)))))
+  (UNLESS (FILE-DIRECTORY-P SRCDIR)
+    (ERROR "First argument (~A) should be the path to the source directory."
+           SRCDIR))
+  (WHEN (FILE-EXISTS-P DSTDIR)
+    (ERROR "Destination path (~A) already exist." DSTDIR))
+  (CP-MAKE-DIRECTORY DSTDIR T)
+  (LET ((COPY-ACTION (COND
+                       ((MEMQ :HARD-LINK     KEYS) 'CP-HARD-LINK)
+                       ((MEMQ :SYMBOLIC-LINK KEYS) 'CP-SYMBOLIC-LINK)
+                       ((MEMQ :FILE-COPY     KEYS) 'CP-COPY-FILE)
+                       (T                          'CP-SYMBOLIC-LINK))))
+    (let ((*PRINT-COMMANDS* (MEMQ :PRINT-COMMANDS KEYS)))
+      (CLEAN-PATH-DIRECTORY SRCDIR DSTDIR COPY-ACTION))))
+
+
+
+
+(DEFUN REPRODUCE-CHANGES-DIRECTORY (SRCDIR DSTDIR COPY-ACTION)
+  "
+DOES:    scan dstdir and issue commands.
+"
+  (CP-MAKE-DIRECTORY DSTDIR)
+  (DOLIST (ITEM (DIRECTORY-FILES DSTDIR))
+    (LET ((FITEM (CONCATENATE 'STRING DSTDIR "/" ITEM)))
+      (WHEN (AND (STRING/= "." ITEM) (STRING/= ".." ITEM))
+        (COND
+         ((FILE-DIRECTORY-P FITEM)
+          ;; a subdirectory
+          (REPRODUCE-CHANGES-DIRECTORY 
+           SRCDIR (CONCATENATE 'STRING DSTDIR "/" ITEM) COPY-ACTION))
+         ((FILE-SYMLINK-P FITEM)
+          ;; a symbolic-link
+          (CP-SYMBOLIC-LINK (FILE-SYMBOLIC-LINK FITEM) FITEM))
+         (T
+          ;; a leaf node.
+          (LET* ((DSTITEM (CONCATENATE 'STRING DSTDIR "/" ITEM))
+                 (SRCITEM (FIND-FILE-WITH-INODE SRCDIR (FILE-INODE DSTITEM))))
+            (WHEN SRCITEM
+              (FUNCALL COPY-ACTION SRCITEM DSTITEM)))))))))
+
+
+(DEFUN REPRODUCE-CHANGES (SRCDIR DSTDIR KEYS)
+  "
+DOES:    issues commands to rebuild the directory hierarchy dstdir from srcdir,
+         (using the inodes of the files as identifiers).
+
+keys:    may contain one of:
+         :hard-link           The files are hard linked.
+         :symbolic-link       The files are symbolically linked. (default)
+         :file-copy           The files are copied.
+"
+  (WHEN (char= #\/ (last-char srcdir))
+    (SETQ SRCDIR (SUBSEQ SRCDIR 0 (1- (LENGTH SRCDIR)))))
+  (WHEN (char= #\/ (last-char dstdir))
+    (SETQ DSTDIR (SUBSEQ DSTDIR 0 (1- (LENGTH DSTDIR)))))
+  (UNLESS (FILE-DIRECTORY-P SRCDIR)
+    (ERROR "First argument (%s) should be the path to the source directory."
+           SRCDIR))
+  (UNLESS (FILE-DIRECTORY-P SRCDIR)
+    (ERROR "Second argument (%s) should be the path to the source directory."
+           SRCDIR))
+  (LET ((COPY-ACTION (COND
+                       ((MEMQ :HARD-LINK KEYS)     'CP-HARD-LINK)
+                       ((MEMQ :SYMBOLIC-LINK KEYS) 'CP-SYMBOLIC-LINK)
+                       ((MEMQ :FILE-COPY KEYS)     'CP-COPY-FILE)
+                       (T                          'CP-SYMBOLIC-LINK)))
+        (*PRINT-COMMANDS* t))
+    (REPRODUCE-CHANGES-DIRECTORY SRCDIR DSTDIR COPY-ACTION))) 
+
+
+
+
+(DEFUN MAIN (ARGV)
+  (LET ((SRC NIL)
+        (DST NIL)
+        (OPTIONS ()))
+    (FORMAT T "~&")
+    ;; process arguments
+    (DOLIST (ARG ARGV)
+      (COND
+       ((MEMBER ARG '("-L" "--symbolic-links") :TEST (FUNCTION STRING-EQUAL))
+        (PUSH :SYMBOLIC-LINK OPTIONS))
+       ((MEMBER ARG '("-H" "--hard-links")     :TEST (FUNCTION STRING-EQUAL))
+        (PUSH :HARD-LINK OPTIONS))
+       ((MEMBER ARG '("-C" "--copy")           :TEST (FUNCTION STRING-EQUAL))
+        (PUSH :FILE-COPY OPTIONS))
+       ((MEMBER ARG '("-n" "--print-commands") :TEST (FUNCTION STRING-EQUAL))
+        (PUSH :PRINT-COMMANDS OPTIONS))
+       ((MEMBER ARG '("-h" "--help")           :TEST (FUNCTION STRING-EQUAL))
+        (PRINT-USAGE)
+        (SCRIPT:EXIT SCRIPT:EX-OK))
+       (T
+        (COND
+         ((NULL SRC) (SETQ SRC ARG))
+         ((NULL DST) (SETQ DST ARG))
+         (T
+          (SCRIPT:PERROR "'~A' is superfluous~%"  ARG)
+          (SCRIPT:PERROR "I already got source & destination directories.~%")
+          (PRINT-USAGE)
+          (SCRIPT:EXIT SCRIPT:EX-USAGE)))))
+      ;;;(FORMAT t "arg=~W~%src=~W~%dst=~W~%options=~W~%" arg src dst options)
+      )
+    ;; check if src & dst are present
+    (WHEN (NULL SRC)
+      (SCRIPT:PERROR "source directory argument is missing.~%")
+      (PRINT-USAGE)
+      (SCRIPT:EXIT SCRIPT:EX-USAGE))
+    (WHEN (NOT (FILE-DIRECTORY-P SRC))
+      (SCRIPT:PERROR "invalid source directory '~A'.~%" SRC)
+      (PRINT-USAGE)
+      (SCRIPT:EXIT SCRIPT:EX-DATAERR))
+    (WHEN (NULL DST)
+      (SCRIPT:PERROR "destination directory argument is missing.~%")
+      (PRINT-USAGE)
+      (SCRIPT:EXIT SCRIPT:EX-USAGE))
+    ;; execute the command
+    (IF (STRING= SCRIPT:*NAME* "reproduce-changes")
+      (PROGN ;; just output a script to reproduce $dst from $src
+        (WHEN (NOT (FILE-DIRECTORY-P DST))
+          (SCRIPT:PERROR "invalid destination directory '~A'.~%" DST)
+          (PRINT-USAGE)
+          (SCRIPT:EXIT SCRIPT:EX-DATAERR))
+        (REPRODUCE-CHANGES SRC DST OPTIONS))
+      (PROGN 
+        ;; actually produce a cleaned-up $dst from $src
+        ;; (or just output a script to this effect
+        ;;  if --print-commands  is given).
+        (WHEN (FILE-EXISTS-P DST)
+          (SCRIPT:PMESSAGE "destination directory '~A' already exists.~%" DST)
+          (PRINT-USAGE)
+          (SCRIPT:EXIT SCRIPT:EX-DATAERR))
+        (CLEAN-PATHS SRC DST OPTIONS)))))
+
+(WHEN (SCRIPT:IS-RUNNING)
+  (MAIN SCRIPT:*ARGUMENTS*))
+
+;;;; clean-paths                      --                     --          ;;;;

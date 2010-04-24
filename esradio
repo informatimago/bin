@@ -1,0 +1,7 @@
+#!/bin/bash
+#URL='mms://a1856.l8111237855.c81112.e.lm.akamaistream.net/D/1856/81112/v0001/reflector:37855'
+URL='mms://streaming.esradio.fm/EsRadio'
+exec mplayer "$URL"
+########################################################################
+export WRITE_ASF=1
+

@@ -1,0 +1,73 @@
+#!/bin/bash
+trap 'kill 0' exit
+period=60
+snd_oldmail=/usr/X11R6/GNUstep/Apps/WMMail.app/Sounds/NewMail.au
+snd_newmail=/usr/X11R6/lib/TkDesk/sounds/newmail.au
+
+for arg ; do
+    case "$arg" in
+    --period=*)
+        period=`echo "$arg"|sed -e 's/--period=//'`
+        ;;
+    -h|--help)
+        usage
+        exit 0
+        ;;
+    -*|*)
+        echo "${pname}: invalid argument: '${arg}'."
+        usage
+        exit 1
+        ;;
+    esac
+done
+
+once_over_two=0
+old_status=''
+while sleep ${period} ; do
+    status="`echo q | mail | head -2 | tail -1`"
+    # No mail for pascal
+    # "/var/spool/mail/pascal": 4 messages 3 unread
+    # "/var/spool/mail/pascal": 1 message
+    if [ "$status" = "$old_status" ] ; then
+        status=none
+    else
+        old_status=$status
+        case "$status" in
+        "No mail for"*)
+            status=none
+            ;;
+        *unread|*new)
+            status=new
+            ;;
+        *message|*messages)
+            status=old
+            ;;
+        *)
+            status=unknown
+            ;;
+        esac
+    fi
+    case ${status} in
+    old)
+        if [ $once_over_two -eq 0 ] ; then
+            play ${snd_oldmail}
+            once_over_two=1
+        else
+            once_over_two=0
+        fi
+        ;;
+    new)
+        if [ $once_over_two -eq 0 ] ; then
+            play ${snd_newmail}
+            once_over_two=1
+        else
+            once_over_two=0
+        fi
+        ;;
+    none|*)
+        ;;
+    esac
+done
+
+#END#
+

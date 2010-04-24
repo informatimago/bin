@@ -1,0 +1,12 @@
+#!/bin/bash
+
+mkdir -p ~/mail/temp
+cd       ~/mail/temp
+
+find ~/mail/bogus ~/mail/mail -type f \
+| while read path ; do
+    file=$(basename $path)
+    csplit -n 3 -f ${file}. ${path} "/^From [^ ]*@[^ ]*  \(Mon\|Tue\|Wed\|Thu\|Fri\|Sat\|Sun\) \(Jan\|Feb\|Mar\|Apr\|May\|Jun\|Jul\|Aug\|Sep\|Oct\|Nov\|Dec\) [ 0-3][0-9] [ 0-2][0-9]:[0-5][0-9]:[0-5][0-9] [0-9][0-9][0-9][0-9]$/" '{*}'
+    mv ${path} ${path}.mbox
+    mv ${file}.000 ${path}
+done

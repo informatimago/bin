@@ -1,0 +1,41 @@
+#!/bin/sh
+
+###
+### Let's set the publication date in some locales.
+###
+
+export LC_ALL=en_US
+case `date +%e` in
+1)
+	th=st
+    ;;
+2)
+	th=nd
+	;;
+*)
+	th=th
+	;;
+esac
+
+en_US_PUBLICATION_DATE="`date '+%A, %B %e'$th', %Y, %X (%Z)'`"
+
+export LC_ALL=fr_FR 
+fr_FR_PUBLICATION_DATE="`date '+%A %e %B %Y, %X (%Z)'`"
+
+export LC_ALL=es_ES
+es_ES_PUBLICATION_DATE="`date '+%A, %e de %B de %Y, %X (%Z)'`"
+
+case "$1" in
+--variables)
+	echo en_US_PUBLICATION_DATE=\'$en_US_PUBLICATION_DATE\'
+	echo fr_FR_PUBLICATION_DATE=\'$fr_FR_PUBLICATION_DATE\'
+    echo es_ES_PUBLICATION_DATE=\'$es_ES_PUBLICATION_DATE\'
+    ;;
+*)
+	echo $en_US_PUBLICATION_DATE
+	echo $fr_FR_PUBLICATION_DATE
+    echo $es_ES_PUBLICATION_DATE
+    ;;
+esac
+
+exit 0

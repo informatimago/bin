@@ -1,0 +1,23 @@
+#!/bin/csh -f
+
+if ( $#argv < 2 ) then
+	echo 'Usage: ftp-put-dir host directory...'
+	exit 1
+endif
+
+set host=$1
+shift
+
+(\
+	echo bin ;\
+	echo prompt ;\
+	find $* \
+		-type d \
+		-exec echo 'mkdir' {} \; \
+		-exec echo 'mput ' {} @@@\* \; \
+	| sed -e 's- @@@-/-' \
+)| ftp -v $host
+
+
+
+

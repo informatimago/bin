@@ -1,0 +1,12 @@
+#!/bin/bash
+mp=/cd0
+if [ -n "$1" ] ; then
+    mp="$1"
+fi
+mount $mp
+aviplay $mp/*.avi
+eject $mp
+#END#
+
+
+#### play-avi-cd                      -- 2003-09-04 22:09:22 -- pascal   ####

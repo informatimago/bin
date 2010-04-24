@@ -1,0 +1,20 @@
+#!/bin/bash
+HOSTS="
+    despina.informatimago.com
+    galatea.informatimago.com
+    larissa.informatimago.com
+    thalassa.informatimago.com
+    hermes.afaa.asso.fr
+"
+
+AHOSTS=
+for h in $HOSTS ; do 
+    ping -q -c 1 -w 4 $h >/dev/null 2>&1 \
+    && AHOSTS="$AHOSTS $h"
+done
+
+for h in $AHOSTS ; do
+    printf "%-16s" ${h/\.*/} ; ssh $h "$@"
+done
+
+#END#

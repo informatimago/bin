@@ -1,0 +1,443 @@
+#!/usr/bin/perl -w
+use strict;
+
+
+### UTILITIES:
+
+sub basename{
+    my ($name)=@_;
+    my ($basename);
+    if($name=~/\//){
+        ($basename)=($name=~/.*\/([^\/][^\/]*)$/);
+    }else{
+        $basename=$name;
+    }
+    return($basename);
+}#basename;
+
+
+sub date{
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)
+        =localtime(time());
+    return(sprintf("%04d-%02d-%02d %02d:%02d:%02d",
+                   1900+$year,1+$mon,$mday,$hour,$min,$sec));
+}#date;
+
+
+my($kind_c_comment,$kind_hash_comment)=(0,1);
+sub fileKind{
+    my($name)=@_;
+    my($line,$kind);
+
+    # first, let's see the name.
+    if(($name=~/.*\.[hcm]/i)
+       ||($name=~/.*\.[hc]\+\+/i)
+       ||($name=~/.*\.[hc]pp/i)){
+        return($kind_c_comment);
+    }elsif(($name=~/.*makefile.*/i)
+           ||($name=~/.*\.mak$/i)
+           ||($name=~/.*\.make$/i)){
+        return($kind_hash_comment);
+    }else{
+        ### Here we could work some more to add more kinds of comments. 
+    }
+
+    # then, let's see what file(1) think of it.
+    open RESULT,"file $name|";
+    $line=<RESULT>;
+    close RESULT;
+    ($kind)=($line=~/.*: (.*)/);
+    if(($kind=~/.* shell .*/)
+       ||($kind=~/.*perl.*/)
+       ||($kind=~/.*awk.*/)){
+        return($kind_hash_comment);
+    }else{
+        ### Here we could work some more to add more kinds of comments. 
+    }
+
+    # finaly, let's return a default kind.
+    return($kind_c_comment);
+}#fileKind;
+
+
+
+
+# GLOBALS:
+my $pname=$0;
+my $pblan=" " x length($pname);
+my $thead="/tmp/h$$";
+my $tbody="/tmp/b$$";
+
+
+my $stars76='*' x 76;
+my $hashs76='#' x 76;
+
+my $new_language='';
+my $new_system='';
+my $new_user_interface='';
+my $new_description='';
+my $add_author='';
+my $add_modification='';
+my $add_bug='';
+my $new_legal='';
+
+my $do_pretty_format=0;
+my @files=();
+
+# SUBROUTINES:
+
+sub usage{
+    printf STDERR "%s usage:\n"
+        ."    %s options... files...\n",
+        $pname,$pname;
+    printf STDERR 
+        "        --help                                             \n"
+       ."        --language=LANGUAGE                             NIY\n"
+       ."        --system=SYSTEM                                 NIY\n"
+       ."        --user-interface=USER_INTERFACE                 NIY\n"
+       ."        --description=DESCRIPTION                          \n"
+       ."        --description-file=FILE                            \n"
+       ."        --add-author=\"<TAG> AUTHOR NAME <EMAIL>\"      NIY\n"
+       ."        --add-modification=\"<TAG> MODIFICATION TEXT\"  NIY\n"
+       ."        --add-bug=BUG                                   NIY\n"
+       ."        --legal=LEGAL                                      \n"
+       ."        --legal-file=FILE                                  \n"
+       ."        --pretty-format                                 NIY\n"
+       ."\n";
+}#usage
+
+
+sub processArguments{
+    my(@argv)=@_;
+    my $fname;
+    if($#argv<0){
+        printf STDERR 
+            "$pname error: Missing parameters.\n"
+           ."$pblan        At least one option and at least one file \n"
+           ."$pblan        should be specified.\n\n";
+        &usage();
+        exit 1;
+    }else{
+        for $_ (@argv) {
+            my $argument=$_;
+            if(/^--help$/){
+                &usage();
+                exit 0;
+            }elsif(/^--description=(.*)$/){
+                $new_description=$1;
+            }elsif(/^--description-file=(.*)/){
+                $fname=$1;
+                $new_description=&read_whole_file($fname);
+            }elsif(/^--legal=(.*)$/){
+                $new_legal=$1;
+            }elsif(/^--legal-file=(.*)/){
+                $fname=$1;
+                $new_legal=&read_whole_file($fname);
+            }elsif(/^--pretty-format$/){
+                $do_pretty_format=1;
+            }elsif(/^-.*/){
+                printf STDERR "$pname error: Invalid option: $argument.\n";
+                &usage();
+                exit 1;
+            }else{
+                if(-f $argument && -r $argument && -w $argument){
+                    @files=(@files,$argument);
+                }else{
+                    printf STDERR "$pname error: $argument "
+                        ."is not an updatable file .\n";
+                    &usage();
+                    exit 1;
+                }
+            }#if
+        }#for
+    }#if
+}#processArguments;
+
+
+
+sub read_whole_file{
+    my($fname)=@_;
+    my $result='';
+    open FILE,"<$fname";
+    while(<FILE>){
+        $result.=$_;
+    }
+    close FILE;
+    return($result);
+}#read_whole_file;
+
+
+
+sub pretty_format_simple_element {
+    my($kind,$source)=@_;
+    my $result=$source;
+    chomp($result);
+    return($result);
+}#pretty_format_simple_element;
+
+
+sub pretty_format_blocks_prepare  {
+    my($kind,$source)=@_;
+    my @lines=();
+    my $line;
+    # Slice the source by line.
+    for $line (split(/\n/,$source)){
+        # Special chomp each line (remove all possible prefix, and chomp.
+        if($line=~/^[ 	]*\#[ 	]*([^ 	]*)/){
+            $line=$1;
+        }elsif($line=~/^[ 	]*\*[ 	]*([^ 	]*)/){
+            $line=$1;
+        }elsif($line=~/^[ 	]*\/\/[ 	]*([^ 	]*)/){
+            $line=$1;
+        }
+        chomp($line);
+        @lines=(@lines,$line);
+    }
+    return(@lines);
+}#pretty_format_blocks_prepare;
+
+sub pretty_format_blocks_format  {
+    my($kind,@lines)=@_;
+    my $result='';
+    my($fine,$line);
+    for $line (@lines){
+        # Format each line depending on $kind.
+        if($kind==$kind_hash_comment){
+            $fine=sprintf "#   %s\n",$line;
+        }else{#elsif($kind==$kind_c_comment){
+            $fine=sprintf "    %s\n",$line;
+        }
+        # Concatenate back the whole set.
+        $result.=$fine;
+    }
+    return($result);
+}#pretty_format_blocks_format;
+
+
+sub pretty_format_blocks        {
+    my($kind,$source)=@_;
+    my @lines=&pretty_format_blocks_prepare($source);
+    return &pretty_format_blocks_format($kind,@lines);
+}#pretty_format_blocks;
+
+
+sub pretty_format_paragraphs_justify{
+    my(@lines)=@_;
+    # SEE: Let's justify the paragraphs here.
+    # We could write a file and run fmt on it, then read back 
+    # the result into the result array.
+    return @lines;
+}#pretty_format_paragraphs_justify;
+
+
+sub pretty_format_paragraphs    {
+    my($kind,$source)=@_;
+    my @lines=&pretty_format_blocks_prepare($source);
+    @lines=&pretty_format_paragraphs_justify(@lines);
+    return &pretty_format_blocks_format($kind,@lines);
+}#pretty_format_paragraphs;
+
+
+sub pretty_format_file          {
+    my($kind,$source)=@_;
+    return(&pretty_format_simple_element($kind,$source));
+}#pretty_format_file;
+
+sub pretty_format_language      {
+    my($kind,$source)=@_;
+    return(&pretty_format_simple_element($kind,$source));
+}#pretty_format_language;
+
+sub pretty_format_system        {
+    my($kind,$source)=@_;
+    return(&pretty_format_simple_element($kind,$source));
+}#pretty_format_system;
+
+sub pretty_format_user_interface{
+    my($kind,$source)=@_;
+    return(&pretty_format_simple_element($kind,$source));
+}#pretty_format_user_interface;
+
+
+sub pretty_format_description   {
+    my($kind,$source)=@_;
+    return(&pretty_format_paragraphs($kind,$source));
+}#pretty_format_description;
+
+sub pretty_format_authors       {
+    my($kind,$source)=@_;
+    return(&pretty_format_blocks($kind,$source));
+}#pretty_format_authors;
+
+sub pretty_format_modifications {
+    my($kind,$source)=@_;
+    return(&pretty_format_paragraphs($kind,$source));
+}#pretty_format_modifications;
+
+sub pretty_format_bugs          {
+    my($kind,$source)=@_;
+    return(&pretty_format_paragraphs($kind,$source));
+}#pretty_format_bugs;
+
+sub pretty_format_legal {
+    my($kind,$source)=@_;
+    return(&pretty_format_paragraphs($kind,$source));
+}#pretty_format_legal;
+
+
+
+sub parseInput{
+    my $state=0;
+    while ( <SOURCE> ) {
+        if($state==0){
+            print THEAD $_;
+            /\*\// && do { $state=1; };
+        }else{
+            print TBODY $_;
+        }
+    }
+}#readHeaderAndBody;
+
+
+sub parseHeader{
+    my $state='';
+    my $FILE='';
+    my $LANGUAGE='';
+    my $SYSTEM='';
+    my $USER_INTERFACE='';
+    my $DESCRIPTION='';
+    my $AUTHORS='';
+    my $MODIFICATIONS='';
+    my $BUGS='';
+    my $LEGAL='';
+    seek THEAD,0,0;
+    while(<THEAD>){
+        if(/^FILE:[ 	]*([A-Za-z].*)/                ){ $FILE=$1; 
+        }elsif(/^LANGUAGE:[ 	]*([A-Za-z].*)/        ){ $LANGUAGE=$1;
+        }elsif(/^SYSTEM:[ 	]*([A-Za-z].*)/            ){ $SYSTEM=$1;
+        }elsif(/^USER-INTERFACE:[ 	]*([A-Za-z].*)/    ){ $USER_INTERFACE=$1;
+        }elsif($_=~/^(DESCRIPTION)/                    ){ $state=$1;
+        }elsif($_=~/^(AUTHORS)/                        ){ $state=$1;
+        }elsif($_=~/^(MODIFICATIONS)/                  ){ $state=$1;
+        }elsif($_=~/^(BUGS)/                           ){ $state=$1;
+        }elsif($_=~/^(LEGAL)/                          ){ $state=$1;
+        }elsif($_=~/\*\//                              ){ $state='';
+        }elsif($state eq 'DESCRIPTION'                 ){ $DESCRIPTION.=$_;
+        }elsif($state eq 'AUTHORS'                     ){ $AUTHORS.=$_;
+        }elsif($state eq 'MODIFICATIONS'               ){ $MODIFICATIONS.=$_;
+        }elsif($state eq 'BUGS'                        ){ $BUGS.=$_;
+        }elsif($state eq 'LEGAL'                       ){ $LEGAL.=$_;
+        }
+    }
+    chomp($FILE);
+    chomp($LANGUAGE);
+    chomp($SYSTEM);
+    chomp($USER_INTERFACE);
+    my @result=($FILE,$LANGUAGE,$SYSTEM,$USER_INTERFACE,
+                $DESCRIPTION,$AUTHORS,$MODIFICATIONS,$BUGS,$LEGAL);
+    return ($FILE,$LANGUAGE,$SYSTEM,$USER_INTERFACE,
+            $DESCRIPTION,$AUTHORS,$MODIFICATIONS,$BUGS,$LEGAL);
+}#parseHeader;
+
+
+sub  writeHeader{
+    my ($kind,$FILE,$LANGUAGE,$SYSTEM,$USER_INTERFACE,
+        $DESCRIPTION,$AUTHORS,$MODIFICATIONS,$BUGS,$LEGAL)=@_;
+    $FILE          =&pretty_format_file          ($kind,$FILE);
+    $LANGUAGE      =&pretty_format_language      ($kind,$LANGUAGE);
+    $SYSTEM        =&pretty_format_system        ($kind,$SYSTEM);
+    $USER_INTERFACE=&pretty_format_user_interface($kind,$USER_INTERFACE);
+    $DESCRIPTION   =&pretty_format_description   ($kind,$DESCRIPTION);
+    $AUTHORS       =&pretty_format_authors       ($kind,$AUTHORS);
+    $MODIFICATIONS =&pretty_format_modifications ($kind,$MODIFICATIONS);
+    $BUGS          =&pretty_format_bugs          ($kind,$BUGS);
+    $LEGAL         =&pretty_format_legal         ($kind,$LEGAL);
+    printf SOURCE "/*%s\n",$stars76;
+    printf SOURCE "FILE:               %s\n",$FILE;
+    printf SOURCE "LANGUAGE:           %s\n",$LANGUAGE;
+    printf SOURCE "SYSTEM:             %s\n",$SYSTEM;
+    printf SOURCE "USER-INTERFACE:     %s\n",$USER_INTERFACE;
+    printf SOURCE "DESCRIPTION\n%s",         $DESCRIPTION;
+    printf SOURCE "AUTHORS\n%s",             $AUTHORS;
+    printf SOURCE "MODIFICATIONS\n%s",       $MODIFICATIONS;
+    printf SOURCE "BUGS\n%s",                $BUGS;
+    printf SOURCE "LEGAL\n%s",               $LEGAL;
+    printf SOURCE "%s*/\n",$stars76;
+}#writeHeader;
+
+
+sub copyBody{
+    seek TBODY,0,0;
+    while(<TBODY>){
+        printf SOURCE "%s",$_;
+    }
+}#copyBody;
+
+sub processSourceFile{
+    my($name,$NEWLEGAL)=@_;
+
+    open SOURCE,"+< $name";
+
+    &parseInput;
+
+    seek SOURCE,0,0;
+    
+    my ($FILE,$LANGUAGE,$SYSTEM,$USER_INTERFACE,
+        $DESCRIPTION,$AUTHORS,$MODIFICATIONS,$BUGS,$LEGAL)=&parseHeader;
+
+    $FILE=&basename($name);
+    if($new_language ne ''){
+        $LANGUAGE=$new_language;
+    }
+    if($new_system ne ''){
+        $SYSTEM=$new_system;
+    }
+    if($new_user_interface ne ''){
+        $USER_INTERFACE=$new_user_interface;
+    }
+    if($new_description ne ''){
+        $DESCRIPTION=$new_description;
+    }
+    if($add_author ne ''){
+        $AUTHORS.=$add_author;
+    }
+    if($add_modification ne ''){
+        $MODIFICATIONS.=&modification_date_stamp($add_modification);
+    }
+    if($add_bug ne ''){
+        $BUGS.=$add_bug;
+    }
+    if($new_legal ne ''){
+        $LEGAL=$new_legal;
+    }
+
+    &writeHeader(&fileKind($name),
+                 $FILE,$LANGUAGE,$SYSTEM,$USER_INTERFACE,
+                 $DESCRIPTION,$AUTHORS,$MODIFICATIONS,$BUGS,$LEGAL);
+    &copyBody;
+
+    truncate SOURCE,tell SOURCE;
+
+    close SOURCE;
+}#processSourceFile;
+
+
+&processArguments(@ARGV);
+
+open THEAD,"+> $thead";
+open TBODY,"+> $tbody";
+my $file;
+foreach $file (@files) {
+    printf "Processing %s...\n",$file;
+    &processSourceFile($file);
+    seek THEAD,0,0; truncate THEAD,0;
+    seek TBODY,0,0; truncate TBODY,0;
+}
+
+close THEAD;
+close TBODY;
+unlink $thead,$tbody;
+printf "Done.\n";
+
+__END__
+

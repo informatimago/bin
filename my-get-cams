@@ -1,0 +1,139 @@
+#!/bin/bash
+pname=$(basename $0)
+
+function usage () {
+    echo "$pname usage:"
+    echo "   $pname [-o|-d delay|--delay delay] [thalassa|galatea] lm|aca|can"
+}
+host=thalassa
+delay=
+while [ $# -ge 1 ] ; do
+    case "$1" in
+    -o|--once)
+        delay=-o
+        ;;
+    -d|--delay)
+        if [ $# -le 1 ] ; then
+            echo "${pname}: Missing argument after '$1'."
+            usage
+            exit 1
+        fi
+        shift
+        delay="-D $1"
+        ;;
+    thalassa|galatea)
+        host=$1
+        ;;
+    mexico)
+        get-cams --delay 60 \
+            --camera Acapulco-1        --display $host-00 \
+            --camera Acapulco-2        --display $host-01 \
+            --camera Cancun-1          --display $host-02 \
+            --camera Cancun-2          --display $host-03 \
+            --camera Chihuahua-1       --display $host-04 \
+            --camera Chihuahua-2       --display $host-05 \
+            --camera Guadalajara-1     --display $host-06 \
+            --camera Guadalajara-2     --display $host-07 \
+            --camera LaPaz             --display $host-08 \
+            --camera Mazatlan          --display $host-09 \
+            --camera Mexico-Oriente-1  --display $host-10 \
+            --camera Mexico-Oriente-2  --display $host-11 \
+            --camera Mexico-Oriente-3  --display $host-12 \
+            --camera Mexico-Poniente-1 --display $host-13 \
+            --camera Mexico-Poniente-2 --display $host-14 \
+            --camera Mexico-Sur-2      --display $host-15 \
+            --camera Mexico-Sur-3      --display $host-16 \
+            --camera Mexico-Sur-4      --display $host-17 \
+            --camera Mexico-Sur-6      --display $host-18 \
+            --camera Mexico-Sur-7      --display $host-19 \
+            --camera Monterrey-1       --display $host-20 \
+            --camera Monterrey-2       --display $host-21 \
+            --camera NuevoLaredo       --display $host-22 \
+            --camera Reynosa           --display $host-23
+            --camera Veracruz          --display $host-24 
+        ;;
+    mexico-few)
+        get-cams --delay 60 \
+            --camera Acapulco-2        --display $host-tl \
+            --camera Chihuahua-2       --display $host-bl \
+            --camera LaPaz             --display $host-tr \
+            --camera Mexico-Poniente-1 --display $host-br 
+        ;;
+    24)
+        get-cams $delay \
+             -c Noumea               -d $host-24 \
+             -c Sidney               -d $host-23 \
+             -c Kyoto                -d $host-22 \
+             -c Seto-Bridge          -d $host-21 \
+             -c Perth-1              -d $host-20 \
+             -c Bangkok              -d $host-19 \
+             -c Moscow               -d $host-17 \
+             -c Gdansk               -d $host-16 \
+             -c Jerusalem            -d $host-15 \
+             -c La-Manga             -d $host-13 \
+             -c Gran-Canarias        -d $host-12 \
+             -c Rio-de-Janeiro       -d $host-09 \
+             -c Buenos-Aires         -d $host-08 \
+             -c New-York             -d $host-07 \
+             -c Cancun-Sur           -d $host-06 \
+             -c Acapulco-2           -d $host-05 \
+             -c San-Francisco-Bay    -d $host-04 \
+             -c Vancouver-Island     -d $host-03 \
+             -c Ruby                 -d $host-02 \
+             -c Kodiak               -d $host-01 \
+             -c Honolulu-Small       -d $host-00 &
+#            -c Novosibirsk          -d $host-18 \
+#            -c Oxford-Circus        -d $host-14 \
+#            -c Isafjordur           -d $host-11 \
+#            -c Isumerit             -d $host-10 \
+        ;;
+    lm)
+        get-cams $delay \
+           -c Acapulco-2 -d $host-tl   -c Cancun-Norte -d $host-tr  \
+           -c La-Manga   -d $host-bl   -c Vallarta     -d $host-br  \
+        > /dev/null 2>&1 &
+        ;;
+
+    aca)
+        get-cams $delay  \
+           -c Acapulco-2 -d $host-tl   -c Cancun-Norte -d $host-tr  \
+           -c Acapulco-1 -d $host-bl   -c Vallarta     -d $host-br  \
+        > /dev/null 2>&1 &
+        ;;
+
+    can)
+        get-cams $delay  \
+           -c Acapulco-2 -d $host-tl   -c Cancun-Norte -d $host-tr  \
+           -c Vallarta   -d $host-bl   -c Cancun-Sur   -d $host-br  \
+        > /dev/null 2>&1 &
+        ;;
+    left)
+        get-cams $delay  \
+           -c Acapulco-2   -d $host-tl \
+           -c Cancun-Norte -d $host-tr \
+           -c Vallarta     -d $host-bl \
+           -c Cancun-Sur   -d $host-br \
+           \
+           -c Acapulco-2   -d $host-00 \
+           -c Cancun-Norte -d $host-05 \
+           -c Cancun-Sur   -d $host-10 \
+           -c Vallarta     -d $host-15 \
+           -c Acapulco-1   -d $host-20 \
+           \
+       > /dev/null 2>&1 &
+        ;;
+
+    can)
+        get-cams $delay  \
+           -c Acapulco-2 -d $host-tl   -c Cancun-Norte -d $host-tr  \
+           -c Vallarta   -d $host-bl   -c Cancun-Sur   -d $host-br  \
+        > /dev/null 2>&1 &
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
+    esac
+    shift
+done
+

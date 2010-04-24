@@ -1,0 +1,46 @@
+#!/bin/bash
+pname=`basename "$0"`
+dname=`dirname "$0"`
+
+function usage () {
+    echo "${pname} usage:"
+    echo "    ${pname} file.html... > urls"
+}
+
+
+function process () {
+    currentFile="$1"
+    cat $currentFile \
+    | tr '\010\011\012\015'  '    '  \
+    | sed -e 's/</ÿ</g' -e 's/>/>ÿ/g' \
+    | tr 'ÿ' '\012' \
+    | sed -n \
+      -e 's/^< *\<[Aa]\>.*[Hh][Rr][Ee][Ff]=\(['\''"]\)\([^'\''"]*\)\1.*/\2/p' \
+      -e 's/^< *\<[Aa]\>.*[Hh][Rr][Ee][Ff]=\([^'\''" ]\+\).*/\1/p' \
+    | cat 
+#     | sort -u
+}
+
+
+if [ $# -eq 0 ] ; then
+    process /dev/stdin
+else
+    for arg ; do
+
+        case "$arg" in
+        --help)
+            usage 
+            exit 0
+            ;;
+        -*)
+            echo "${pname}: unknow option '${arg}'"
+            usage
+            exit 1
+            ;;
+        *)
+            process "$arg"
+            ;;
+        esac
+    done
+fi
+exit 0

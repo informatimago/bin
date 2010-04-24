@@ -1,0 +1,23 @@
+#!/bin/bash
+
+case "$(uname)" in
+Darwin)
+    for file ; do 
+        macf="${file/.txt/.mac}"
+        /Developer/Tools/SetFile -c CCON -t TEXT "${macf}"
+    done
+    ;;
+*)
+    for file ; do 
+        macf="${file/.txt/.mac}"
+        [ -f "${macf}" ] && mv "${macf}" "${macf}~"
+        cat "${file}" \
+            | nema -from isolatin1 -to macintosh \
+            | lc -m \
+            > "${macf}"
+        chmod a+r "${macf}"
+    done
+    ;;
+esac
+
+#### text-to-palm                     -- 2003-11-24 11:27:15 -- pascal   ####

@@ -1,0 +1,11 @@
+#!/bin/csh
+
+set line=''
+while ( $line == '' )
+	clear
+	cookie
+	set line=$<
+end
+
+exit 0
+#END

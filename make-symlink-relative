@@ -1,0 +1,70 @@
+#!/bin/bash
+
+
+function truename () {
+    local dir="$1"
+    echo $( cd "$dir" ; pwd )
+}
+
+
+function make_relative () {
+    local source="$1"
+    local target="$2"
+    local srcdir=$(truename $(dirname  "$source"))
+    local srcnam=$(basename "$source")
+    local tardir=$(truename $(dirname "$target"))
+    local tarnam=$(basename "$target")
+    echo ln -sf "$( clisp -q -norc -on-error debug   -ansi \
+        /dev/stdin "$srcdir" "$srcnam" "$tardir" "$tarnam" <<'EOF'
+
+(defun split-string (sep string)
+  (loop
+     :for start = 0 :then (1+ end)
+     :for end = (position sep string :start start)
+     :collect (subseq string start end)
+     :while end))
+
+(destructuring-bind  (srcdir srcnam tardir tarnam)  ext:*args*
+  (let* ((srcdir (split-string #\/ srcdir))
+         (tardir (split-string #\/ tardir))
+         (difpos (mismatch srcdir tardir :test (function string=))))
+    (format t "~{~A/~}~A"
+            (when difpos
+                (let ((srcdir (nthcdr difpos srcdir))
+                      (tardir (nthcdr difpos tardir)))
+                  (append (make-list (length srcdir) :initial-element "..")
+                          tardir)))
+            tarnam))
+  (ext:quit))
+
+
+EOF
+)" "$srcnam"
+}
+
+
+for arg ; do
+    if [ "$(stat -c %F "$arg")" = "symbolic link" ] ; then
+        nn="$(stat -c %n "$arg")"
+        if [ -n "$nn" ] ; then
+            n='`'$nn"' -> \`"
+            l=$(stat -c %N "$arg")
+            p="${l:0:${#n}}"
+            s="${l:${#n}}"
+            if [ "$p" = "$n" ] ; then
+                target="${s:0:$((${#s} - 1))}"
+                if [ -e "$target" ] ; then
+                    make_relative "$arg" "$target"
+                else
+                    echo "Inexistant target for the symbolic link: $arg"
+                fi
+            else
+                echo "I've got a problem with: $arg"
+                echo $n
+                echo $p
+            fi
+        fi
+    else
+        echo "Not a symbolic link: $arg"
+    fi
+done

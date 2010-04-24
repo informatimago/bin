@@ -1,0 +1,45 @@
+#!/bin/bash
+pname="$(basename $0)"
+pblan="${name//?/ }"
+
+function usage () {
+    echo "${pname} usage:"
+    echo "    ${pname} log-file 'command args' word..."
+}
+
+if [ $# -lt 3 ] ; then
+    echo "${pname} error: missing arguments."
+    usage
+    exit 1
+fi
+
+
+logfile="$1"
+if [ ! -r "$logfile" ] ; then
+    echo "${pname} error: cannot read the log file '${logfile}'."
+    exit 1
+fi
+
+shift
+
+cmdargs="$1"
+
+shift
+words="$@"
+
+tail -f "${logfile}" \
+| awk -v words="$words" -v cmdargs="${cmdargs}" '
+BEGIN {
+    split(words,wards);
+}
+
+{
+    for(i in wards){
+        if(0!=index($0,wards[i])){
+            system(cmdargs);
+            next;
+        }
+    }
+}
+'
+#END#

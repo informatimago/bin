@@ -1,0 +1,117 @@
+#!/bin/bash
+#******************************************************************************
+#FILE:              get-bd
+#LANGUAGE:          bash
+#SYSTEM:            UNIX
+#USER-INTERFACE:    X window
+#DESCRIPTION
+#    This script fetches all the comic strips of the day 
+#    from http://www.unitedmedia.com/, and displays them at once.
+#USAGE
+#    get-bd
+#AUTHORS
+#    <PJB> Pascal J. Bourguignon
+#MODIFICATIONS
+#    2002-12-29 <PJB> Creation.
+#BUGS
+#    You tell me.
+#LEGAL
+#    Copyright Pascal J. Bourguignon 2002 - 2002
+#
+#    This script is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU  General Public
+#    License as published by the Free Software Foundation; either
+#    version 2 of the License, or (at your option) any later version.
+#
+#    This script is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public
+#    License along with this library; see the file COPYING.LIB.
+#    If not, write to the Free Software Foundation,
+#    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+#******************************************************************************
+
+lynx="lynx"
+display="xv -maxpect -smooth -display :0.0"
+
+# Sur MacOSX il y a une commande open ou openfile qui devrait faire l'affaire.
+# display=open
+
+delay="sleep 10"
+# or "true" if no delay is desired.
+# a delay between each wget may help concurent transfers to get some bandwidth.
+
+archive_dir=$(get-directory BD_ARCHIVE)
+# Mettre le chemin du répertoire où il faut archiver les BD si on le veut.
+
+url=http://www.unitedmedia.com/comics/chickweed/index.html
+
+if [ "$1" != "--clean" ] ; then
+
+    tmp=/tmp/get-bd.$$
+    trap "cd / ; /bin/rm -rf $tmp" 0
+    mkdir $tmp
+    cd $tmp
+
+    "$lynx" -source "$url" \
+        | grep -i OPTION \
+        | sed -e 's-.*<[Oo][Pp][Tt][Ii][Oo][Nn] [Vv][Aa][Ll][Uu][Ee]="-http://www.unitedmedia.com-' -e 's-">.*--' \
+        | grep -v -i OPTION \
+        | while  read url ; do
+        "$lynx" -source "$url" \
+            | tr '<>' '\012\012' \
+            | egrep -i -e 'img  *src.*archive/images' \
+            | sed -e 's-[Ii][Mm][Gg]  *[Ss][Rr][Cc]="/-http://www.unitedmedia.com/-' \
+            -e 's-".*--' 
+    done \
+        | sort \
+        | while read gifurl ; do wget "$gifurl" ; $delay ; done
+
+
+    if [ `date +%a` = 'Tue' ] ; then
+
+        "$lynx" -source http://www.geek.com/gtoons/mactoons/index.htm \
+            | sed -n -e 's-.*<img src="\(mtoons/.*.gif\)".*-http://www.geek.com/gtoons/mactoons/\1-p' | while read gifurl ; do wget "$gifurl" ; b=$(basename $gifurl) ; mv $b mactoon-$b ; $delay ; done
+
+        "$lynx" -source http://www.geek.com/gtoons/gtoonsmain.htm \
+            | sed -n -e 's-.*<img src="\(toons/.*.gif\)".*-http://www.geek.com/gtoons/toons/\1-p' | while read gifurl ; do wget "$gifurl" ; $delay ; done
+
+    fi
+    rm -f *.1 %du.txt
+    date=$(date "+%Y-%m-%d")
+    for f in * ; do 
+        g=$(echo "$f"|sed -e "s/[0-9][0-9][0-9]*\(\.[a-z]*\)$/-${date}\1/")
+        mv "${f}" "${g}"
+    done
+
+elif [ -r %du.txt ] ; then
+    echo "It's already copied to bd-archive, you can erase it."
+    exit 0
+else
+    rm -f *.1
+    date=$(ls -lt *|awk '{print $6;exit(0);}')
+fi 
+#copy away the files to the archive directory:
+if [ -n "$archive_dir" ] ; then
+   for f in * ; do 
+       d="$archive_dir/$(echo "$f"|sed -e 's/[^a-z].*//')"
+       mkdir -p "$d"
+       cp "$f" "$d/"
+   done
+fi
+du -sh "$archive_dir" > %du.txt
+$display *
+exit 0
+#######################################
+#move away the files to the archive directory:
+archive_dir=/d6/pjb/bd-archive
+if [ -n "$archive_dir" ] ; then
+   for f in * ; do 
+       d="$archive_dir/$(echo "$f"|sed -e 's/[^a-z].*//')"
+       mkdir -p "$d"
+       mv "$f" "$d/"
+   done
+fi

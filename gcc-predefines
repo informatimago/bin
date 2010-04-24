@@ -1,0 +1,10 @@
+#!/bin/bash
+CC=gcc
+source=/tmp/$$.c
+output=/tmp/$$.e
+trap " /bin/rm -f $source $output " 0
+echo '/* Hello */' > $source
+gcc -c -pipe -E -dM $source -o $output
+cat $output
+
+

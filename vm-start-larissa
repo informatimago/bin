@@ -1,0 +1,75 @@
+#!/bin/bash 
+if [ $(read -p 'Did you start the network? (y/n) ' r ; echo -n $r) != y ] ; then
+    exit 0
+fi
+
+base=/vm
+bridge_device=br0
+
+nice=0
+virt_user=larissa
+virt_mach=larissa
+host_mach=thalassa
+
+
+kernel=/usr/local/bin/linux-$virt_mach
+virt_core=192MB
+virt_root=${base}/${virt_mach}/root-suse.dd
+virt_swap=/dev/hdi5
+#virt_swap=${base}/${virt_mach}/swap.dd
+virt_data=${base}/${virt_mach}/data.dd
+virt_port_base=9900 # con0=base+0, ..., con7=base+8, ssl0=base+14, ssl1=base+15
+
+disks=( ${virt_root} ${virt_data} )
+swaps=( ${virt_swap} )
+
+echo "Disks: ${disks[@]}"
+echo "Swaps: ${swaps[@]}"
+read -p "Are you sure there is no virtual machine using these disks? " rep
+case "$rep" in
+y|Y|yes|YES) true ;;
+*) echo Aborted. ; exit 0 ;;
+esac
+for disk in ${disks[@]} ; do
+    echo ${disk}
+    fsck ${disk}
+done
+for swap in ${swaps[@]} ; do
+    echo   ${swap}
+    mkswap ${swap}
+done
+
+
+
+echo "Creating a new tap interface for ${virt_mach}..."
+chmod 666 /dev/net/tun
+tap_device="$(tunctl -b -u $virt_user)"
+echo "$tap_device" > "${base}/run/${virt_mach}-tap-device"
+ifconfig "$tap_device" 0.0.0.0 promisc up
+brctl addif ${bridge_device} ${tap_device}
+echo 1 > /proc/sys/net/ipv4/ip_forward
+echo 1 > /proc/sys/net/ipv4/conf/${tap_device}/proxy_arp
+
+
+echo "Booting ${virt_mach}..."
+echo "To connect to ${virt_mach} console:"
+echo "        ssh ${virt_mach}@${host_mach}"
+echo "        screen -r"
+
+sudo -u ${virt_user} \
+   -H bash -c "screen -e^^^^ -d -m nice --adjustment=${nice} bash -c '${kernel} \
+        umid=${virt_mach} \
+        mem=${virt_core} \
+        root=/dev/ubd/0 \
+        ubd0=${virt_root} \
+        ubd1=${virt_swap} \
+        ubd2=${virt_data} \
+        eth0=tuntap,${tap_device} \
+        con=none \
+        ssl=none \
+        con0=fd:0,fd:1 \
+        $@ ;\
+    echo \"Erase the tap interfaces of ${virt_mach}...\" ;\
+    brctl delif ${bridge_device} ${tap_device} || true ;\
+    tunctl -d ${tap_device} || true ;
+    rm \"${base}/run/${virt_mach}-tap-device\" ' "

@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# mount_points=(/mnt/cube1 /mnt/cube2 /mnt/cube3)
+# extract_points=(/mnt/cube2)
+
+mount_points=(/mnt/cube1)
+extract_points=(/mnt/cube1)
+
+
+case "$1" in
+mount)
+    for m in "${mount_points[@]}" ; do
+        mount "${m}" && echo "mounted ${m}"
+    done
+    echo ----------------------------------------
+    df  "${mount_points[@]}"
+    echo ----------------------------------------
+    ls -lh  "${mount_points[@]}"
+    echo ----------------------------------------
+    ;;
+umount)
+    for m in "${mount_points[@]}" ; do
+        umount "${m}" && echo "unmounted ${m}"
+    done
+    ;;
+extract)
+    TMPDIR="spool-$(date +%Y%m%dT%H%M%S)"
+    mkdir "${TMPDIR}"
+    cd "${TMPDIR}"
+    for e in "${extract_points[@]}" ; do 
+        cp "${e}"/* .
+    done
+    for f in *.md5sum ; do 
+        md5sum -c $f
+    done
+    for f in *.tar.bz2 ; do 
+        tar jxvf $f  
+        pushd ${f/.tar.bz2} ; md5sum -c MD5SUMS ; popd 
+    done
+    ;;
+# clean)
+#     ls -dlh /mnt/cube[23]/*
+#     read -p 'Are you sure? (y/n) ' ans
+#     case "$ans" in
+#     y|yes|Y|YES)  rm -rf /mnt/cube[23]/* ;;
+#     n|no|non|N|NO|NON)   echo "Aborted." ;;
+#     *) echo "Please, make up your mind!" ;;
+#     esac
+#     ;;
+*)
+    echo "$0 usage"
+    echo "    $0 mount"
+    echo "    $0 extract"
+    # echo "    $0 clean"
+    echo "    $0 umount"
+    exit 1
+    ;;
+esac

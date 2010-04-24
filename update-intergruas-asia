@@ -1,0 +1,111 @@
+#!/usr/local/bin/clisp -ansi -q   -Kfull
+;; -*- mode:lisp; coding:utf-8 -*-
+
+(in-package :common-lisp-user)
+
+(defun report-the-error (err string-stream)
+  (let ((log-path (format nil "/tmp/ansi-test.~D.errors"
+                          #+(and clisp linux) (LINUX:|getpid|)
+                          #-(and clisp linux) "nopid")))
+    (with-open-file (log log-path
+                        :direction :output
+                        :if-exists :supersede
+                        :if-does-not-exist :create)
+      (format log "~A GOT AN ERROR: ~A~2%"
+              (or *load-pathname* "ansi-test")
+              err)
+      (princ (GET-OUTPUT-STREAM-STRING string-stream) log))
+    (format *error-output*
+      "~A: ~A~%  See ~A~%"
+      (or *load-pathname* "ansi-test") err log-path)
+    (finish-output *error-output*)
+    (ext:quit 1)))
+
+
+(defmacro without-output (&body body)
+  `(prog1 (values)
+     (with-output-to-string (net)
+       (handler-case
+           (let ((*standard-output* net)
+                 (*error-output*    net)
+                 (*trace-output*    net))
+             ,@body)
+         (error (err) (report-the-error err net))))))
+
+(without-output                      
+  (load (make-pathname :name ".clisprc" :type "lisp"
+                       :defaults (user-homedir-pathname))))
+
+(without-output
+  (package:load-package "COM.INFORMATIMAGO.COMMON-LISP.UTILITY")
+  (shadow '(handling-errors ed))
+  (use-package          "COM.INFORMATIMAGO.COMMON-LISP.UTILITY"))
+
+
+(defvar *local-intergruas.com* #P"/srv/www/com.intergruas/htdocs/")
+
+(defvar *remote-host*     "intergruas.co.in")
+(defvar *remote-user*     "intergru")
+(defvar *remote-password* "nUnVNcgU")
+
+
+(defparameter *expect* nil)
+
+(defun open-expect ()
+  (setf *expect*
+        (ext:run-program "expect"
+                         :arguments '("-c" "interpreter")
+                         :input :stream
+                         :output :stream))
+  (sleep 1)
+  (eat))
+
+(defun close-expect () (close *expect*))
+
+(defun eat ()
+  (loop :while (listen *expect*) :do (write-char (read-char *expect*))))
+
+(defun send (ctrl-string &rest arguments)
+  (eat)
+  (prog1 (write-line (format nil "~?" ctrl-string arguments) *expect*)
+    (eat)))
+
+(progn
+  (open-expect)
+  (send "spawn sftp ~A@~A~%" *remote-user* *remote-host*) 
+  (send "expect \"password:\"")
+  (send "send \"~A\\r\"" *remote-password*)
+  (send "expect \"sftp>\"")
+  (send "send \"dir\\r\""))
+
+
+expect "> "
+send "amaint\r"
+expect "# "
+log_user 1
+send "[lrange $argv 1 $argc]\r"
+expect "# "
+log_user 0
+send "exit\r"
+expect "> "
+send "exit\r"
+puts "\n"
+log_user 1
+
+
+  (loop
+     :for line = (read-line in nil nil)
+     :until (COM.INFORMATIMAGO.COMMON-LISP.STRING:SUFFIXP "password: " line))
+  (princ *remote-password* out) (terpri out)
+  (defparameter *io*   io)
+  (defparameter *in*   in)
+  (defparameter *out* out))
+(multiple-value-bind (io)
+    
+
+(directory (merge-pathnames #P"**/*.*"  *local-intergruas.com* nil))
+
+(finish-output)
+
+
+;;;; ansi-test.lisp                   --                     --          ;;;;

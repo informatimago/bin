@@ -1,0 +1,37 @@
+#!/bin/csh -f
+
+	set ARCHIVER=(/local/bin/gtar cf -)
+	set ARCH_EXT=tar
+	set COMPRESSOR=/local/bin/gzip
+	set COMP_EXT=gz
+	set ENCODER=/usr/bin/uuencode
+	set ENCO_EXT=uu
+	set MAILER=(/usr/ucb/Mail -s)
+
+	set pname="$0"
+	set pname=$pname:t
+	set pname=$pname:r
+
+	if ( $#argv != 3) then
+		echo "${pname} usage:"
+		echo "	${pname} email_address split-size file"
+		exit 1
+	endif
+
+	set destinataire="$1"
+	set size="$2"
+	set file="$3"
+
+	split -$size $file /tmp/mailbig.$$.
+	set list=(`ls -1 /tmp/mailbig.$$.??`)
+	set card=`echo 000$#list|sed -e 's/.*\(...\)$/\1/'`
+	set i=0
+	foreach segment ( $list )
+		@ i++
+		set n=`echo 000$i|sed -e 's/.*\(...\)$/\1/'`
+		$MAILER "[$n/$card] ${file}" "$destinataire" < $segment
+	end
+	rm -f /tmp/mailbig.$$.??
+	exit 0
+#end
+

@@ -1,0 +1,7 @@
+#!/bin/sh
+{
+if test -r ${HOME}/.add-header; then cat ${HOME}/.add-header; fi
+cat -
+if test -r ${HOME}/.signature; then echo "--"; cat ${HOME}/.signature; 
+fi
+}| /usr/lib/sendmail "$@"
