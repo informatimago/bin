@@ -1,41 +1,41 @@
-#!/usr/local/bin/clisp -ansi -q   -Kfull
-;; -*- mode: lisp -*-
-;;******************************************************************************
-;;FILE:				resize
-;;LANGUAGE:			Common-Lisp
-;;SYSTEM:			Clisp
-;;USER-INTERFACE:	None
-;;DESCRIPTION
-;;	This script is a driver for the GIMP scheme script resize.scm.
-;;USAGE
-;;	resize [-h|--help] max-width max-height [-] pic-file...
-;;
-;;  # resize the pic-file in place!
-;;
-;;AUTHORS
-;;	<PJB> Pascal J. Bourguignon
-;;MODIFICATIONS
-;;    2003-09-17 <PJB> Created.
-;;BUGS
-;;LEGAL
-;;    LGPL
-;;    Copyright Pascal J. Bourguignon 2003 - 2003
-;;
-;;    This  library is  free software;  you can  redistribute  it and/or
-;;    modify  it under  the  terms  of the  GNU  Library General  Public
-;;    License  as  published by  the  Free  Software Foundation;  either
-;;    version 2 of the License, or (at your option) any later version.
-;;
-;;    This library  is distributed in the  hope that it  will be useful,
-;;    but  WITHOUT ANY WARRANTY;  without even  the implied  warranty of
-;;    MERCHANTABILITY or FITNESS FOR  A PARTICULAR PURPOSE.  See the GNU
-;;    Library General Public License for more details.
-;;
-;;    You should have received a  copy of the GNU Library General Public
-;;    License  along with this  library; see  the file  COPYING.LIB.  If
-;;    not,  write to  the Free  Software Foundation,  59 Temple  Place -
-;;    Suite 330, Boston, MA 02111-1307, USA.
-;;******************************************************************************
+#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1
+;;;; -*- mode:lisp; coding:iso-8859-1 -*-
+;;;;******************************************************************************
+;;;;FILE:				resize
+;;;;LANGUAGE:			Common-Lisp
+;;;;SYSTEM:			Clisp
+;;;;USER-INTERFACE:	None
+;;;;DESCRIPTION
+;;;;	This script is a driver for the GIMP scheme script resize.scm.
+;;;;USAGE
+;;;;	resize [-h|--help] max-width max-height [-] pic-file...
+;;;;
+;;;;  # resize the pic-file in place!
+;;;;
+;;;;AUTHORS
+;;;;	<PJB> Pascal J. Bourguignon
+;;;;MODIFICATIONS
+;;;;    2003-09-17 <PJB> Created.
+;;;;BUGS
+;;;;LEGAL
+;;;;    LGPL
+;;;;    Copyright Pascal J. Bourguignon 2003 - 2003
+;;;;
+;;;;    This  library is  free software;  you can  redistribute  it and/or
+;;;;    modify  it under  the  terms  of the  GNU  Library General  Public
+;;;;    License  as  published by  the  Free  Software Foundation;  either
+;;;;    version 2 of the License, or (at your option) any later version.
+;;;;
+;;;;    This library  is distributed in the  hope that it  will be useful,
+;;;;    but  WITHOUT ANY WARRANTY;  without even  the implied  warranty of
+;;;;    MERCHANTABILITY or FITNESS FOR  A PARTICULAR PURPOSE.  See the GNU
+;;;;    Library General Public License for more details.
+;;;;
+;;;;    You should have received a  copy of the GNU Library General Public
+;;;;    License  along with this  library; see  the file  COPYING.LIB.  If
+;;;;    not,  write to  the Free  Software Foundation,  59 Temple  Place -
+;;;;    Suite 330, Boston, MA 02111-1307, USA.
+;;;;******************************************************************************
 
 ;; Clean the packages imported into COMMON-LISP-USER:
 (MAPC (LAMBDA (USED) (UNUSE-PACKAGE USED "COMMON-LISP-USER"))

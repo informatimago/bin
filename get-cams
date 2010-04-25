@@ -1,42 +1,42 @@
-#!/usr/local/bin/clisp -ansi -q   -Kfull
-;; -*- mode: lisp -*-
-;;*****************************************************************************
-;;FILE:              get-cams
-;;LANGUAGE:          Common-Lisp
-;;SYSTEM:            clisp/unix
-;;USER-INTERFACE:    X window
-;;DESCRIPTION
-;;    This script periodically gather webcam pictures on the web and dispatch
-;;    onto X displays.
-;;USAGE
-;;    get-cams --help
-;;    Edit the cameras and displays tables in this script to match your needs.
-;;AUTHORS
-;;    <PJB> Pascal J. Bourguignon
-;;MODIFICATIONS
-;;    2003-03-02 <PJB> Added auto-delay feature.
-;;    2003-02-22 <PJB> Converted to Common-Lisp.
-;;    2002-??-?? <PJB> Creation.
-;;BUGS
-;;    You tell me.
-;;LEGAL
-;;    Copyright Pascal J. Bourguignon 2002 - 2003
-;;
-;;    This script is free software; you can redistribute it and/or
-;;    modify it under the terms of the GNU  General Public
-;;    License as published by the Free Software Foundation; either
-;;    version 2 of the License, or (at your option) any later version.
-;;
-;;    This script is distributed in the hope that it will be useful,
-;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;;    General Public License for more details.
-;;
-;;    You should have received a copy of the GNU General Public
-;;    License along with this library; see the file COPYING.LIB.
-;;    If not, write to the Free Software Foundation,
-;;    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-;;*****************************************************************************
+#!/usr/bin/clisp -ansi -q -Kfull -E utf-8
+;;;; -*- mode:lisp; coding:utf-8 -*-
+;;;;*****************************************************************************
+;;;;FILE:              get-cams
+;;;;LANGUAGE:          Common-Lisp
+;;;;SYSTEM:            clisp/unix
+;;;;USER-INTERFACE:    X window
+;;;;DESCRIPTION
+;;;;    This script periodically gather webcam pictures on the web and dispatch
+;;;;    onto X displays.
+;;;;USAGE
+;;;;    get-cams --help
+;;;;    Edit the cameras and displays tables in this script to match your needs.
+;;;;AUTHORS
+;;;;    <PJB> Pascal J. Bourguignon
+;;;;MODIFICATIONS
+;;;;    2003-03-02 <PJB> Added auto-delay feature.
+;;;;    2003-02-22 <PJB> Converted to Common-Lisp.
+;;;;    2002-??-?? <PJB> Creation.
+;;;;BUGS
+;;;;    You tell me.
+;;;;LEGAL
+;;;;    Copyright Pascal J. Bourguignon 2002 - 2003
+;;;;
+;;;;    This script is free software; you can redistribute it and/or
+;;;;    modify it under the terms of the GNU  General Public
+;;;;    License as published by the Free Software Foundation; either
+;;;;    version 2 of the License, or (at your option) any later version.
+;;;;
+;;;;    This script is distributed in the hope that it will be useful,
+;;;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;;    General Public License for more details.
+;;;;
+;;;;    You should have received a copy of the GNU General Public
+;;;;    License along with this library; see the file COPYING.LIB.
+;;;;    If not, write to the Free Software Foundation,
+;;;;    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+;;;;*****************************************************************************
 
 ;; Clean the packages imported into COMMON-LISP-USER:
 (MAPC (LAMBDA (USED) (UNUSE-PACKAGE USED "COMMON-LISP-USER"))
@@ -296,7 +296,7 @@ Key values are compared by `string='."
     (MEXICO-PONIENTE-1
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg1.jpg" 
-      :TITLE "PerifÈrico Norte, Paseo de las Palmas y Presidente Masarik"
+      :TITLE "Perif√©rico Norte, Paseo de las Palmas y Presidente Masarik"
       :LOCATION "Col. Chapultepec Morales(Zona Poniente)" )
     (MEXICO-SUR-1
       -7  60  704  576 
@@ -306,13 +306,13 @@ Key values are compared by `string='."
     (MEXICO-SUR-2
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg7.jpg" 
-      :TITLE "PerifÈrico Sur, antes de Paseo de la Magdalena"
-      :LOCATION "Col. JardÌnes Pedregal(Zona Sur)" )
+      :TITLE "Perif√©rico Sur, antes de Paseo de la Magdalena"
+      :LOCATION "Col. Jard√≠nes Pedregal(Zona Sur)" )
     (MEXICO-ORIENTE-1   
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg8.jpg" 
-      :TITLE "Viaducto Miguel Alem·n, entre Eje 3 Oriente y AÒil"
-      :LOCATION "Col. Granjas MÈxico(Zona Oriente)" )
+      :TITLE "Viaducto Miguel Alem√°n, entre Eje 3 Oriente y A√±il"
+      :LOCATION "Col. Granjas M√©xico(Zona Oriente)" )
     (MEXICO-SUR-3   
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg9.jpg" 
@@ -321,8 +321,8 @@ Key values are compared by `string='."
     (MEXICO-SUR-4  
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg10.jpg" 
-      :TITLE "Av. RevoluciÛn y Dr. Zamora y Duque (antes de Viaducto)"
-      :LOCATION "Col. EscandÛn(Zona Sur)" )
+      :TITLE "Av. Revoluci√≥n y Dr. Zamora y Duque (antes de Viaducto)"
+      :LOCATION "Col. Escand√≥n(Zona Sur)" )
     (GUADALAJARA-1  
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg11.jpg" 
@@ -331,13 +331,13 @@ Key values are compared by `string='."
     (GUADALAJARA-2
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg12.jpg" 
-      :TITLE "Federalismo Norte y CircunvalaciÛn"
+      :TITLE "Federalismo Norte y Circunvalaci√≥n"
       :LOCATION "Federalismo(Guadalajara, Jalisco)" )
     (MAZATLAN        
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg13.jpg" 
       :TITLE "21 de marzo 14 y 16 Pte."
-      :LOCATION "(Mazatl·n, Sinaloa)" )
+      :LOCATION "(Mazatl√°n, Sinaloa)" )
     (LAPAZ
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg14.jpg" 
@@ -346,17 +346,17 @@ Key values are compared by `string='."
     (MONTERREY-1   
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg15.jpg" 
-      :TITLE "Av. ConstituciÛn, Centro"
-      :LOCATION "(Monterrey, Nuevo LeÛn)" )
+      :TITLE "Av. Constituci√≥n, Centro"
+      :LOCATION "(Monterrey, Nuevo Le√≥n)" )
     (MONTERREY-2
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg16.jpg" 
       :TITLE "Av. Gonzalitos y Nevado de Toluca Col. Urdiales"
-      :LOCATION "Col. Urdiales(Monterrey, Nuevo LeÛn)" )
+      :LOCATION "Col. Urdiales(Monterrey, Nuevo Le√≥n)" )
     (MEXICO-PONIENTE-2    
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg17.jpg" 
-      :TITLE "Carretera MÈxico-Toluca km. 14.5"
+      :TITLE "Carretera M√©xico-Toluca km. 14.5"
       :LOCATION "Col. Lomas de Bezares(Zona Poniente)" )
     (MEXICO-SUR-5  
       -7  60  704  576 
@@ -376,42 +376,42 @@ Key values are compared by `string='."
     (ACAPULCO-1           
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg22.jpg" 
-      :TITLE "Av. farallÛn del Obispo #2"
+      :TITLE "Av. farall√≥n del Obispo #2"
       :LOCATION "Frente a la Costera(Acapulco, Guerrero)" )
     (ACAPULCO-2           
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg23.jpg" 
-      :TITLE "Costera Miguel Alem·n y Av. del Mar"
+      :TITLE "Costera Miguel Alem√°n y Av. del Mar"
       :LOCATION "Fracc. Club Deportivo(Acapulco, Guerrero)" )
     (CANCUN-1             
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg24.jpg" 
       :TITLE "Boulevard Kukulkan Km.10 Zona Hotelera, Frente al Centro de Convenciones"
-      :LOCATION "(Canc˙n, Quintana Roo)" )
+      :LOCATION "(Canc√∫n, Quintana Roo)" )
     (CANCUN-2
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg25.jpg" 
       :TITLE "Boulevard Kukulkan Km.10 Zona Hotelera, Frente al Centro de Convenciones"
-      :LOCATION "(Canc˙n, Quintana Roo)" )
+      :LOCATION "(Canc√∫n, Quintana Roo)" )
     (NUEVOLAREDO          
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg26.jpg" 
-      :TITLE "Avenida Gonz·lez y Benito Ju·rez Centro (Puente Internacional 1)"
+      :TITLE "Avenida Gonz√°lez y Benito Ju√°rez Centro (Puente Internacional 1)"
       :LOCATION "(Nuevo Laredo, Tamaulipas)" )
     (MEXICO-SUR-6         
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg27.jpg" 
-      :TITLE "RÌo Churubusco pasando Av. Universidad"
+      :TITLE "R√≠o Churubusco pasando Av. Universidad"
       :LOCATION "Col. del Valle(Zona Sur)" )
     (REYNOSA              
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg28.jpg" 
       :TITLE "Boulevard Hidalgo"
-      :LOCATION "Col. SimÛn RodrÌguez(Reynosa, Tamaulipas)" )
+      :LOCATION "Col. Sim√≥n Rodr√≠guez(Reynosa, Tamaulipas)" )
     (VERACRUZ             
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg29.jpg" 
-      :TITLE "Zamora y RayÛn"
+      :TITLE "Zamora y Ray√≥n"
       :LOCATION "Centro(Veracruz, Veracruz)" )
     (CHIHUAHUA-1          
       -7  60  704  576 
@@ -421,13 +421,13 @@ Key values are compared by `string='."
     (MEXICO-SUR-7         
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg32.jpg" 
-      :TITLE "PerifÈrico Sur 3585"
+      :TITLE "Perif√©rico Sur 3585"
       :LOCATION "(Zona Sur)" )
     (CHIHUAHUA-2          
       -7  60  704  576 
       "http://www.vialidad.telmex.net/fotos/fg33.jpg" 
       :TITLE "El Paso Texas"
-      :LOCATION "(Cd. Ju·rez, Chihuahua)" )
+      :LOCATION "(Cd. Ju√°rez, Chihuahua)" )
     ;; returns HTML instead of JPG.
 ;;     (VALLARTA             
 ;;      -8  60  352  288  

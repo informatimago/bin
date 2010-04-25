@@ -1,5 +1,5 @@
-#!/usr/local/bin/clisp -ansi -q   -Kfull  -E iso-8859-1
-;;;; -*- mode: lisp;coding:utf-8 -*-
+#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1
+;;;; -*- mode:lisp; coding:iso-8859-1 -*-
 ;;;;**************************************************************************
 ;;;;FILE:               radio-courtoisie-schedule
 ;;;;LANGUAGE:           Common-Lisp
@@ -46,7 +46,7 @@
 
 
 (defparameter *schedule*
-  '(((:name "Radio Courtoisie - La Radio Libre du Pays RÃ©el et de la Francophonie")
+  '(((:name "Radio Courtoisie - La Radio Libre du Pays Réel et de la Francophonie")
      (:web-site-url "http://www.radiocourtoisie.net/")
      (:stream-url "mms://viptvr.yacast.net/tvr_radiocourtoisie")
      (:record-directory "/tmp/")
@@ -69,7 +69,7 @@
                           14.00.00
                           (next day 06.00.00)
                           (next saturday 18.00.00)))
-     ("Livre du jour - Anne BrassiÃ©"
+     ("Livre du jour - Anne Brassié"
       01.00.00 (thirsday  10.45.00
                           14.00.00
                           (next day 06.00.00)
@@ -87,7 +87,7 @@
       01.30.00 (tuesday   12.00.00
                           16.00.00
                           (next day 00.00.00)))
-     ("Libre journal des MÃ©dia"
+     ("Libre journal des Média"
       01.30.00 (wednesday 12.00.00
                           16.00.00
                           (next day 00.00.00)))
@@ -99,7 +99,7 @@
       01.30.00 (friday    12.00.00
                           16.00.00
                           (next day 00.00.00)))
-     ("Libre journal des LycÃ©ens"
+     ("Libre journal des Lycéens"
       01.30.00 (saturday  12.00.00
                           16.00.00
                           (next day 00.00.00)))
@@ -115,11 +115,11 @@
       03.00.00 (wednesday 18.00.00
                           (next day 02.00.00)
                           (next day 07.30.00)))
-     ("Libre journal de FranÃ§ois Giraud"
+     ("Libre journal de François Giraud"
       03.00.00 (thirsday  18.00.00
                           (next day 02.00.00)
                           (next day 07.30.00)))
-     ("Libre journal de SÃ©villia"
+     ("Libre journal de Sévillia"
       03.00.00 (friday    18.00.00
                           (next day 02.00.00)
                           (next day 07.30.00)))
@@ -128,7 +128,7 @@
                           (next friday 21.30.00)))
      ("Archives de Radio Courtoisie"
       03.00.00 (sunday  02.00.00))
-     ("Chant GrÃ©gorien"
+     ("Chant Grégorien"
       01.00.00 (sunday 06.00.00
                        10.00.00
                        (next monday 05.00.00)))
@@ -140,7 +140,7 @@
                        (next monday 09.00.00)))
      ("Images bibliques"
       01.00.00 (sunday 11.00.00))
-     ("LumiÃ¨re 101 - Dreyfus"
+     ("Lumière 101 - Dreyfus"
       01.30.00 (sunday 12.00.00
                        16.00.00
                        (next day 00.00.00)))
@@ -166,7 +166,7 @@
                           14.00.00
                           (next day 06.00.00)
                           (next saturday 18.00.00)))
-     ("Livre du jour - BrassiÃ©"
+     ("Livre du jour - Brassié"
       01.00.00 (thirsday  10.45.00
                           14.00.00
                           (next day 06.00.00)
@@ -196,7 +196,7 @@
       01.30.00 (friday    12.00.00
                           16.00.00
                           (next day 00.00.00)))
-     ("Libre journal des LycÃ©ens"
+     ("Libre journal des Lycéens"
       01.30.00 (saturday  12.00.00
                           16.00.00
                           (next day 00.00.00)))   
@@ -204,7 +204,7 @@
       03.00.00 (monday    18.00.00
                           (next day 02.00.00)
                           (next day 07.30.00)))
-     ("Libre journal - Le MÃ©nÃ©"
+     ("Libre journal - Le Méné"
       03.00.00 (tuesday   18.00.00
                           (next day 02.00.00)
                           (next day 07.30.00)))
@@ -225,7 +225,7 @@
                           (next friday 21.30.00)))
      ("Archives de Radio Courtoisie"
       03.00.00 (sunday  02.00.00))
-     ("Chant GrÃ©gorien"
+     ("Chant Grégorien"
       01.00.00 (sunday 06.00.00
                        10.00.00
                        (next monday 05.00.00)))
@@ -237,7 +237,7 @@
                        (next monday 09.00.00)))
      ("Images bibliques"
       01.00.00 (sunday 11.00.00))
-     ("LumiÃ¨re 101 - Sureau"
+     ("Lumière 101 - Sureau"
       01.30.00 (sunday 12.00.00
                        16.00.00
                        (next day 00.00.00)))
@@ -263,7 +263,7 @@
                           14.00.00
                           (next day 06.00.00)
                           (next saturday 18.00.00)))
-     ("Livre du jour - BrassiÃ©"
+     ("Livre du jour - Brassié"
       01.00.00 (thirsday  10.45.00
                           14.00.00
                           (next day 06.00.00)
@@ -281,19 +281,19 @@
       01.30.00 (tuesday   12.00.00
                           16.00.00
                           (next day 00.00.00)))
-     ("Libre journal des Ã‰conomistes"
+     ("Libre journal des Économistes"
       01.30.00 (wednesday 12.00.00
                           16.00.00
                           (next day 00.00.00)))
-     ("Libre journal des IdÃ©es Politiques"
+     ("Libre journal des Idées Politiques"
       01.30.00 (thirsday  12.00.00
                           16.00.00
                           (next day 00.00.00)))
-     ("Libre journal des Ã‰diteurs"
+     ("Libre journal des Éditeurs"
       01.30.00 (friday    12.00.00
                           16.00.00
                           (next day 00.00.00)))
-     ("Libre journal des LycÃ©ens"
+     ("Libre journal des Lycéens"
       01.30.00 (saturday  12.00.00
                           16.00.00
                           (next day 00.00.00)))   
@@ -322,7 +322,7 @@
                           (next friday 21.30.00)))
      ("Archives de Radio Courtoisie"
       03.00.00 (sunday  02.00.00))
-     ("Chant GrÃ©gorien"
+     ("Chant Grégorien"
       01.00.00 (sunday 06.00.00
                        10.00.00
                        (next monday 05.00.00)))
@@ -334,7 +334,7 @@
                        (next monday 09.00.00)))
      ("Images bibliques"
       01.00.00 (sunday 11.00.00))
-     ("LumiÃ¨re 101 - Daniel Hamiche"
+     ("Lumière 101 - Daniel Hamiche"
       01.30.00 (sunday 12.00.00
                        16.00.00
                        (next day 00.00.00)))
@@ -360,7 +360,7 @@
                           14.00.00
                           (next day 06.00.00)
                           (next saturday 18.00.00)))
-     ("Livre du jour - BrassiÃ©"
+     ("Livre du jour - Brassié"
       01.00.00 (thirsday  10.45.00
                           14.00.00
                           (next day 06.00.00)
@@ -382,7 +382,7 @@
       01.30.00 (wednesday 12.00.00
                           16.00.00
                           (next day 00.00.00)))
-     ("Libre journal du CinÃ©ma"
+     ("Libre journal du Cinéma"
       01.30.00 (thirsday  12.00.00
                           16.00.00
                           (next day 00.00.00)))
@@ -390,7 +390,7 @@
       01.30.00 (friday    12.00.00
                           16.00.00
                           (next day 00.00.00)))
-     ("Libre journal des LycÃ©ens"
+     ("Libre journal des Lycéens"
       01.30.00 (saturday  12.00.00
                           16.00.00
                           (next day 00.00.00)))   
@@ -419,7 +419,7 @@
                           (next friday 21.30.00)))
      ("Archives de Radio Courtoisie"
       03.00.00 (sunday  02.00.00))
-     ("Chant GrÃ©gorien"
+     ("Chant Grégorien"
       01.00.00 (sunday 06.00.00
                        10.00.00
                        (next monday 05.00.00)))
@@ -431,7 +431,7 @@
                        (next monday 09.00.00)))
      ("Images bibliques"
       01.00.00 (sunday 11.00.00))
-     ("LumiÃ¨re 101 - DickÃ¨s"
+     ("Lumière 101 - Dickès"
       01.30.00 (sunday 12.00.00
                        16.00.00
                        (next day 00.00.00)))

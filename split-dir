@@ -1,44 +1,44 @@
-#!/usr/local/bin/clisp -ansi -q   -Kfull
-;; -*- mode: lisp -*-
-;;****************************************************************************
-;;FILE:               split-dir
-;;LANGUAGE:           Common-Lisp
-;;SYSTEM:             Common-Lisp
-;;USER-INTERFACE:     NONE
-;;DESCRIPTION
-;;    
-;;    Make hard-links from a source directory to a sequence of destination
-;;    directories such as the disk usage of each destination directory is
-;;    less than a maximum size.
-;;    
-;;AUTHORS
-;;    <PJB> Pascal Bourguignon <pjb@informatimago.com>
-;;MODIFICATIONS
-;;    2005-09-00 <PJB> Merged  spread-files with split-dir.
-;;    2004-11-15 <PJB> Created split-dir
-;;    2003-10-22 <PJB> Created spread-files
-;;BUGS
-;;    Lack an option to use symbolic links, or to copy instead of hard links.
-;;LEGAL
-;;    GPL
-;;    
-;;    Copyright Pascal Bourguignon 2004 - 2004
-;;    
-;;    This program is free software; you can redistribute it and/or
-;;    modify it under the terms of the GNU General Public License
-;;    as published by the Free Software Foundation; either version
-;;    2 of the License, or (at your option) any later version.
-;;    
-;;    This program is distributed in the hope that it will be
-;;    useful, but WITHOUT ANY WARRANTY; without even the implied
-;;    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-;;    PURPOSE.  See the GNU General Public License for more details.
-;;    
-;;    You should have received a copy of the GNU General Public
-;;    License along with this program; if not, write to the Free
-;;    Software Foundation, Inc., 59 Temple Place, Suite 330,
-;;    Boston, MA 02111-1307 USA
-;;****************************************************************************
+#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1
+;;;; -*- mode:lisp; coding:iso-8859-1 -*-
+;;;;****************************************************************************
+;;;;FILE:               split-dir
+;;;;LANGUAGE:           Common-Lisp
+;;;;SYSTEM:             Common-Lisp
+;;;;USER-INTERFACE:     NONE
+;;;;DESCRIPTION
+;;;;    
+;;;;    Make hard-links from a source directory to a sequence of destination
+;;;;    directories such as the disk usage of each destination directory is
+;;;;    less than a maximum size.
+;;;;    
+;;;;AUTHORS
+;;;;    <PJB> Pascal Bourguignon <pjb@informatimago.com>
+;;;;MODIFICATIONS
+;;;;    2005-09-00 <PJB> Merged  spread-files with split-dir.
+;;;;    2004-11-15 <PJB> Created split-dir
+;;;;    2003-10-22 <PJB> Created spread-files
+;;;;BUGS
+;;;;    Lack an option to use symbolic links, or to copy instead of hard links.
+;;;;LEGAL
+;;;;    GPL
+;;;;    
+;;;;    Copyright Pascal Bourguignon 2004 - 2004
+;;;;    
+;;;;    This program is free software; you can redistribute it and/or
+;;;;    modify it under the terms of the GNU General Public License
+;;;;    as published by the Free Software Foundation; either version
+;;;;    2 of the License, or (at your option) any later version.
+;;;;    
+;;;;    This program is distributed in the hope that it will be
+;;;;    useful, but WITHOUT ANY WARRANTY; without even the implied
+;;;;    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+;;;;    PURPOSE.  See the GNU General Public License for more details.
+;;;;    
+;;;;    You should have received a copy of the GNU General Public
+;;;;    License along with this program; if not, write to the Free
+;;;;    Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;;    Boston, MA 02111-1307 USA
+;;;;****************************************************************************
 
 ;; Clean the packages imported into COMMON-LISP-USER:
 (MAPC (LAMBDA (USED) (UNUSE-PACKAGE USED "COMMON-LISP-USER"))

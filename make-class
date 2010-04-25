@@ -13,7 +13,7 @@ pname="`basename "$0"`"
 ### These definitions should be obtained from the environment.
 author_short="<PJB>"
 author_name="Pascal J. Bourguignon"
-author_email="<pjb@informatimago.com>"
+author_email="<pjb@imaginet.fr>"
 author_long="$author_short  $author_name  $author_email"
 
 system=None
@@ -274,5 +274,3 @@ exit 0
 #END
 
 
-
-#### make-class                       --                     --          ####

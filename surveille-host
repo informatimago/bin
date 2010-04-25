@@ -1,41 +1,41 @@
-#!/usr/local/bin/clisp -ansi -q   -Kfull
-;; -*- mode: lisp -*-
-;;*****************************************************************************
-;;FILE:               surveille-host
-;;LANGUAGE:           Common-Lisp
-;;SYSTEM:             CLISP
-;;USER-INTERFACE:     Common-Lisp
-;;DESCRIPTION
-;;
-;;    This scripts pings regularly an IP address (or list of IP addresses)
-;;    and signals (and/or sends an email) when a change occurs (remote 
-;;    going on-line or off-line).
-;;
-;;AUTHORS
-;;    <PJB> Pascal J. Bourguignon 
-;;MODIFICATIONS
-;;    2003-08-14 <PJB> Creation.
-;;BUGS
-;;LEGAL
-;;    LGPL
-;;
-;;    Copyright Pascal J. Bourguignon 1992 - 2003
-;;
-;;    This script is free software; you can redistribute it and/or
-;;    modify it under the terms of the GNU Lesser General Public
-;;    License as published by the Free Software Foundation; either
-;;    version 2 of the License, or (at your option) any later version.
-;;
-;;    This library is distributed in the hope that it will be useful,
-;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;;    Lesser General Public License for more details.
-;;
-;;    You should have received a copy of the GNU Lesser General Public
-;;    License along with this library; if not, write to the Free Software
-;;    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
-;;
-;;*****************************************************************************
+#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1
+;;;; -*- mode:lisp; coding:iso-8859-1 -*-
+;;;;*****************************************************************************
+;;;;FILE:               surveille-host
+;;;;LANGUAGE:           Common-Lisp
+;;;;SYSTEM:             CLISP
+;;;;USER-INTERFACE:     Common-Lisp
+;;;;DESCRIPTION
+;;;;
+;;;;    This scripts pings regularly an IP address (or list of IP addresses)
+;;;;    and signals (and/or sends an email) when a change occurs (remote 
+;;;;    going on-line or off-line).
+;;;;
+;;;;AUTHORS
+;;;;    <PJB> Pascal J. Bourguignon 
+;;;;MODIFICATIONS
+;;;;    2003-08-14 <PJB> Creation.
+;;;;BUGS
+;;;;LEGAL
+;;;;    LGPL
+;;;;
+;;;;    Copyright Pascal J. Bourguignon 1992 - 2003
+;;;;
+;;;;    This script is free software; you can redistribute it and/or
+;;;;    modify it under the terms of the GNU Lesser General Public
+;;;;    License as published by the Free Software Foundation; either
+;;;;    version 2 of the License, or (at your option) any later version.
+;;;;
+;;;;    This library is distributed in the hope that it will be useful,
+;;;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;;    Lesser General Public License for more details.
+;;;;
+;;;;    You should have received a copy of the GNU Lesser General Public
+;;;;    License along with this library; if not, write to the Free Software
+;;;;    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+;;;;
+;;;;*****************************************************************************
 
 (SETQ *LOAD-VERBOSE*    NIL)
 (LOAD "~/.common.lisp")

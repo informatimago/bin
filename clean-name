@@ -1,5 +1,5 @@
-#!/usr/local/bin/clisp -ansi -q -norc -Kfull
-;; -*- mode: common-lisp -*-
+#!/usr/bin/clisp -ansi -q -Kfull -E utf-8
+;;;; -*- mode:lisp; coding:utf-8 -*-
 
 ;; Replaces any sequences of non alphanumeric or dot character in the
 ;; arguments by a single dash.

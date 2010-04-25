@@ -1,5 +1,6 @@
 #!/bin/bash
 OPTIONS="-y --width=200"
+OPTIONS=""
 left="$1"
 and="$2"
 right="$3"

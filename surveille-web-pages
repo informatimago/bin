@@ -1,54 +1,55 @@
-#!/usr/local/bin/clisp -ansi -q   -Kfull  -E ISO-8859-1
-;;****************************************************************************
-;;FILE:               surveille-web-page
-;;LANGUAGE:           Common-Lisp
-;;SYSTEM:             Common-Lisp
-;;USER-INTERFACE:     NONE
-;;DESCRIPTION
-;;    
-;;    Send email notifications when the checksum on web pages change.
-;;
-;;    Put a line such as:
-;;    * * */1 * * /home/pjb/bin/surveille-web-pages
-;;    in your crontab.
-;;
-;;    ~/surveille-web.data contains something like:
-;;
-;;    (("pjb@informatimago.com" "Pascal Bourguignon"
-;;      (("http://franz.com/careers/jobs/outside/" "Lisp Jobs"
-;;        "8b036c81f55d61c6f3e22c1200229111  -")
-;;       ("http://www.informatimago.com/develop/lisp" "Lisp Packages"
-;;        "00000000000000000000000000000000  -")))
-;;     ("ordimagic@yahoo.com" "Lacsap Bourguignon"
-;;      (("http://www.listentome.net/movies8.php" "Listen to Me"
-;;        "b830c6185f561dcf6e32c12022290111  -")))
-;;
-;;AUTHORS
-;;    <PJB> Pascal Bourguignon <pjb@informatimago.com>
-;;MODIFICATIONS
-;;    2005-08-17 <PJB> Corrected a bug.
-;;    2005-01-20 <PJB> Created.
-;;BUGS
-;;LEGAL
-;;    GPL
-;;    
-;;    Copyright Pascal Bourguignon 2005 - 2005
-;;    
-;;    This program is free software; you can redistribute it and/or
-;;    modify it under the terms of the GNU General Public License
-;;    as published by the Free Software Foundation; either version
-;;    2 of the License, or (at your option) any later version.
-;;    
-;;    This program is distributed in the hope that it will be
-;;    useful, but WITHOUT ANY WARRANTY; without even the implied
-;;    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-;;    PURPOSE.  See the GNU General Public License for more details.
-;;    
-;;    You should have received a copy of the GNU General Public
-;;    License along with this program; if not, write to the Free
-;;    Software Foundation, Inc., 59 Temple Place, Suite 330,
-;;    Boston, MA 02111-1307 USA
-;;****************************************************************************
+#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1
+;;;; -*- mode:lisp; coding:iso-8859-1 -*-
+;;;;****************************************************************************
+;;;;FILE:               surveille-web-page
+;;;;LANGUAGE:           Common-Lisp
+;;;;SYSTEM:             Common-Lisp
+;;;;USER-INTERFACE:     NONE
+;;;;DESCRIPTION
+;;;;    
+;;;;    Send email notifications when the checksum on web pages change.
+;;;;
+;;;;    Put a line such as:
+;;;;    * * */1 * * /home/pjb/bin/surveille-web-pages
+;;;;    in your crontab.
+;;;;
+;;;;    ~/surveille-web.data contains something like:
+;;;;
+;;;;    (("pjb@informatimago.com" "Pascal Bourguignon"
+;;;;      (("http://franz.com/careers/jobs/outside/" "Lisp Jobs"
+;;;;        "8b036c81f55d61c6f3e22c1200229111  -")
+;;;;       ("http://www.informatimago.com/develop/lisp" "Lisp Packages"
+;;;;        "00000000000000000000000000000000  -")))
+;;;;     ("ordimagic@yahoo.com" "Lacsap Bourguignon"
+;;;;      (("http://www.listentome.net/movies8.php" "Listen to Me"
+;;;;        "b830c6185f561dcf6e32c12022290111  -")))
+;;;;
+;;;;AUTHORS
+;;;;    <PJB> Pascal Bourguignon <pjb@informatimago.com>
+;;;;MODIFICATIONS
+;;;;    2005-08-17 <PJB> Corrected a bug.
+;;;;    2005-01-20 <PJB> Created.
+;;;;BUGS
+;;;;LEGAL
+;;;;    GPL
+;;;;    
+;;;;    Copyright Pascal Bourguignon 2005 - 2005
+;;;;    
+;;;;    This program is free software; you can redistribute it and/or
+;;;;    modify it under the terms of the GNU General Public License
+;;;;    as published by the Free Software Foundation; either version
+;;;;    2 of the License, or (at your option) any later version.
+;;;;    
+;;;;    This program is distributed in the hope that it will be
+;;;;    useful, but WITHOUT ANY WARRANTY; without even the implied
+;;;;    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+;;;;    PURPOSE.  See the GNU General Public License for more details.
+;;;;    
+;;;;    You should have received a copy of the GNU General Public
+;;;;    License along with this program; if not, write to the Free
+;;;;    Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;;    Boston, MA 02111-1307 USA
+;;;;****************************************************************************
 
 ;; Clean the packages imported into COMMON-LISP-USER:
 (MAPC (LAMBDA (USED) (UNUSE-PACKAGE USED "COMMON-LISP-USER"))

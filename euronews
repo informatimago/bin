@@ -1,38 +1,38 @@
-#!/usr/local/bin/clisp -ansi -q   -Kfull
-;; -*- mode: lisp -*-
-;;******************************************************************************
-;;FILE:              eurnews
-;;LANGUAGE:          Common-Lisp
-;;SYSTEM:            UNIX
-;;USER-INTERFACE:    UNIX
-;;DESCRIPTION
-;;    Note: we compile on load only to check syntax errors faster.
-;;USAGE
-;;    euronews --help
-;;AUTHORS
-;;    <PJB> Pascal J. Bourguignon
-;;MODIFICATIONS
-;;    2004-03-24 <PJB> Added user selectable language.
-;;    2002-09-30 <PJB> Created.
-;;BUGS
-;;LEGAL
-;;    Copyright Pascal J. Bourguignon 2002 - 2004
-;;
-;;    This script is free software; you can redistribute it and/or
-;;    modify it under the terms of the GNU  General Public
-;;    License as published by the Free Software Foundation; either
-;;    version 2 of the License, or (at your option) any later version.
-;;
-;;    This script is distributed in the hope that it will be useful,
-;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;;    General Public License for more details.
-;;
-;;    You should have received a copy of the GNU General Public
-;;    License along with this library; see the file COPYING.LIB.
-;;    If not, write to the Free Software Foundation,
-;;    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-;;******************************************************************************
+#!/usr/bin/clisp -ansi -q -Kfull -E utf-8
+;;;; -*- mode:lisp; coding:utf-8 -*-
+;;;;****************************************************************************
+;;;;FILE:              eurnews
+;;;;LANGUAGE:          Common-Lisp
+;;;;SYSTEM:            UNIX
+;;;;USER-INTERFACE:    UNIX
+;;;;DESCRIPTION
+;;;;    Note: we compile on load only to check syntax errors faster.
+;;;;USAGE
+;;;;    euronews --help
+;;;;AUTHORS
+;;;;    <PJB> Pascal J. Bourguignon
+;;;;MODIFICATIONS
+;;;;    2004-03-24 <PJB> Added user selectable language.
+;;;;    2002-09-30 <PJB> Created.
+;;;;BUGS
+;;;;LEGAL
+;;;;    Copyright Pascal J. Bourguignon 2002 - 2004
+;;;;
+;;;;    This script is free software; you can redistribute it and/or
+;;;;    modify it under the terms of the GNU  General Public
+;;;;    License as published by the Free Software Foundation; either
+;;;;    version 2 of the License, or (at your option) any later version.
+;;;;
+;;;;    This script is distributed in the hope that it will be useful,
+;;;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;;    General Public License for more details.
+;;;;
+;;;;    You should have received a copy of the GNU General Public
+;;;;    License along with this library; see the file COPYING.LIB.
+;;;;    If not, write to the Free Software Foundation,
+;;;;    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+;;;;****************************************************************************
 
 ;; Clean the packages imported into COMMON-LISP-USER:
 (MAPC (LAMBDA (USED) (UNUSE-PACKAGE USED "COMMON-LISP-USER"))

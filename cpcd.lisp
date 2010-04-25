@@ -1,5 +1,5 @@
-#!/usr/local/bin/clisp -norc -ansi -q -Kfull -E iso-8859-1 -on-error debug
-;;;; -*- mode:lisp;coding:iso-8859-1 -*-
+#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1
+;;;; -*- mode:lisp; coding:iso-8859-1 -*-
 
 (in-package "COMMON-LISP-USER")
 (load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common

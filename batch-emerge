@@ -1,4 +1,6 @@
-#!/usr/bin/clisp -q -ansi
+#!/usr/bin/clisp -ansi -q -Kfull -E utf-8
+;; -*- mode:lisp; coding:utf-8 -*-
+
 (defparameter *rt* (copy-readatable nil))
 (setf (readtable-case *rt*)  :preserve)
 (with-open-file (f "/home/pjb/portage-packages.txt")

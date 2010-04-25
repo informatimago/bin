@@ -1,5 +1,5 @@
-#!/usr/bin/env clisp -q -ansi
-;; -*- mode: common-lisp -*-
+#!/usr/bin/clisp -ansi -q -Kfull -E utf-8
+;; -*- mode: common-lisp; coding:utf-8 -*-
 
 (defun split (separator string)
   (delete ""

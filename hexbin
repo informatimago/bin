@@ -1,4 +1,6 @@
-#!/usr/local/bin/clisp -ansi -q -Kfull
+#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1
+;;;; -*- mode:lisp; coding:iso-8859-1 -*-
+
 (setf *read-base* 16.)
 (loop
     :with buffer = (make-array 8 :element-type '(unsigned-byte 8)  :fill-pointer 0 :adjustable t)

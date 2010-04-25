@@ -1,5 +1,6 @@
-#!/usr/local/bin/clisp -ansi -q   -Kfull  -on-error debug
-;; -*- mode: lisp -*-
+#!/usr/bin/clisp -ansi -q -Kfull -E utf-8
+;; -*- mode:lisp; coding:utf-8 -*-
+
 (format t "Not implemented yet.~%")
 (finish-output)
 (ext:exit 0)

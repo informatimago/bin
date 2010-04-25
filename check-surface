@@ -1,5 +1,5 @@
-#!/usr/local/bin/clisp -ansi -q   -Kfull  -E iso-8859-1 -C
-;;;; -*- mode: lisp -*-
+#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1 -C
+;;;; -*- mode:lisp; coding:iso-8859-1 -*-
 ;;;;****************************************************************************
 ;;;;FILE:              check-surface
 ;;;;LANGUAGE:          common lisp (clisp)

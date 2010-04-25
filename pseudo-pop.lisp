@@ -1,4 +1,5 @@
-#!/usr/local/bin/clisp -ansi -q   -Kfull  -E ISO-8859-1
+#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1
+;;;; -*- mode:lisp; coding:iso-8859-1 -*-
 ;;;;**************************************************************************
 ;;;;FILE:               pseudo-pop.lisp
 ;;;;LANGUAGE:           Common-Lisp

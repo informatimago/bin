@@ -1,5 +1,5 @@
-#!/usr/local/bin/clisp -ansi -q   -Kfull
-
+#!/usr/bin/clisp -ansi -q -Kfull -E utf-8
+;; -*- mode:lisp; coding:utf-8 -*-
 (in-package :common-lisp-user)
 
 (defun report-the-error (err string-stream)
