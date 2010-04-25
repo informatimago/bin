@@ -35,6 +35,21 @@
 #    Boston, MA 02111-1307 USA
 #**************************************************************************
 
+select=0
+
+pname="$(basename "$0")"
+function usage(){
+    printf "%s usage:\n    $s [select]\n" "$pname" "$pname"
+}
+
+for arg ; do 
+    case "$arg" in
+    select|-s|--select) select=1 ;;
+    *) usage ; exit 1 ;;
+    esac
+done
+
+
 sockets=()
 for socket in /tmp/emacs$UID/server /tmp/emacs$UID/server-* ; do
     if [ -r $socket ] ; then
@@ -72,7 +87,11 @@ case ${#servers[@]} in
             printf "%2d) %-30s %s\n" "$i" "${servers[$i]}" "${frames[$i]}"
             i=$(( $i + 1 ))
         done
-        read -p 'What instance do you want a frame from? ' index
+        if [ $select -eq 1 ] ; then
+            read -p 'What instance must be the default emacs? ' index
+        else
+            read -p 'What instance do you want a frame from? ' index
+        fi
         case x$index in
         x[Nn][Oo][Nn][Ee]|x[Cc][Aa][Nn][Cc][Ee][Ll]|x[Qq][Uu][Ii][Tt]|x[Aa][Bb][Oo][Rr][Tt])
             exit 0
@@ -111,6 +130,10 @@ case ${#servers[@]} in
     ;;
 esac
 
-emacsclient --socket-name=${server} --no-wait --eval '(make-frame-on-display "'$DISPLAY'")'
+if [ $select -eq 1 ] ; then
+    ln -sf $server /tmp/emacs$UID/server
+else
+    emacsclient --socket-name=${server} --no-wait --eval '(make-frame-on-display "'$DISPLAY'")'
+fi
 
 #### THE END ####

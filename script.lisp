@@ -125,6 +125,31 @@ the main script  (setf script:*program-name* (script:pname))
   keys arguments documentation function)
 
 
+(defun split-string (string &optional (separators " "))
+  "
+NOTE:   current implementation only accepts as separators
+        a string containing literal characters.
+"
+  (unless (simple-string-p string)     (setq string     (copy-seq string)))
+  (unless (simple-string-p separators) (setq separators (copy-seq separators)))
+  (let ((chunks  '())
+        (position 0)
+        (nextpos  0)
+        (strlen   (length string)) )
+    (declare (type simple-string string separators))
+    (loop while (< position strlen)
+       do
+       (loop while (and (< nextpos strlen)
+                        (not (position (char string nextpos) separators)))
+          do (setq nextpos (1+ nextpos))
+          )
+       (push (subseq string position nextpos) chunks)
+       (setq position (1+ nextpos))
+       (setq nextpos  position)
+       )
+    (nreverse chunks)))
+
+
 (defun wrap-option-function (keys option-arguments docstring option-function)
   (let ((mandatory (or (position-if (lambda (option) (member option '(&optional &key &rest)))
                                     option-arguments)
@@ -147,7 +172,7 @@ the main script  (setf script:*program-name* (script:pname))
                                          ,vremaining)))
                                (error "Missing arguments: ~{~A ~}"
                                       (subseq ',option-arguments (length ,vargs))))))
-     :documentation docstring)))
+     :documentation (split-string docstring (string #\newline)))))
 
 
 
@@ -212,7 +237,7 @@ RETURN:     The lisp-name of the option (this is a symbol
     (format t "~2%~A options:~2%" (pname))
     (dolist (option (sort options (function string<)
                           :key (lambda (option) (first (option-keys option)))))
-      (format t "    ~{~A~^ | ~}  ~:@(~{~A ~}~)~2%~:[~;~:*        ~A~]~2%"
+      (format t "    ~{~A~^ | ~}  ~:@(~{~A ~}~)~%~@[~{~%        ~A~}~]~2%"
               (option-keys option)
               (option-arguments option)
               (option-documentation option)))

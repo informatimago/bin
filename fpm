@@ -1,11 +1,26 @@
-#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1
+#!/usr/bin/env clisp -ansi -q -Kfull -E iso-8859-1
 ;;;; -*- mode:lisp; coding:iso-8859-1 -*-
 ;;;;
 ;;;; fpm = Front-end Package Management
 ;;;; 
 
-(defparameter *program-name*    (file-namestring *load-pathname*))
-(defparameter *program-version* "0.0.1")
+(in-package "COMMON-LISP-USER")
+
+;; Clean the packages imported into COMMON-LISP-USER:
+(MAPC (LAMBDA (package) (UNUSE-PACKAGE package "COMMON-LISP-USER"))
+      (set-difference
+       (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))
+       (delete nil (list ;; A list of all the "CL" packages possible:
+                    (FIND-PACKAGE "COMMON-LISP")
+                    (FIND-PACKAGE "IMAGE-BASED-COMMON-LISP")))))
+
+(load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common
+                     :defaults *load-pathname*))
+(use-package "SCRIPT")
+(setf *program-name* (pname))
+
+
+(defparameter *program-version* "0.0.2")
 
 (defparameter *usage*
   "
@@ -163,7 +178,7 @@
   ())
 
 (defmethod pm-version ((self macport))
-  (s "echo quit | port -v")) ; verbose
+  (s "echo quit | port -v | head -1")) ; verbose
 
 (defmethod pm-install ((self macport) package-designator)
   (s "port install" package-designator))
@@ -248,13 +263,13 @@
 
 ;;;------------------------------------------------------------
 
-(defun uname ()
-  #+clisp
-  (intern (string-upcase (posix:uname-sysname (posix:uname)))
-          (load-time-value (find-package "KEYWORD")))
-  #-clisp
-  (let ((*package* (find-package "KEYWORD")))
-    (read-from-string (e "uname"))))
+;; (defun uname ()
+;;   #+clisp
+;;   (intern (string-upcase (posix:uname-sysname (posix:uname)))
+;;           (load-time-value (find-package "KEYWORD")))
+;;   #-clisp
+;;   (let ((*package* (find-package "KEYWORD")))
+;;     (read-from-string (e "uname"))))
 
 
 (defun distribution ()
@@ -303,6 +318,132 @@
 
 
 ;;;------------------------------------------------------------
+
+
+
+(define-option ("version" "-v" "--version") ()
+  "Report the version of this script and the underlying package system."
+  (format t "~A ~A~%" *program-name* *program-version*)
+  (fpm version))
+
+
+(define-option ("install" "-I" "--install") (package-name)
+ "Install the package named PACKAGE-NAME.  
+PACKAGE-NAME may include some specific version according to the 
+underlying package system syntax."
+ (fpm install package-name))
+
+
+(define-option ("update" "-U" "--update") (package-name)
+  "Updates the package named PACKAGE-NAME.
+PACKAGE-NAME may include some specific version or version constraint
+according to the underlying package system syntax."
+  (fpm update package-name))
+
+
+(define-option ("remove" "-R" "--remove") (package-name)
+  "Uninstalls the package named PACKAGE-NAME.  
+PACKAGE-NAME may include some specific version or version constraint
+according to the underlying package system syntax.
+"
+  (fpm remove package-name))
+
+
+(define-option ("show-info" "info" "-i" "--show-info" "--info") (package-name)
+  ;; [show] info <package-name>
+  "Displays information about the package named PACKAGE-NAME.  
+PACKAGE-NAME may include some specific version or version constraint
+according to the underlying package system syntax.
+This package may be installed or not.
+"
+  (fpm info package-name))
+
+
+(define-option  ("list-packages" "-p" "--list-packages") (qualifier &optionnal package-pattern)
+  ;; [list] [installed|available|all|not installed] packages [<package-pattern>]
+  "Lists the packages and versions matching the PACKAGE-PATTERN or
+all the packages if omited.   The keywords installed, available,
+all or not installed restrict the listing to the correponding
+package.  available and all are synonyms and the default."
+  (let ((valid-qualifiers  '(installed available all not-installed)))
+    (assert (member qualifier valid-qualifiers
+                    :test (function string-equalp))
+            (qualifier)
+            "qualifier should be one of ~{~A~^, ~}"
+            valid-qualifiers))
+  (fpm list-packages
+       (intern (string qualifier) "KEYWORD") t
+       :pattern package-pattern))
+
+
+(define-option ("list-files" "files" "-l" "--list-files" "--files") (package-name)
+  ;; [list] files [in] <package-name>
+  "Lists the full pathnames of the files in the package named PACKAGE-NAME.
+PACKAGE-NAME may include some specific version or version constraint
+according to the underlying package system syntax.
+This package may be installed or not.
+"
+  (fpm list-files package-name)) 
+
+
+(define-option ("package-containing" "package" "-c" "--package-containing") (file-path)
+  ;; package [containing] [file] <file-path>
+  "Lists the package(s) containing the file FILE-PATH.  If file path
+is not an absolute pathname, then it's taken as a pattern for the
+file paths."
+  (fpm find-package-containing-file file-path))
+ 
+
+
+(define-option ("search-package-info" "search-package" "search" 
+                "-s"
+                "--search-package-info" "--search-package" "--search") (pattern)
+  ;; search [package] [info] <pattern>
+  "Lists the packages that have the <pattern> in their package information."
+  (fpm find-package-with-info pattern))
+
+
+
+(define-option ("show-dependencies" "dependencies" "-d" "--show-dependencies" "--dependencies") (package-name)
+;; [show] dependencies [of] [package] <package-name>
+  "List the packages on which the package named PACKAGE-NAME depends.
+PACKAGE-NAME may include some specific version according to the 
+underlying package system syntax.  
+[installed|newest]
+"
+  (fpm dependencies package-name))
+
+ 
+
+(define-option ("who-depends-on" "depends" "--who-depends-on" "--who-depends" "--depends") (package-name)
+  ;; [who] depends [on] [package] <package-name>
+  "List the packages who depend on the package named PACKAGE-NAME.
+PACKAGE-NAME may include some specific version according to the 
+underlying package system syntax.  
+"
+  (fpm dependants package-name))
+
+
+
+
+ "
+
+~A~:* lowly cleanup
+
+    Some package managers need some cleanup.
+
+"
+
+
+
+
+(parse-options ext:*args*)
+
+;; #-testing-script
+;; (ext:exit (main ext:*args*))
+
+;;;------------------------------------------------------------
+
 
 (alt
  (seq (function print-version)  version)
