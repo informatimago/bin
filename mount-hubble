@@ -1,24 +1,34 @@
 #!/bin/bash
-hubble=hubble
+pname="$(basename "$0")"
+server=hubble
+umount=0
 options=( -o nolockd  )
-if [ "$1" = "umount"  -o  "$1" = "unmount" ] ; then
-    umount                ${hubble}:/a3
-    umount                ${hubble}:/b1
-    umount                ${hubble}:/d0
-    umount                ${hubble}:/d4
-    umount                ${hubble}:/d5
-    umount                ${hubble}:/data
-    umount                ${hubble}:/home
-    umount                ${hubble}:/movies
-    umount                ${hubble}:/srv
+
+function usage(){
+    printf "\n%s usage:\n    %s [unmount]\n\n" "$pname" "$pname" 
+}
+
+for arg ; do
+case "$arg" in
+-u|--umount|--unmount|umount|unmount) umount=1 ;;
+-h|--help|help) usage ; exit 0 ;;
+*)  printf "%s error: unknown option: %s\n" "$pname" "$arg" ; usage ; exit 1 ;;
+esac
+done
+
+case "$(hostname)" in
+macbook-pro-de-info-medicalis.local) mnt=/mnt/ ;;
+*)                                   mnt=/     ;;
+esac
+
+if [ $umount -eq 1 ] ; then
+    umount                ${server}:/mnt/sata/local/data
+    umount                ${server}:/mnt/sata/local/home
+    umount                ${server}:/mnt/sata/local/srv
+    umount                ${server}:/mnt/sata/movies
 else
-    mount "${options[@]}" ${hubble}:/a3     /a3
-    mount "${options[@]}" ${hubble}:/b1     /b1
-    mount "${options[@]}" ${hubble}:/d0     /d0
-    mount "${options[@]}" ${hubble}:/d4     /d4
-    mount "${options[@]}" ${hubble}:/d5     /d5
-    mount "${options[@]}" ${hubble}:/data   /data
-    mount "${options[@]}" ${hubble}:/home   /home
-    mount "${options[@]}" ${hubble}:/movies /movies
-    mount "${options[@]}" ${hubble}:/srv    /srv
+    mount "${options[@]}" ${server}:/mnt/sata/local/data    ${mnt}data
+    mount "${options[@]}" ${server}:/mnt/sata/local/home    ${mnt}home
+    mount "${options[@]}" ${server}:/mnt/sata/local/srv     ${mnt}srv
+    mount "${options[@]}" ${server}:/mnt/sata/movies        ${mnt}movies
 fi

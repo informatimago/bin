@@ -1,0 +1,5 @@
+#!/bin/bash
+f="$1"
+cp "$f" "${f}~"
+iconv -f utf-8 -t iso-8859-1  < "${f}~" > $"$f" || cat "${f}~" > $"$f"
+

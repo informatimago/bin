@@ -35,6 +35,7 @@
 ;;;;    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 ;;;;******************************************************************************
 
+
 ;; Clean the packages imported into COMMON-LISP-USER:
 (MAPC (LAMBDA (USED) (UNUSE-PACKAGE USED "COMMON-LISP-USER"))
       (REMOVE (FIND-PACKAGE "COMMON-LISP")
@@ -1907,5 +1908,19 @@ RETURN:  A list of all the path that can be generated from the root of the
   (format t "~8%   GOOD BYE, M. DILLINGER.~8%")) ;;shell
 
 (shell)
+
+Sebastian: Mr Tyrell, I... I brought a friend.
+Tyrell: I'm surprise you didn't come here sooner.
+ It's not an easy thing to meet your maker
+Tyrell: What can I do for you? 
+  
+Tyrell: Would you like to be modified?
+  Stand here
+I had in mind something more radical
+Tyrell: What seems to be the problem?
+Death
+Death. Then I'm afraid that's a little outside of my jurisdiction.
+I want more life, fucker.
+The fact of life.  
 
 ;;;; shell                            --                     --          ;;;;

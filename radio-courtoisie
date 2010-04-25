@@ -1,12 +1,20 @@
 #!/bin/bash
-URL="http://mp3.live.tv-radio.com/courtoisie/all/courtoisie.mp3"
+options=()
+case "$1" in
+-r|--record|record)
+    date=$(date +%Y%m%dT%H%M%S) # 20100324T084801
+    options=( -ao pcm:file=/tmp/rc-${date}.wav )
+    ;;
+esac
+
+# URL="http://mp3.live.tv-radio.com/courtoisie/all/courtoisie.mp3"
 URL="http://www.tv-radio.com/station/courtoisie/courtoisie.m3u"
-exec mplayer "$URL"
+exec mplayer "${options[@]}" "$URL"
 ########################################################################
 
-export WRITE_ASF=1
-POSITION=+512-0
-exec aviplay  -geometry $POSITION  $URL # /dev/null > /tmp/aviplay.log 2>&1
+# export WRITE_ASF=1
+# POSITION=+512-0
+# exec aviplay  -geometry $POSITION  $URL # /dev/null > /tmp/aviplay.log 2>&1
 
-#### radio-courtoisie                 --                     --          ####
+#### THE END ####
 

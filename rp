@@ -22,6 +22,29 @@ list)
     rm -rf *~
     exec /bin/ls -m
     ;;
+showfocus)
+    cmds=(
+        "set border 4"
+        "set fwcolor red"
+        "set bwcolor yellow"
+        "set fgcolor blue"
+        "set bgcolor green"
+    # "set bwcolor black"
+    # "set fgcolor white"
+    # "set ftcolor black"
+        )
+    for cmd in "${cmds[@]}" ; do
+        ratpoison -c "$cmd"
+    done
+    ;;
+thin)
+    cmds=(
+        "set border 0"
+        )
+    for cmd in "${cmds[@]}" ; do
+        ratpoison -c "$cmd"
+    done
+    ;;
 balance)
     order=order-by-x
     for arg ; do 
@@ -185,6 +208,7 @@ rm)
     echo "               -x   order the windows from left to right by original X coordinate"
     echo "    ${pname} list"
     echo "    ${pname} rm $NAME"
+    echo "    ${pname} showfocus | thin"
     echo "    ${pname} help"
     if [ "$cmd" = "help" ] ; then
         exit 0
