@@ -1,0 +1,3 @@
+#!/bin/bash
+dstat -d -D total,$(cd /dev ; echo hd? sd? |tr ' ' ',') "$@"
+
