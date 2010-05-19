@@ -1,0 +1,11 @@
+#!/bin/bash
+if [ -x /opt/emacs-23.1/bin/emacs ] ; then
+    EMACS=/opt/emacs-23.1/bin/emacs
+else
+    EMACS=emacs
+fi
+
+EMACS_USE=pgm  $EMACS & disown ; sleep 2
+EMACS_USE=gnus $EMACS & disown ; sleep 2
+EMACS_USE=erc  $EMACS & disown ; sleep 2
+
