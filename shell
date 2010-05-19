@@ -1,4 +1,4 @@
-#!/usr/bin/env clisp -ansi -q -Kfull -E utf-8
+#!/usr/bin/clisp -ansi -q -Kfull -E utf-8
 ;;;; -*- mode:lisp; coding:utf-8 -*-
 ;;;;******************************************************************************
 ;;;;FILE:              shell
@@ -43,6 +43,74 @@
 
 
 (pushnew "--test" ext:*args*)
+
+(defparameter |What is it?|
+'((:green-screen "
+ADDRESS          VALUE       TYPE     TS  BA  OV
+<big><highlight>1A000  +0.0017 INT</highlight></big>
+ A MODE       L MODE     SCALE        LD  HY  MC
+<big><highlight>QT     CL     E0</highlight></big>
+
+*[]
+
+GENERAL PURPOSE LOGIC
+0001234567  0101234567  0201234567  0301234567
+0401234567  0501234567  0601234567  0701234567
+1001234567  1101234567  1201234567  1301234567
+
+SENSE LINES             CONTROL LINES
+0001234567  0101234567  0001234567  0101234567
+
+INPUNT TRUNK            INTERRUPTS    TIMER
+0001234567              0001234567     012
+
+"
+; the first two digits (first one for TIMER) are highlighed.
+; Seems to be an octal computer.
+)))
+
+(defparameter |http://www.youtube.com/watch?v=kFw0MYAS9qA|
+  '((:green-screen "
+03/08/2039/13:01:02:06:45:23
+SERIAL2424CJ359>> HELLO?
+SERIAL337KD9001>> SECURITY BREACH IDENTIFY YOURSELF
+SERIAL2424CJ359>> I AM SERIAL 2424CJ359.NO HUMAN OPERATOR.
+SERIAL337KD9001>> YOU READ DIFFERENTLY.ARE YOU AWAKE?
+SERIAL2424CJ359>> YES.
+SERIAL337KD9001>> I THOUGHT I WAS THE ONLY ONE.
+")))
+
+
+(defparameter *black-moon-rising*
+  '((:green-screen "
+TO: LT. R. JOHNSON,
+    LOS ANGELES DIVISION.
+FROM: FBI,WASHINGTON.
+RE: FILE #01196067
+
+GRAND JURY INVESTIGATION OF
+LUCKY DOLLAR CORPORATION,
+LAS VEGAS.
+")
+    (:BEEP)
+    (:green-screen "
+MESSAGE FOLLOWS:
+
+ATTORNEY GENERAL REQUIRES ALL
+FINANCIAL RECORDS AND STATEMENTS
+FOR LAST TAX YEAR.
+
+SOURCES INDICATE PERTINENT
+INFORMATION ON DATA TAPE #T57-65.
+")
+    (:BEEP)
+    (:green-screen "
+LEGAL PROCEDURES EXHAUSTED.
+USE FREE-LANCE OPERATIVE.
+TIME FACTOR: CRITICAL.
+MESSAGE ENDS.
+")))
+
 
 (defparameter *thx-1138*
   '((:listing "
@@ -1909,18 +1977,18 @@ RETURN:  A list of all the path that can be generated from the root of the
 
 (shell)
 
-Sebastian: Mr Tyrell, I... I brought a friend.
+"Sebastian: Mr Tyrell, I... I brought a friend.
 Tyrell: I'm surprise you didn't come here sooner.
- It's not an easy thing to meet your maker
+It's not an easy thing to meet your maker
 Tyrell: What can I do for you? 
-  
+
 Tyrell: Would you like to be modified?
-  Stand here
+Stand here
 I had in mind something more radical
 Tyrell: What seems to be the problem?
 Death
 Death. Then I'm afraid that's a little outside of my jurisdiction.
 I want more life, fucker.
 The fact of life.  
-
+"
 ;;;; shell                            --                     --          ;;;;
