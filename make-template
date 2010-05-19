@@ -1,0 +1,186 @@
+#!/bin/csh
+#******************************************************************************
+#FILE
+#   ~/bin/template sym-link to ~/src/common/makedir/maketemplate
+#DESCRIPTION
+#   This script builds a software project directory.
+#   Run it without argument for help.
+#AUTHORS
+#   PJB  Pascal J. Bourguignon
+#MODIFICATIONS
+#   1992-07-08 <PJB>  Added this comment.
+#   1993-09-26 <PJB>  Renamed template (from project). Added options to build
+#                     either project, library or program directory trees.
+#   1993-09-28 <PJB>  Corrected object.${TARGET} to objects.${TARGET}.
+#LEGAL
+#    GPL
+#    
+#    Copyright Pascal Bourguignon 1992 - 2003
+#    
+#    This program is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU General Public License
+#    as published by the Free Software Foundation; either version
+#    2 of the License, or (at your option) any later version.
+#    
+#    This program is distributed in the hope that it will be
+#    useful, but WITHOUT ANY WARRANTY; without even the implied
+#    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#    PURPOSE.  See the GNU General Public License for more details.
+#    
+#    You should have received a copy of the GNU General Public
+#    License along with this program; if not, write to the Free
+#    Software Foundation, Inc., 59 Temple Place, Suite 330,
+#    Boston, MA 02111-1307 USA
+#******************************************************************************
+if ( ( ! $?COMMON ) || ( ! $?TARGET ) ) then
+    echo 'Missing environment variables:'
+    echo '  COMMON  the path to the common library directory, where '
+    echo '          makedir is to be found.'
+    echo ''
+    echo '  TARGET  the name of the default target architecture. There '
+    echo '          must be a $(COMMON)/makedir/$(TARGET) Makefile include.'
+    echo 'Examples:'
+    echo '  setenv COMMON "${HOME}/src/common"'
+    echo '  setenv TARGET LINUX'
+endif
+
+# if you change these directory lists, update the README data below too.
+set nextappdirectories=(specifications analysis architecture design documentation sources reviews tests)
+set programdirectories=(specifications analysis architecture design documentation objects.${TARGET} sources reviews tests)
+set librarydirectories=(specifications analysis architecture design documentation objects.${TARGET} interfaces sources reviews tests)
+set projectdirectories=(bin.${TARGET} libraries.${TARGET})
+
+set me="${0}"
+set me="${me:t}"
+set project="`pwd`"
+set project="${project:t}"
+set name="$2"
+if ( "$name" == "" ) then
+    echo 'usage: maketemplate project|library|program|nextapp name'
+    exit 1
+endif
+switch($1)
+case project:
+    set project="${name}"
+    $0 __makedirectories "${name}" ${projectdirectories}
+    ln -s bin.${TARGET} ${name}/bin
+    ln -s libraries.${TARGET} ${name}/libraries
+    set targets=(`cd ${COMMON}/makedir;/bin/ls [A-Z0-9]*`) 
+    sed -e "s/__TARGETS__/${targets}/g" \
+        -e "s/__PROJECT_NAME__/${project}/g" \
+        < ${COMMON}/makedir/project_template_Makefile \
+        > "${name}/Makefile"
+    $0 __makereadme "${name}" project
+    echo "${me}: Please, set the MODULES variable in ${name}/Makefile"
+    breaksw
+case library:
+    $0 __makedirectories "${name}" ${librarydirectories}
+    ln -s ../sources/Makefile "${name}/objects.${TARGET}/Makefile"
+    sed -e "s/__LIBRARY_NAME__/${name}/g" \
+        -e "s:__PROJECT_DIR__:`pwd`:g" \
+        < ${COMMON}/makedir/library_template_Makefile \
+        > "${name}/sources/Makefile"
+    cp ${COMMON}/makedir/root_template_Makefile "${name}/Makefile"
+    $0 __makereadme "${name}" library
+    echo "${me}: Please, set the variables in ${name}/sources/Makefile"
+    breaksw
+case program:
+    $0 __makedirectories "${name}" ${programdirectories}
+    ln -s ../sources/Makefile "${name}/objects.${TARGET}/Makefile"
+    sed -e "s/__PROGRAM_NAME__/${name}/g" \
+        -e "s:__PROJECT_DIR__:`pwd`:g" \
+        < ${COMMON}/makedir/program_template_Makefile \
+        > "${name}/sources/Makefile"
+    cp ${COMMON}/makedir/root_template_Makefile "${name}/Makefile"
+    $0 __makereadme "${name}" program
+    echo "${me}: Please, set the variables in ${name}/sources/Makefile"
+    breaksw
+case nextapp:
+    $0 __makedirectories "${name}" ${nextappdirectories}
+    $0 __makereadme "${name}" nextapp
+    breaksw
+case __makedirectories:
+    mkdir "${name}"
+    shift
+    shift
+    foreach d ( $* )
+        mkdir "${name}/${d}"
+    end
+    breaksw
+case __makereadme:
+    set kind=$3
+    switch (${kind})
+    case project:
+        cat > "${name}/README" << __EOF__
+This is the ${name} ${kind} directory. It contains:
+
+README              this file.
+bin/                executables compiled from program sub-directories.
+libraries/          libraries compiled from library sub-directories.
+<subproject>/       library or program sub-directories.
+
+__EOF__
+        breaksw
+    case library:
+    case program:
+    case nextapp:
+        cat > "${name}/README" << __EOF__
+This is the ${name} ${kind} directory. It contains:
+
+README              this file.
+specifications/     specification documents.
+analysis/           analysis documents.
+architecture/       architecture and system design documents.
+design/             program design documents.
+documentation/      user or client documentation.
+__EOF__
+        if ( ${kind} == library ) then
+            cat >> "${name}/README" << __EOF__
+interfaces/         interface (header) files a client program needs 
+                            to use this module.
+__EOF__
+        endif
+        cat >> "${name}/README" << __EOF__
+sources/            source files.
+reviews/            analysis and code reviews.
+tests/              test files and programs.
+__EOF__
+        breaksw
+    endsw
+    breaksw
+default:
+    echo "${me} project <projectname>"              > /tmp/$$.help
+    echo "  to make the following directories:"     >> /tmp/$$.help
+    echo "      <projectname>/"                     >> /tmp/$$.help
+    foreach d ( ${projectdirectories} )
+        echo "      <projectname>/${d}"             >> /tmp/$$.help
+    end
+    echo ""                                         >> /tmp/$$.help
+    echo "${me} library <libraryname>"              >> /tmp/$$.help
+    echo "  to make the following directories:"     >> /tmp/$$.help
+    echo "      <libraryname>/"                     >> /tmp/$$.help
+    foreach d ( ${librarydirectories} )
+        echo "      <libraryname>/${d}"             >> /tmp/$$.help
+    end
+    echo ""                                         >> /tmp/$$.help
+    echo "${me} program <programname>"              >> /tmp/$$.help
+    echo "  to make the following directories:"     >> /tmp/$$.help
+    echo "      <programname>/"                     >> /tmp/$$.help
+    foreach d ( ${programdirectories} )
+        echo "      <programname>/${d}"             >> /tmp/$$.help
+    end
+    echo ""                                         >> /tmp/$$.help
+    more /tmp/$$.help
+    switch ( "$1" )
+    case help:
+    case '-?':
+        exit 0
+        breaksw
+    default:
+        exit 1
+        breaksw
+    endsw
+    breaksw
+endsw
+exit 0
+#### maketemplate                     -- 2003-11-25 06:01:34 -- pascal   ####
