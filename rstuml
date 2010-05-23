@@ -1,4 +1,4 @@
-#!/usr/bin/env clisp -q -ansi -Kfull -E utf-8
+#!/usr/bin/clisp -ansi -q -Kfull -E utf-8
 ;; -*- mode:lisp; coding:iso-8859-1 -*-
 
 (defparameter *base-url* "http://hubble:3000/diagram/")

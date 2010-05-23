@@ -1,6 +1,6 @@
 #!/bin/bash
 pname="$(basename "$0")"
-server=hubble
+server=kuiper
 umount=0
 options=( -o nolockd  )
 
@@ -22,13 +22,13 @@ macbook-pro-de-info-medicalis.local) mnt=/mnt/ ;;
 esac
 
 if [ $umount -eq 1 ] ; then
-    umount                ${server}:/mnt/sata/local/data
-    umount                ${server}:/mnt/sata/local/home
-    umount                ${server}:/mnt/sata/local/srv
-    umount                ${server}:/mnt/sata/movies
+    umount                ${mnt}data
+    umount                ${mnt}home
+    umount                ${mnt}srv
+    umount                ${mnt}movies
 else
-    mount "${options[@]}" ${server}:/mnt/sata/local/data    ${mnt}data
-    mount "${options[@]}" ${server}:/mnt/sata/local/home    ${mnt}home
-    mount "${options[@]}" ${server}:/mnt/sata/local/srv     ${mnt}srv
-    mount "${options[@]}" ${server}:/mnt/sata/movies        ${mnt}movies
+    mount "${options[@]}" ${server}:/local/data    ${mnt}data
+    mount "${options[@]}" ${server}:/local/home    ${mnt}home
+    mount "${options[@]}" ${server}:/local/srv     ${mnt}srv
+    mount "${options[@]}" ${server}:/movies        ${mnt}movies
 fi

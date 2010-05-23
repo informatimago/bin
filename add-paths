@@ -1,4 +1,4 @@
-#!/usr/bin/env clisp -ansi -q -Kfull -E utf-8
+#!/usr/bin/clisp -ansi -q -Kfull -E utf-8
 ;; -*- mode: common-lisp; coding:utf-8 -*-
 
 (defun split (separator string)

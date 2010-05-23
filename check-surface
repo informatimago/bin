@@ -1,4 +1,4 @@
-#!/usr/bin/env clisp -ansi -q -Kfull -E iso-8859-1 -C
+#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1 -C
 ;;;; -*- mode:lisp; coding:iso-8859-1 -*-
 ;;;;****************************************************************************
 ;;;;FILE:              check-surface

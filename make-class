@@ -1,1 +1,276 @@
-/Users/pjb/src/pjb/admin/templates/make-class
+#!/bin/sh
+pname="`basename "$0"`"
+
+#
+# The author_xxx, system, userinterface, laname and extension variable
+# should be settable either by parameters or from environment variables.
+#
+# The '~' character must be used in these variables or in the arguments,
+# since it is used for as sed speparator.
+#
+
+
+### These definitions should be obtained from the environment.
+author_short="<PJB>"
+author_name="Pascal J. Bourguignon"
+author_email="<pjb@imaginet.fr>"
+author_long="$author_short  $author_name  $author_email"
+
+system=None
+userinterface=None
+
+
+### Configuration.
+templates=~pascal/src/common/templates
+
+year_format="+%Y"
+date_format="+%Y/%m/%d"
+datetime_format="+%Y/%m/%d %H:%M:%S"
+
+C_header=h
+C_implem=c
+C_superc=
+C_name="ANSI-C"
+
+Cxx_header=hh
+Cxx_implem=cc
+Cxx_superc=BpObject
+Cxx_name="C++"
+
+ObjC_header=h
+ObjC_implem=m
+ObjC_superc=NSObject
+ObjC_name="Objective-C"
+
+Java_header=
+Java_implem=java
+Java_superc=Object
+Java_name="Java"
+
+## The defaults:
+language=ObjC
+header="$ObjC_header"
+implem="$ObjC_implem"
+superc="$ObjC_superc"
+laname="$ObjC_name"
+
+###
+classname=""
+superclass=""
+
+
+
+usage()
+{
+	echo "${pname} usage:"
+	echo ''
+	echo "  ${pname} [lflag] [-h|--help|<classname> [<superclass>]]"
+	echo ''
+	echo   '  +-------------+------------------+--------+--------+------------+'
+	echo   '  | language    |  lflag           | header | implem | superclass |'
+	echo   '  +-------------+------------------+--------+--------+------------+'
+	printf '  | %-11s | -c  --C    C     | .%-5s | .%-5s | %-10s |\n' \
+		   "$C_name" "$C_header" "$C_implem" "$C_superc"
+	printf '  | %-11s | -cp --C++  C++   | .%-5s | .%-5s | %-10s |\n' \
+		   "$Cxx_name" "$Cxx_header" "$Cxx_implem" "$Cxx_superc"
+	printf '  | %-11s | -oc --ObjC ObjC  | .%-5s | .%-5s | %-10s |\n' \
+		   "$ObjC_name" "$ObjC_header" "$ObjC_implem" "$ObjC_superc"
+	printf '  | %-11s | -j  --Java Java  | .%-5s | .%-5s | %-10s |\n' \
+		   "$Java_name" "$Java_header" "$Java_implem" "$Java_superc"
+	echo   '  +-------------+------------------+--------+--------+------------+'
+	echo ''
+	echo '  Depending on the selected language, create one or two files'
+	echo '  named "$classname$header" and "$classname$implem"   '
+	echo '  containting a class template. If no super class is specified, '
+	echo '  the indicated default super class is used.'
+	echo "  The template files are to be found in ${templates}/."
+	echo "  The default language is ${language}."
+	echo ''
+}
+#usage
+
+
+check_templates()
+{
+	local language=$1
+	local header=$2  #unused
+	local implem=$3  #unused
+	##DEBUG##echo "${pname}::check_templates: $language $header $implem"
+	if [ -r "$templates/$language.header.template" \
+	  -a -r "$templates/$language.implem.template" ] ; then
+		return
+	else
+		echo "${pname}: The template files are not readable"
+		echo "${pname}:     $templates/$language.header.template" 
+		echo "${pname}:     $templates/$language.implem.template"
+		echo "${pname}: Please check the setting of the \$templates variable "
+		echo "${pname}: in me \"$0\" script."
+		exit 1
+	fi
+}
+#check_templates
+
+
+check_classname()
+{
+	local language="$1"
+	local classname="$2"
+	##DEBUG##echo "${pname}::check_classname: $language $classname"
+	# Well, for now, class names won't depend on the language.
+	case "$classname" in
+	[A-Z][A-Za-z0-9_]*)
+		return
+		;;
+	*)
+		echo ''
+		echo "${pname}: Invalid class name: \"$arg\""
+		echo "${pname}: A class should begin with a capitalized letter,"
+		echo "${pname}: followed by any number of letters, digits or underline."
+		echo ''
+		sleep 2
+		usage
+		exit 1
+		;;
+	esac
+}
+#check_classname
+	
+
+							  ##########
+							  ## main ##
+							  ##########
+##DEBUG##echo "${pname}: starting..."
+for arg ; do
+	##DEBUG##echo "${pname}: processing $arg"
+	case "$arg" in
+	-h|--help)
+		echo ''
+		usage
+		exit 0
+		;;
+	-c|--c|--C)
+		language=C
+		header="$C_header"
+		implem="$C_implem"
+		superc="$C_superc"
+		laname="$C_name"
+		;;
+	-cp|--c++|--C++)
+		language=Cxx
+		header="$Cxx_header"
+		implem="$Cxx_implem"
+		superc="$Cxx_superc"
+		laname="$Cxx_name"
+		;;
+	-oc|--objc|--ObjC)
+		language=ObjC
+		header="$ObjC_header"
+		implem="$ObjC_implem"
+		superc="$ObjC_superc"
+		laname="$ObjC_name"
+		;;
+	-j|--java|--Java)
+		language=Java
+		header="$Java_header"
+		implem="$Java_implem"
+		superc="$Java_superc"
+		laname="$Java_name"
+		;;
+	-*)
+		echo ''
+		echo "${pname}: Invalid option \"$arg\""
+		echo ''
+		sleep 2
+		usage
+		exit 1
+		;;
+	*)
+		##DEBUG##echo "${pname}: checking clasname..."
+
+		check_classname $language "$arg"
+
+		if [ "x$classname" = "x" ] ; then
+			classname="$arg"
+		elif [ "x$superclass" = "x" ] ; then
+			superclass="$arg"
+		else
+			echo ''
+			echo "${pname}: Superfluous argument: \"$arg\". I already have "
+			echo "${pname}: a classname ($classname) and a superclass ($superclass)"
+			echo ''
+			sleep 2
+			usage
+			exit 1
+		fi
+		;;
+	esac
+done
+
+
+if [ "x$classname" = "x" ] ; then
+	echo ''
+	echo "${pname}: I miss a class name argument."
+	echo ''
+	sleep 2
+	usage
+	exit 1
+fi
+
+if [ "x$superclass" = "x" ] ; then
+	superclass=${superc}
+fi
+
+
+##DEBUG##echo 'Will make a '$language' class named '$classname' subclass of '$superclass
+
+##DEBUG##echo "${pname}: Will check templates..."
+check_templates $language $header $implem
+
+##DEBUG##echo "${pname}: Will generate the files..."
+for extgroup in "header:$header" "implem:$implem" ; do
+
+	exttype=`echo $extgroup|sed -e 's/:.*//'`
+	extension=`echo $extgroup|sed -e 's/.*://'`
+	##DEBUG##echo "${pname}: extgroup=${extgroup} exttype=${exttype} extension=${extension}"
+	if [ "x$extension" = "x" ] ; then
+		# nothing to generate.
+		echo -n ''
+	else
+		input="${templates}/${language}.${exttype}.template"
+
+		filename="$classname.$extension"
+		filenamedef="__${classname}_${extension}__"
+		output="$filename"
+
+		year="`date "${year_format}"`"
+		date="`date "${date_format}"`"
+		datetime="`date "${datetime_format}"`"
+		
+		echo "${pname}: Creating \"${output}\"..."
+		sed \
+			-e "s~{{AUTHOREMAIL}}~${author_email}~g" \
+			-e "s~{{AUTHORNAME}}~${author_name}~g" \
+			-e "s~{{AUTHORSHORT}}~${author_short}~g" \
+			-e "s~{{AUTHOR}}~${author_long}~g" \
+			-e "s~{{CLASSNAME}}~${classname}~g" \
+			-e "s~{{DATETIME}}~${datetime}~g" \
+			-e "s~{{DATE}}~${date}~g" \
+			-e "s~{{FILENAME_DEF}}~${filenamedef}~g" \
+			-e "s~{{FILENAME}}~${filename}~g" \
+			-e "s~{{EXTENSION}}~${extension}~g" \
+			-e "s~{{HEADER_EXT}}~${header}~g" \
+			-e "s~{{IMPLEM_EXT}}~${implem}~g" \
+			-e "s~{{SUPERCLASS}}~${superclass}~g" \
+			-e "s~{{SYSTEM}}~${system}~g" \
+			-e "s~{{LANGUAGE}}~${laname}~g" \
+			-e "s~{{USERINTERFACE}}~${userinterface}~g" \
+			-e "s~{{YEAR}}~${year}~g" \
+			< "$input" > "$output"
+		##DEBUG##/bin/ls -l "$output"
+	fi
+done
+
+exit 0
+#END
+
+
