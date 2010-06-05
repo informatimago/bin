@@ -1,5 +1,6 @@
 #!/bin/bash
-pname="`basename $0`"
+pname="$(basename $0)"
+pdire="$(dirname "$0")"
 pblan="`echo $pname|sed -e 's/./ /g'`"
 prob=1
 TOP=1000000
@@ -79,10 +80,10 @@ if [ $nfile -eq 0 ] ; then
 else
     # echo ${nfile} ; echo ${files[@]}
     if [ $onefile -ne 0 ] ; then
-        echo ${files[$(( 1 + $( random  ${#files[@]} ) ))]}
+        echo ${files[$(( 1 + $( "$pdire/random"  ${#files[@]} ) ))]}
     else
         for arg in "${files[@]}" ; do
-            if [ $(random $TOP) -le $prob ] ; then
+            if [ $("$pdire/random" $TOP) -le $prob ] ; then
                 echo $arg
             fi
         done
