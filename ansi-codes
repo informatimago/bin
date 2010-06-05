@@ -1,0 +1,847 @@
+#http://aspell.net/charsets/iso6429.html
+
+function ACK () {
+    # ACKNOWLEDGE
+    
+    echo -n ""
+}
+function APC () {
+    # APPLICATION PROGRAM COMMAND
+    
+    echo -n "_"
+}
+function BEL () {
+    # BELL
+    
+    echo -n ""
+}
+function BPH () {
+    # BREAK PERMITTED HERE
+    
+    echo -n "B"
+}
+function BS () {
+    # BACKSPACE
+    
+    echo -n ""
+}
+function CAN () {
+    # CANCEL
+    
+    echo -n ""
+}
+function CBT () {
+    # CURSOR BACKWARD TABULATION
+    local PN="$1"
+    echo -n "[${PN}Z"
+}
+function CCH () {
+    # CANCEL CHARACTER
+    
+    echo -n "T"
+}
+function CHA () {
+    # CURSOR CHARACTER ABSOLUTE
+    local PN="$1"
+    echo -n "[${PN}G"
+}
+function CHT () {
+    # CURSOR FORWARD TABULATION
+    local PN="$1"
+    echo -n "[${PN}I"
+}
+function CMD () {
+    # CODING METHOD DELIMITER
+    
+    echo -n "d"
+}
+function CNL () {
+    # CURSOR NEXT LINE
+    local PN="$1"
+    echo -n "[${PN}E"
+}
+function CPL () {
+    # CURSOR PRECEDING LINE
+    local PN="$1"
+    echo -n "[${PN}F"
+}
+function CPR () {
+    # ACTIVE POSITION REPORT
+    local PN1="$1";local PN2="$2"
+    echo -n "[${PN1};${PN2}R"
+}
+function CR () {
+    # CARRIAGE RETURN
+    echo -n ""
+}
+function CSI () {
+    # CONTROL SEQUENCE INTRODUCER
+    
+    echo -n "["
+}
+function CTC () {
+    # CURSOR TABULATION CONTROL
+    
+    echo -n "[$(semicolon='';res='';for arg in $@;do res=${res}${semicolon}${arg};semicolon=';';done;echo -n ${res})W"
+}
+function CUB () {
+    # CURSOR LEFT
+    local PN="$1"
+    echo -n "[${PN}D"
+}
+function CUD () {
+    # CURSOR DOWN
+    local PN="$1"
+    echo -n "[${PN}B"
+}
+function CUF () {
+    # CURSOR RIGHT
+    local PN="$1"
+    echo -n "[${PN}C"
+}
+function CUP () {
+    # CURSOR POSITION
+    local PN1="$1";local PN2="$2"
+    echo -n "[${PN1};${PN2}H"
+}
+function CUU () {
+    # CURSOR UP
+    local PN="$1"
+    echo -n "[${PN}A"
+}
+function CVT () {
+    # CURSOR LINE TABULATION
+    local PN="$1"
+    echo -n "[${PN}Y"
+}
+function DA () {
+    # DEVICE ATTRIBUTES
+    local PS="$1"
+    echo -n "[${PS}c"
+}
+function DAQ () {
+    # DEFINE AREA QUALIFICATION
+    
+    echo -n "[$(semicolon='';res='';for arg in $@;do res=${res}${semicolon}${arg};semicolon=';';done;echo -n ${res})o"
+}
+function DCH () {
+    # DELETE CHARACTER
+    local PN="$1"
+    echo -n "[${PN}P"
+}
+function DCS () {
+    # DEVICE CONTROL STRING
+    
+    echo -n "P"
+}
+function DC1 () {
+    # DEVICE CONTROL ONE
+    
+    echo -n ""
+}
+function DC2 () {
+    # DEVICE CONTROL TWO
+    
+    echo -n ""
+}
+function DC3 () {
+    # DEVICE CONTROL THREE
+    
+    echo -n ""
+}
+function DC4 () {
+    # DEVICE CONTROL FOUR
+    
+    echo -n ""
+}
+function DL () {
+    # DELETE LINE
+    local PN="$1"
+    echo -n "[${PN}M"
+}
+function DLE () {
+    # DATA LINK ESCAPE
+    
+    echo -n ""
+}
+function DMI () {
+    # DISABLE MANUAL INPUT
+    
+    echo -n "\`"
+}
+function DSR () {
+    # DEVICE STATUS REPORT
+    local PS="$1"
+    echo -n "[${PS}n"
+}
+function DTA () {
+    # DIMENSION TEXT AREA
+    local PN1="$1";local PN2="$2"
+    echo -n "[${PN1};${PN2} T"
+}
+function EA () {
+    # ERASE IN AREA
+    local PS="$1"
+    echo -n "[${PS}O"
+}
+function ECH () {
+    # ERASE CHARACTER
+    local PN="$1"
+    echo -n "[${PN}X"
+}
+function ED () {
+    # ERASE IN PAGE
+    local PS="$1"
+    echo -n "[${PS}J"
+}
+function EF () {
+    # ERASE IN FIELD
+    local PS="$1"
+    echo -n "[${PS}N"
+}
+function EL () {
+    # ERASE IN LINE
+    local PS="$1"
+    echo -n "[${PS}K"
+}
+function EM () {
+    # END OF MEDIUM
+    
+    echo -n ""
+}
+function EMI () {
+    # ENABLE MANUAL INPUT
+    
+    echo -n "b"
+}
+function ENQ () {
+    # ENQUIRY
+    
+    echo -n ""
+}
+function EOT () {
+    # END OF TRANSMISSION
+    
+    echo -n ""
+}
+function EPA () {
+    # END OF GUARDED AREA
+    
+    echo -n "W"
+}
+function ESA () {
+    # END OF SELECTED AREA
+    
+    echo -n "G"
+}
+function ESC () {
+    # ESCAPE
+    
+    echo -n ""
+}
+function ETB () {
+    # END OF TRANSMISSION BLOCK
+    
+    echo -n ""
+}
+function ETX () {
+    # END OF TEXT
+    
+    echo -n ""
+}
+function FF () {
+    # FORM FEED
+    
+    echo -n ""
+}
+function FNK () {
+    # FUNCTION KEY
+    local PN="$1"
+    echo -n "[${PN} W"
+}
+function FNT () {
+    # FONT SELECTION
+    local PS1="$1";local PS2="$2"
+    echo -n "[${PS1};${PS2} D"
+}
+function GCC () {
+    # GRAPHIC CHARACTER COMBINATION
+    local PS="$1"
+    echo -n "[${PS} _"
+}
+function GSM () {
+    # GRAPHIC SIZE MODIFICATION
+    local PN1="$1";local PN2="$2"
+    echo -n "[${PN1};${PN2} B"
+}
+function GSS () {
+    # GRAPHIC SIZE SELECTION
+    local PN="$1"
+    echo -n "[${PN} C"
+}
+function HPA () {
+    # CHARACTER POSITION ABSOLUTE
+    local PN="$1"
+    echo -n "[${PN}\`"
+}
+function HPB () {
+    # CHARACTER POSITION BACKWARD
+    local PN="$1"
+    echo -n "[${PN}j"
+}
+function HPR () {
+    # CHARACTER POSITION FORWARD
+    local PN="$1"
+    echo -n "[${PN}a"
+}
+function HT () {
+    # CHARACTER TABULATION
+    
+    echo -n "	"
+}
+function HTJ () {
+    # CHARACTER TABULATION WITH JUSTIFICATION
+    
+    echo -n "I"
+}
+function HTS () {
+    # CHARACTER TABULATION SET
+    
+    echo -n "H"
+}
+function HVP () {
+    # CHARACTER AND LINE POSITION
+    local PN1="$1";local PN2="$2"
+    echo -n "[${PN1};${PN2}f"
+}
+function ICH () {
+    # INSERT CHARACTER
+    local PN="$1"
+    echo -n "[${PN}@"
+}
+function IDCS () {
+    # IDENTIFY DEVICE CONTROL STRING
+    local PS="$1"
+    echo -n "[${PS} O"
+}
+function IGS () {
+    # IDENTIFY GRAPHIC SUBREPERTOIRE
+    local PS="$1"
+    echo -n "[${PS} M"
+}
+function IL () {
+    # INSERT LINE
+    local PN="$1"
+    echo -n "[${PN}L"
+}
+function INT () {
+    # INTERRUPT
+    
+    echo -n "a"
+}
+function IS1 () {
+    # INFORMATION SEPARATOR ONE (US - UNIT SEPARATOR)
+    
+    echo -n ""
+}
+function IS2 () {
+    # INFORMATION SEPARATOR TWO (RS - RECORD SEPARATOR)
+    
+    echo -n ""
+}
+function IS3 () {
+    # INFORMATION SEPARATOR THREE (GS - GROUP SEPARATOR)
+    
+    echo -n ""
+}
+function IS4 () {
+    # INFORMATION SEPARATOR FOUR (FS - FILE SEPARATOR)
+    
+    echo -n ""
+}
+function JFY () {
+    # JUSTIFY
+    
+    echo -n "[$(semicolon='';res='';for arg in $@;do res=${res}${semicolon}${arg};semicolon=';';done;echo -n ${res}) F"
+}
+function LF () {
+    # LINE FEED
+    
+    echo -n 
+"
+"
+}
+function LS0 () {
+    # LOCKING-SHIFT ZERO
+    
+    echo -n ""
+}
+function LS1 () {
+    # LOCKING-SHIFT ONE
+    
+    echo -n "~"
+}
+function LS2 () {
+    # LOCKING-SHIFT TWO
+    
+    echo -n "}"
+}
+function LS3 () {
+    # LOCKING-SHIFT THREE
+    
+    echo -n "|"
+}
+function MC () {
+    # MEDIA COPY
+    local PS="$1"
+    echo -n "[${PS}i"
+}
+function MW () {
+    # MESSAGE WAITING
+    
+    echo -n "U"
+}
+function NAK () {
+    # NEGATIVE ACKNOWLEDGE
+    
+    echo -n ""
+}
+function NBH () {
+    # NO BREAK HERE
+    
+    echo -n "C"
+}
+function NEL () {
+    # NEXT LINE
+    
+    echo -n "E"
+}
+function NP () {
+    # NEXT PAGE
+    local PN="$1"
+    echo -n "[${PN}U"
+}
+function NUL () {
+    # NULL
+    :
+}
+function OSC () {
+    # OPERATING SYSTEM COMMAND
+    
+    echo -n "]"
+}
+function PEC () {
+    # PRESENTATION EXPAND OR CONTRACT
+    local PS="$1"
+    echo -n "[${PS} Z"
+}
+function PFS () {
+    # PAGE FORMAT SELECTION
+    local PS="$1"
+    echo -n "[${PS} J"
+}
+function PLD () {
+    # PARTIAL LINE FORWARD
+    
+    echo -n "K"
+}
+function PLU () {
+    # PARTIAL LINE BACKWARD
+    
+    echo -n "L"
+}
+function PM () {
+    # PRIVACY MESSAGE
+    
+    echo -n "^"
+}
+function PP () {
+    # PRECEDING PAGE
+    local PN="$1"
+    echo -n "[${PN}V"
+}
+function PPA () {
+    # PAGE POSITION ABSOLUTE
+    local PN="$1"
+    echo -n "[${PN} P"
+}
+function PPB () {
+    # PAGE POSITION BACKWARD
+    local PN="$1"
+    echo -n "[${PN} R"
+}
+function PPR () {
+    # PAGE POSITION FORWARD
+    local PN="$1"
+    echo -n "[${PN} Q"
+}
+function PTX () {
+    # PARALLEL TEXTS
+    local PS="$1"
+    echo -n "[${PS}\\"
+}
+function PU1 () {
+    # PRIVATE USE ONE
+    
+    echo -n "Q"
+}
+function PU2 () {
+    # PRIVATE USE TWO
+    
+    echo -n "R"
+}
+function QUAD () {
+    # QUAD
+    
+    echo -n "[$(semicolon='';res='';for arg in $@;do res=${res}${semicolon}${arg};semicolon=';';done;echo -n ${res}) H"
+}
+function REP () {
+    # REPEAT
+    local PN="$1"
+    echo -n "[${PN}b"
+}
+function RI () {
+    # REVERSE LINE FEED
+    
+    echo -n "M"
+}
+function RIS () {
+    # RESET TO INITIAL STATE
+    
+    echo -n "c"
+}
+function RM () {
+    # RESET MODE
+    
+    echo -n "[$(semicolon='';res='';for arg in $@;do res=${res}${semicolon}${arg};semicolon=';';done;echo -n ${res})l"
+}
+function SACS () {
+    # SET ADDITIONAL CHARACTER SEPARATION
+    local PN="$1"
+    echo -n "[${PN} \\"
+}
+function SAPV () {
+    # SELECT ALTERNATIVE PRESENTATION VARIANTS
+    
+    echo -n "[$(semicolon='';res='';for arg in $@;do res=${res}${semicolon}${arg};semicolon=';';done;echo -n ${res}) ]"
+}
+function SCI () {
+    # SINGLE CHARACTER INTRODUCER
+    
+    echo -n "Z"
+}
+function SCO () {
+    # SELECT CHARACTER ORIENTATION
+    local PS="$1"
+    echo -n "[${PS} e"
+}
+function SCP () {
+    # SELECT CHARACTER PATH
+    local PS1="$1";local PS2="$2"
+    echo -n "[${PS1};${PS2} k"
+}
+function SCS () {
+    # SET CHARACTER SPACING
+    local PN="$1"
+    echo -n "[${PN} g"
+}
+function SD () {
+    # SCROLL DOWN
+    local PN="$1"
+    echo -n "[${PN}T"
+}
+function SDS () {
+    # START DIRECTED STRING
+    local PS="$1"
+    echo -n "[${PS}]"
+}
+function SEE () {
+    # SELECT EDITING EXTENT
+    local PS="$1"
+    echo -n "[${PS}Q"
+}
+function SEF () {
+    # SHEET EJECT AND FEED
+    local PS1="$1";local PS2="$2"
+    echo -n "[${PS1};${PS2} Y"
+}
+function SGR () {
+    # SELECT GRAPHIC RENDITION
+    
+    echo -n "[$(semicolon='';res='';for arg in $@;do res=${res}${semicolon}${arg};semicolon=';';done;echo -n ${res})m"
+}
+function SHS () {
+    # SELECT CHARACTER SPACING
+    local PS="$1"
+    echo -n "[${PS} K"
+}
+function SI () {
+    # SHIFT-IN
+    
+    echo -n ""
+}
+function SIMD () {
+    # SELECT IMPLICIT MOVEMENT DIRECTION
+    local PS="$1"
+    echo -n "[${PS}^"
+}
+function SL () {
+    # SCROLL LEFT
+    local PN="$1"
+    echo -n "[${PN} @"
+}
+function SLH () {
+    # SET LINE HOME
+    local PN="$1"
+    echo -n "[${PN} U"
+}
+function SLL () {
+    # SET LINE LIMIT
+    local PN="$1"
+    echo -n "[${PN} V"
+}
+function SLS () {
+    # SET LINE SPACING
+    local PN="$1"
+    echo -n "[${PN} h"
+}
+function SM () {
+    # SET MODE
+    
+    echo -n "[$(semicolon='';res='';for arg in $@;do res=${res}${semicolon}${arg};semicolon=';';done;echo -n ${res})h"
+}
+function SO () {
+    # SHIFT-OUT
+    
+    echo -n ""
+}
+function SOH () {
+    # START OF HEADING
+    
+    echo -n ""
+}
+function SOS () {
+    # START OF STRING
+    
+    echo -n "X"
+}
+function SPA () {
+    # START OF GUARDED AREA
+    
+    echo -n "V"
+}
+function SPD () {
+    # SELECT PRESENTATION DIRECTIONS
+    local PS1="$1";local PS2="$2"
+    echo -n "[${PS1};${PS2} S"
+}
+function SPH () {
+    # SET PAGE HOME
+    local PN="$1"
+    echo -n "[${PN} i"
+}
+function SPI () {
+    # SPACING INCREMENT
+    local PN1="$1";local PN2="$2"
+    echo -n "[${PN1};${PN2} G"
+}
+function SPL () {
+    # SET PAGE LIMIT
+    local PN="$1"
+    echo -n "[${PN} j"
+}
+function SPQR () {
+    # SELECT PRINT QUALITY AND RAPIDITY
+    local PS="$1"
+    echo -n "[${PS} X"
+}
+function SR () {
+    # SCROLL RIGHT
+    local PN="$1"
+    echo -n "[${PN} A"
+}
+function SRCS () {
+    # SET REDUCED CHARACTER SEPARATION
+    local PN="$1"
+    echo -n "[${PN} f"
+}
+function SRS () {
+    # START REVERSED STRING
+    local PS="$1"
+    echo -n "[${PS}["
+}
+function SSA () {
+    # START OF SELECTED AREA
+    
+    echo -n "F"
+}
+function SSU () {
+    # SELECT SIZE UNIT
+    local PS="$1"
+    echo -n "[${PS} I"
+}
+function SSW () {
+    # SET SPACE WIDTH
+    local PN="$1"
+    echo -n "[${PN} ["
+}
+function SS2 () {
+    # SINGLE-SHIFT TWO
+    
+    echo -n "N"
+}
+function SS3 () {
+    # SINGLE-SHIFT THREE
+    
+    echo -n "O"
+}
+function ST () {
+    # STRING TERMINATOR
+    
+    echo -n "\\"
+}
+function STAB () {
+    # SELECTIVE TABULATION
+    local PS="$1"
+    echo -n "[${PS} ^"
+}
+function STS () {
+    # SET TRANSMIT STATE
+    
+    echo -n "S"
+}
+function STX () {
+    # START OF TEXT
+    
+    echo -n ""
+}
+function SU () {
+    # SCROLL UP
+    local PN="$1"
+    echo -n "[${PN}S"
+}
+function SUB () {
+    # SUBSTITUTE
+    
+    echo -n ""
+}
+function SVS () {
+    # SELECT LINE SPACING
+    local PS="$1"
+    echo -n "[${PS} L"
+}
+function SYN () {
+    # SYNCHRONOUS IDLE
+    
+    echo -n ""
+}
+function TAC () {
+    # TABULATION ALIGNED CENTRED
+    local PN="$1"
+    echo -n "[${PN} b"
+}
+function TALE () {
+    # TABULATION ALIGNED LEADING EDGE
+    local PN="$1"
+    echo -n "[${PN} a"
+}
+function TATE () {
+    # TABULATION ALIGNED TRAILING EDGE
+    local PN="$1"
+    echo -n "[${PN} \`"
+}
+function TBC () {
+    # TABULATION CLEAR
+    local PS="$1"
+    echo -n "[${PS}g"
+}
+function TCC () {
+    # TABULATION CENTRED ON CHARACTER
+    local PN1="$1";local PN2="$2"
+    echo -n "[${PN1};${PN2} c"
+}
+function TSR () {
+    # TABULATION STOP REMOVE
+    local PN="$1"
+    echo -n "[${PN} d"
+}
+function TSS () {
+    # THIN SPACE SPECIFICATION
+    local PN="$1"
+    echo -n "[${PN} E"
+}
+function VPA () {
+    # LINE POSITION ABSOLUTE
+    local PN="$1"
+    echo -n "[${PN}d"
+}
+function VPB () {
+    # LINE POSITION BACKWARD
+    local PN="$1"
+    echo -n "[${PN}k"
+}
+function VPR () {
+    # LINE POSITION FORWARD
+    local PN="$1"
+    echo -n "[${PN}e"
+}
+function VT () {
+    # LINE TABULATION
+    
+    echo -n ""
+}
+function VTS () {
+    # LINE TABULATION SET
+    
+    echo -n "J"
+}
+
+
+
+# Legacy variable. Please use the above functions.
+
+export NORMAL="$(SGR 0)"
+export BOLD="$(SGR 1)"
+export UNDERLINE="$(SGR 4)"
+export BLINK="$(SGR 5)"
+export INVERT="$(SGR 7)"
+export NO_BOLD="$(SGR 22)"
+export NO_UNDERLINE="$(SGR 24)"
+export NO_BLINK="$(SGR 25)"
+export NO_INVERT="$(SGR 27)"
+export BLACK="$(SGR 30)"
+export RED="$(SGR 31)"
+export GREEN="$(SGR 32)"
+export YELLOW="$(SGR 33)"
+export BLUE="$(SGR 34)"
+export MAGENTA="$(SGR 35)"
+export CYAN="$(SGR 36)"
+export WHITE="$(SGR 37)"
+export BLACK_BACK="$(SGR 40)"
+export RED_BACK="$(SGR 41)"
+export GREEN_BACK="$(SGR 42)"
+export YELLOW_BACK="$(SGR 43)"
+export BLUE_BACK="$(SGR 44)"
+export MAGENTA_BACK="$(SGR 45)"
+export CYAN_BACK="$(SGR 46)"
+export WHITE_BACK="$(SGR 47)"
+
+export GOTO_HOME="$(IS2)"
+export CLEAR_HOME="$(FF)"
+export CLEAR_SCREEN="$(RIS)"
+
+export ISO6429ICH="${CSI}@"
+export ISO6429CUU="${CSI}${CSI_UP}"
+export ISO6429CUD="${CSI}${CSI_DOWN}"
+export ISO6429CUF="${CSI}${CSI_RIGHT}"
+export ISO6429CUB="${CSI}${CSI_LEFT}"
+export ISO6429CUP="${CSI}H"
+export ISO6429ED="${CSI}J"
+export ISO6429EL="${CSI}K"
+export ISO6429IL="${CSI}L"
+export ISO6429DL="${CSI}M"
+export ISO6429DCH="${CSI}P"
+export ISO6429SM="${CSI}h"
+export ISO6429RM="${CSI}l"
+
+#### .ansicodes                       --                     --          ####

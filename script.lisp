@@ -150,29 +150,119 @@ NOTE:   current implementation only accepts as separators
     (nreverse chunks)))
 
 
+(defun q&d-parse-parameters (parameters)
+  "Parses (mandatory &optional optionals... &rest rest &key key...)"
+  (loop
+     :with mandatories = '()
+     :with optionals   = '()
+     :with rest        = nil
+     :with keys        = '()
+     :with state       = :mandatory
+     :with params      = parameters
+     :for param = (first params)
+     :while params
+     :do (ecase state
+           ((:mandatory)
+            (case param
+              ((&optional) (setf state :optional))
+              ((&rest)     (setf state :rest))
+              ((&key)      (setf state :key))
+              (otherwise (push param mandatories)))
+            (pop params))
+           ((:optional)
+            (case param
+              ((&optional) (error "&OPTIONAL given more than once in ~S" parameters))
+              ((&rest)     (setf state :rest))
+              ((&key)      (setf state :key))
+              (otherwise (push param optionals)))
+            (pop params))
+           ((:rest)
+            (case param
+              ((&optional) (error "&OPTIONAL given after &REST in ~S" parameters))
+              ((&rest)     (error "&REST given twice in ~S" parameters))
+              ((&key)      (setf state :key))
+              (otherwise   (setf state :after-rest
+                                 rest param)))
+            (pop params))
+           ((:after-rest)
+            (case param
+              ((&optional) (error "&OPTIONAL given after &REST in ~S" parameters))
+              ((&rest)     (error "&REST given after &REST in ~S" parameters))
+              ((&key)      (setf state :key))
+              (otherwise   (error "Several &REST parameters given in ~S" parameters)))
+            (pop params))
+           ((:key)
+            (case param
+              ((&optional) (error "&OPTIONAL given after &KEY in ~S" parameters))
+              ((&rest)     (error "&REST given after &KEY in ~S" parameters))
+              ((&key)      (setf state :key))
+              (otherwise   (push param keys)))
+            (pop params)))
+     :finally (return (values (nreverse mandatories)
+                              (nreverse optionals)
+                              rest
+                              (nreverse keys)))))
+
+
+(defun keywordize (string-designator)
+  (intern (string string-designator) (load-time-value (find-package "KEYWORD"))))
+
+
+(defun q&d-arguments (mandatories optionals rest keys)
+  "
+BUG: when the optionals or keys have a present indicator,
+     we just ignore it and build a list that will pass
+     the default value anyways...
+" 
+  (assert (every (function symbolp) mandatories))
+  (append mandatories
+          (mapcar (lambda (opt)
+                    (etypecase opt
+                      (cons   (first opt))
+                      (symbol opt)))
+                  optionals)
+          (when rest (list rest))
+          (mapcan (lambda (key)
+                    (etypecase key
+                      (cons  (etypecase (first key)
+                               (symbol (list (keywordize (first key)) (first key)))
+                               (cons   (list (second (first key)) (first (first key))))))
+                      (symbol (list (keywordize key) key))))
+                  keys)))
+
+
 (defun wrap-option-function (keys option-arguments docstring option-function)
-  (let ((mandatory (or (position-if (lambda (option) (member option '(&optional &key &rest)))
-                                    option-arguments)
-                       (length option-arguments)))
-        (vargs (gensym)))
-    (setf *print-circle* nil)
-    (make-option
-     :keys keys
-     :arguments option-arguments
-     :function (compile (make-symbol (format nil "~:@(~A-WRAPPER~)" (first keys)))
-                        `(lambda (,vargs)
-                           (if (<= ,mandatory (length ,vargs))
-                               ,(if (member '&rest option-arguments)
+  (let ((vargs (gensym)))
+    (multiple-value-bind (mandatories optionals rest keys-args) (q&d-parse-parameters option-arguments)
+      (setf *print-circle* nil)
+      (make-option
+       :keys keys
+       :arguments option-arguments
+       :function (compile (make-symbol (format nil "~:@(~A-WRAPPER~)" (first keys)))
+                          `(lambda (,vargs)
+                             (if (<= ,(length mandatories) (length ,vargs))
+                                 ,(cond
+                                   (rest
                                     `(destructuring-bind ,option-arguments ,vargs
-                                       (funcall ',option-function ,@(remove '&rest option-arguments))
-                                       nil)
+                                       (funcall ',option-function ,@(q&d-arguments mandatories
+                                                                                   optionals
+                                                                                   rest
+                                                                                   keys-args))
+                                       nil))
+                                   (keys-args
+                                    (error "An option cannot have &key parameters without a &rest parameter. ~@
+                                            Invalid option parameters: ~S" option-arguments))
+                                   (t
                                     (let ((vremaining (gensym)))
                                       `(destructuring-bind (,@option-arguments &rest ,vremaining) ,vargs
-                                         (funcall ',option-function ,@option-arguments)
-                                         ,vremaining)))
-                               (error "Missing arguments: ~{~A ~}"
-                                      (subseq ',option-arguments (length ,vargs))))))
-     :documentation (split-string docstring (string #\newline)))))
+                                         (funcall ',option-function ,@(q&d-arguments mandatories
+                                                                                     optionals
+                                                                                     rest
+                                                                                     keys-args))
+                                         ,vremaining))))
+                                 (error "Missing arguments: ~{~A ~}"
+                                        (subseq ',option-arguments (length ,vargs))))))
+       :documentation (split-string docstring (string #\newline))))))
 
 
 

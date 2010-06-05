@@ -240,7 +240,7 @@
 
 (defmethod pm-list-packages ((self portage) &key installed all available
                              not-installed packages pattern)
-  (error "not implemented yet"))
+  (s "equery list" pattern))
 
 (defmethod pm-list-files                    ((self portage) package-designator)
   (s "equery files" package-designator))
@@ -359,7 +359,7 @@ This package may be installed or not.
   (fpm info package-name))
 
 
-(define-option  ("list-packages" "-p" "--list-packages") (qualifier &optionnal package-pattern)
+(define-option  ("list-packages" "-p" "--list-packages") (qualifier &optional package-pattern)
   ;; [list] [installed|available|all|not installed] packages [<package-pattern>]
   "Lists the packages and versions matching the PACKAGE-PATTERN or
 all the packages if omited.   The keywords installed, available,
@@ -367,12 +367,12 @@ all or not installed restrict the listing to the correponding
 package.  available and all are synonyms and the default."
   (let ((valid-qualifiers  '(installed available all not-installed)))
     (assert (member qualifier valid-qualifiers
-                    :test (function string-equalp))
+                    :test (function string-equal))
             (qualifier)
             "qualifier should be one of ~{~A~^, ~}"
             valid-qualifiers))
   (fpm list-packages
-       (intern (string qualifier) "KEYWORD") t
+       (intern (string-upcase qualifier) "KEYWORD") t
        :pattern package-pattern))
 
 

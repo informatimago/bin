@@ -70,16 +70,23 @@ for arg ; do
     esac
 done
 
-# echo ${nfile}
-# echo ${files[@]}
-if [ $onefile -ne 0 ] ; then
-    echo ${files[$(( 1 + $( ~/bin/random  ${#files[@]} ) ))]}
+if [ $nfile -eq 0 ] ; then
+    if [ $(/bin/ls -1|wc -l) -eq 0 ] ; then
+        echo No files.
+    else
+        "$0" "$@" *
+    fi
 else
-    for arg in "${files[@]}" ; do
-        if [ `random $TOP` -le $prob ] ; then
-            echo $arg
-        fi
-    done
+    # echo ${nfile} ; echo ${files[@]}
+    if [ $onefile -ne 0 ] ; then
+        echo ${files[$(( 1 + $( random  ${#files[@]} ) ))]}
+    else
+        for arg in "${files[@]}" ; do
+            if [ $(random $TOP) -le $prob ] ; then
+                echo $arg
+            fi
+        done
+    fi
 fi
 
 exit 0
