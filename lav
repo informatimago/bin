@@ -3,11 +3,11 @@ case `uname` in
 NeXTSTEP)
     /usr/ucb/w | head -1
     ;;
-Linux)
+Linux|Darwin)
     /usr/bin/uptime
     ;;
 *)
-    echo Please edit the $0 script.
+    echo "Please edit the $0 script."
     ;;
 esac
 

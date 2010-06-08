@@ -7,7 +7,7 @@ Darwin)
         title="$(echo $f|sed -e 's/.*\/[0-9]*-\(.*\)\.flac/\1/' -e 's/-/ /g')"a
         cookie | tee -a /dev/tty |say 
         sleep 1
-        say "And now: ${title}!" 
+        say "And now: ${title}." 
         sleep 1
         mplayer  "$f" <>/dev/tty 
         sleep 1
@@ -21,7 +21,7 @@ Darwin)
     | while read f ; do 
         title="$(echo $f|sed -e 's/.*\/[0-9]*-\(.*\)\.flac/\1/' -e 's/-/ /g')"a
         cookie
-        echo "And now: ${title}!" 
+        echo "And now: ${title}." 
         mplayer  "$f" <>/dev/tty 
         echo "We have listened to ${title}." 
     done
