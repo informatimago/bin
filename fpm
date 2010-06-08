@@ -245,9 +245,9 @@
                              packages pattern)
   (cond
     (packages            (s "equery list" packages))
-    (installed           (s "equery list -i -f" pattern))
-    (not-installed       (s "equery list -I -f" pattern))
-    (t                   (s "equery list -p -f" pattern))))
+    (installed           (s "equery list    -i -f" pattern))
+    (not-installed       (s "equery list -p -I -f" pattern))
+    (t                   (s "equery list -p    -f" pattern))))
 
 (defmethod pm-list-files                    ((self portage) package-designator)
   (s "equery files" package-designator))

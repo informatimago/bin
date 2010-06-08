@@ -35,10 +35,14 @@ printf "and push there the current local git repository %s\n" "$(pwd)"
 printf "Please confirm (RET/%s): " "$intr"
 read line
 
-echo  $(printf "mkdir -p \"%s\" && cd \"%s\" && git --bare init" "$repository" "$repository") \
-| ssh "$host" bash -c 'cat > /tmp/create-remote-git.sh && source /tmp/create-remote-git.sh'
+printf "mkdir -p \"%s\" && cd \"%s\" && git --bare init" "$repository" "$repository" \
+| ssh "$host" source /dev/stdin
+
 git remote add origin ssh://$host$repository
 git push origin master
+
+printf "cd \"%s\" && git update-server-info" "$repository" \
+| ssh "$host" source /dev/stdin
 
 exit 0
 
