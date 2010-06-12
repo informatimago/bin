@@ -123,6 +123,108 @@
 
 
 
+;;;---------------------------------------------------------------------
+
+(defun print-command (command)
+  (format t "~A~%" command) (finish-output)
+  command)
+
+
+(defun shell-quote-argument (argument)
+  "Quote ARGUMENT for passing as argument to an inferior shell."
+  #+(or MSWINDOWS WIN32)
+  ;; Quote using double quotes, but escape any existing quotes in
+  ;; the argument with backslashes.
+  (let ((result "")
+        (start 0)
+        (end)
+        (match-beginning)
+        (match-end))
+    (when (or (null (setf match-end (position #\" argument)))
+              (< match-end (length argument)))
+      (loop
+         :while (setf match-beginning (position #\" argument :start start))
+         :do (setf end (1+ match-beginning)
+                   result (concatenate 'string result (subseq argument start end)
+                                       "\\" (subseq argument end (1+ end)))
+                   start (1+ end))))
+    (concatenate 'string "\"" result (subseq argument start) "\""))
+  #-(or MSWINDOWS WIN32)
+  (if (equal argument "")
+      "''"
+      ;; Quote everything except POSIX filename characters.
+      ;; This should be safe enough even for really weird shells.
+      (let ((result "")
+            (start 0)
+            (end)
+            (match-beginning)
+            (match-end))
+        (loop
+           :while (setf match-end (position-if-not (lambda (ch) (or (alphanumericp ch) (position ch "-_./")))  argument :start start))
+           :do (setf end match-end
+                     result (concatenate 'string result (subseq argument start end)
+                                         "\\" (subseq argument end (1+ end)))
+                     start (1+ end)))
+        (concatenate 'string result (subseq argument start)))))
+
+
+(define-condition command-exit-status (error)
+  ((command :initform "" :initarg :command :accessor command-exit-status-command)
+   (status  :initform 0  :initarg :status  :accessor command-exit-status-status))
+  (:report  (lambda (condition stream)
+              (format stream "Command ~S exited with status ~D"
+                      (command-exit-status-command condition)
+                      (command-exit-status-status  condition)))))
+
+(define-condition command-aborted-on-signal (error)
+  ((command :initform "" :initarg :command :accessor command-aborted-on-signal-command)
+   (signal  :initform 0  :initarg :signal  :accessor command-aborted-on-signal-signal))
+  (:report  (lambda (condition stream)
+              (format stream "Command ~S was killed by signal ~D"
+                      (command-aborted-on-signal-command condition)
+                      (command-aborted-on-signal-signal  condition)))))
+
+(defvar *run-output* :terminal)
+                                   
+(defun run (control-string &rest arguments)
+  "Runs the specified shell commands.
+Signals an error if they exit with an error status or are killed by a signal."
+  (let* ((command (print-command (format nil "{ ~? ; } 2>&1" control-string arguments)))
+         (status  (unwind-protect
+                       ;; TODO: fork/exec to collect the PID.
+                       (ext:run-program "/bin/bash"
+                                    :arguments (list "-c" command)
+                                    :output *run-output*
+                                    :if-output-exists :append)
+                    ;; TODO: kill the subprocess
+                    (progn))))
+    (cond
+      ((null   status) #|normal exit|#)
+      ((plusp  status) (error 'command-exit-status
+                              :command command :status status))
+      ((minusp status) (error 'command-aborted-on-signal
+                              :command command :signal (abs status)))
+      (t               (error "Command ~S exited with strange status ~S"
+                              command status)))))
+
+
+;;;---------------------------------------------------------------------
+
+
+(defun s (command &rest arguments)
+  (let ((arguments  (mapcar (lambda (arg) (shell-quote-argument (princ-to-string arg)))
+                            arguments)))
+   (apply (function run) (format nil "~A~~@{ ~~A~~}" command) arguments)))
+
+
+(defun e (&rest args)
+  (with-output-to-string (out)
+    (with-open-stream (in (ext:run-shell-command (format nil "~{~A ~}" args)
+                                                 :output :stream :wait nil))
+      (loop
+         :for line = (read-line in nil nil)
+         :while line :do (write-line line out)))))
+
 
 ;;;------------------------------------------------------------
 (defclass package-manager ()
@@ -145,17 +247,6 @@
 (defgeneric pm-dependants                    (pm package-designator))
 
 
-(defun s (&rest args)
-  (format t "~{~@[~A ~]~}~%" args)
-  (ext:shell (format nil "~{~@[~A ~]~}~%" args)))
-
-(defun e (&rest args)
-  (with-output-to-string (out)
-    (with-open-stream (in (ext:run-shell-command (format nil "~{~A ~}" args)
-                                                 :output :stream :wait nil))
-      (loop
-         :for line = (read-line in nil nil)
-         :while line :do (write-line line out)))))
 
 ;;;------------------------------------------------------------
 (defclass rpm (package-manager)
@@ -171,6 +262,42 @@
 ;; snowball:534$ dpkg -S /bin/cp
 ;; coreutils: /bin/cp
 ;; snowball:535$ apt-get source coreutils
+
+
+(defmethod pm-version ((self apt))
+  (s "apt-get --version")) 
+
+(defmethod pm-install ((self apt) package-designator)
+  (s "apt-get install" package-designator))
+
+(defmethod pm-update  ((self apt) package-designator)
+  (s "apt-get upgrade" package-designator))
+
+(defmethod pm-remove  ((self apt) package-designator)
+  (s "apt-get remove" package-designator))
+
+(defmethod pm-info    ((self apt) package-designator)
+  (s "dpkg-query --show" package-designator))
+
+
+(defmethod pm-list-packages ((self apt) &key installed all available
+                             not-installed packages pattern)
+  (s "dpkg --list"))
+
+(defmethod pm-list-files                    ((self apt) package-designator)
+  (s "dpkg --listfiles" package-designator))
+
+(defmethod pm-find-package-containing-file  ((self apt) file-path)
+  (s "dpkg --search" file-path))
+
+(defmethod pm-find-package-with-info        ((self apt) pattern)
+  (s "echo 'I do not know how to do that yet.'"))
+
+(defmethod pm-dependencies                  ((self apt) package-designator)
+  (s "apt-cache depends" package-designator))
+
+(defmethod pm-dependants                    ((self apt) package-designator)
+  (s "apt-cache rdepends" package-designator))
 
 
 
@@ -366,7 +493,7 @@ This package may be installed or not.
   (fpm info package-name))
 
 
-(define-option  ("list-packages" "-p" "--list-packages") (qualifier &optional package-pattern)
+(define-option  ("list-packages" "-p" "--list-packages" "list-package" "packages" "package") (qualifier &optional package-pattern)
   ;; [list] [installed|available|all|not installed] packages [<package-pattern>]
   "Lists the packages and versions matching the PACKAGE-PATTERN or
 all the packages if omited.   The keywords installed, available,
@@ -383,7 +510,7 @@ package.  available and all are synonyms and the default."
        :pattern package-pattern))
 
 
-(define-option ("list-files" "files" "-l" "--list-files" "--files") (package-name)
+(define-option ("list-files" "files" "-l" "--list-files" "--files" "list-file" "file") (package-name)
   ;; [list] files [in] <package-name>
   "Lists the full pathnames of the files in the package named PACKAGE-NAME.
 PACKAGE-NAME may include some specific version or version constraint
@@ -433,15 +560,16 @@ underlying package system syntax.
 
 
 
- "
+;;  "
+;; 
+;; ~A~:* lowly cleanup
+;; 
+;;     Some package managers need some cleanup.
+;; 
+;; "
 
-~A~:* lowly cleanup
-
-    Some package managers need some cleanup.
-
-"
-
-
+;; (trace run)
+;; (trace s)
 
 
 (parse-options ext:*args*)
