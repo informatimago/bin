@@ -1,0 +1,48 @@
+#!/bin/bash
+pname="$(basename "$0")"
+if [ $# -ne 2 ] ; then
+   printf "%s usage:\n" "$pname"
+   printf "   %s \$HOST \$REMOTE_REPOSITORY_DIRECTORY\n" "$pname"
+   exit 1
+fi
+
+host="$1"
+repository="$2"
+case "$repository" in
+/*)
+    true
+    ;;
+*)
+    printf "The path of the remote repository directory must be absolute.\n" 
+    printf "'%s' is a relative path.\n"  "$repository"
+    exit 2
+esac
+
+if [ -d .git ] ; then
+    true 
+else
+    printf "The current working directory must be a local git repository.\n" 
+    printf "There is no .git subdirectory in '%s'.\n"  "$(pwd)"
+    exit 3
+    
+fi
+
+intr="$(stty -a|tr ';' '\012'|awk '/intr/{print $3}')"
+# intr="C-c"
+
+printf "Will create a remote repository on ssh://%s%s\n" "$host" "$repository"
+printf "and push there the current local git repository %s\n" "$(pwd)"
+printf "Please confirm (RET/%s): " "$intr"
+read line
+
+printf "mkdir -p \"%s\" && cd \"%s\" && git --bare init" "$repository" "$repository" \
+| ssh "$host" source /dev/stdin
+
+git remote add origin ssh://$host$repository
+git push origin master
+
+printf "cd \"%s\" && git update-server-info" "$repository" \
+| ssh "$host" source /dev/stdin
+
+exit 0
+

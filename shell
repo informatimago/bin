@@ -1161,17 +1161,114 @@ APOGEE / PERIGEE   1130/220  STATUTE MLE
 
  
 (defparameter matrix-data 
-  "
-----------------------------------------
+  '(
+    "
  Call trans opt: received. 2-19-98 13:24:18 REC:Log>
  Trace program: running
-----------------------------------------
+"
+
+    "
 Wake up Neo...
 The Matrix has you.
 Follow the white rabbit...
-----------------------------------------
 "
-  "Matrix -- 1998 / (3 2)5550690 / cmatrix")
+
+    "
+Matrix -- 1998 / (3 2)5550690 / cmatrix
+
+"
+
+    "
+
+1) The phone number for the phone in room 303 is 555-0696.
+
+2) The license plate number for the agent's car is 70858.
+
+3) In room 303, the hardline was cut when Trinity was there at the
+   beginning. However, at the end of the movie when Neo was trying to
+   get out of the Matrix, the phone worked perfectly.
+
+4) When Neo is searching the net for Morpheus, one of the headlines
+   reads GLOBAL SEARCH/ MORPHEUS ELUDES POLICE AT HEATHROW AIRPORT/
+   London: As the search intensifies for the terrorist leader,
+   Morpheus, a sighting has just been reported to this newspaper by
+   British intelligence...
+
+5) Neo's hollow book is called Stimulacra & Stimulation, and he opens
+   to the chapter on Onnihilism.
+
+6) Troy says that Neo just needs to unplug. Think about it. It's
+   foreshadowing.
+
+7) Trinity chooses to confront Neo in the skimpiest outfit she wears
+   in the entire movie.
+
+8) Trinity tells Neo that she cracked the IRS database a long time
+   ago. This has to be true, because she wouldn't have attempted
+   something so trivial after her mind was freed by Morpheus. Also,
+   Morpheus told Neo that they have a rule that they don't free a nimd
+   agter it's reached a certain age. So, how old was Trinity when she
+   started hacking? 5? Did she crack the database when she was 10? 15?
+   Can you say child prodigy?
+
+9) Neo didn't think before he spoke when he incredulously asked
+   Trinity how she got onto his computer. If Trinity can hack into the
+   IRS's database and later brush it off as mere child's play, she
+   certainly wouldn't have any trouble messing around on Neo's
+   computer.
+
+10) Neo's boss talks (lectures, actually,) about choices. I think that
+    this is more foreshadowing, because Neo's choices come in
+    important near the end.
+
+11) There is a NERF dart sticking up behind Neo's alarm clock.
+
+12) When the delivery boy says, \"Have a nice day,\" Neo glares at
+    him.
+
+13) Neo (Keanu Reeves actually) has a pierced ear.
+
+14) The office at the end of the hall looks like a padded rubber room.
+
+15) The first file in Neo's folder is titled DATABASE RECORD SECURITY
+    CLEARANCE FACTOR 7. Date of last amendment or addition: 22 July,
+    1998. This is his personal record. His name is Thomas Anderson,
+    born on 11 March, 1962, in Lower Downtown, Capital City, as a US
+    citizen. His mother is Michelle McGahey, and his father is John
+    Anderson. He attended Central West Junior High, and Owen Peterson
+    High. There is no mention of a college record. Under his High
+    School record, it states that he excelled in the sciences,
+    mathematics, and computer courses. He also displayed good
+    abilities in English and History. Then, the words blur together
+    and I can't read any more.
+
+16) Neo's driver's liscense picture is taken in the same suit that he
+    wore to work.
+
+17) Neo's dad had black curly hair and a mustache. His mom had long
+    brown hair.
+
+18) Agent Smith says that they know Neo has been contacted by an
+    individual that calls himself Morpheus, but they came to arrest
+    him before Morpheus called him. Either they're quick, or the fact
+    that Neo was hiding from them on a ledge ouside the building tens
+    of stories up tipped them off.
+
+19) Neo has a matchbok collection in a jar on top of a file cabinet
+    behind his bed. Beside it is a melted down candle in a wine
+    bottle.
+
+20) There's a crack of thunder after Morpheus says, \"You're the one,
+    Neo.\".
+
+21) The scene in the car is the only one in the whole movie that
+    Switch wears black.
+
+22) Switch calls Neo \"coppertop\". Think of the Duracell battery that
+    Morpheus hold up when he describes what humans have become in the
+    real world. Nothing tops the coppertop! 
+
+"))
 
 
 

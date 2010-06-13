@@ -11,20 +11,39 @@ ps=()
 for file ; do
     type="$(file "$file")"
     case "$type" in
-    *Postscript*)        ps[${#ps}]="$file" ;;
-    *text*)              text[${#text}]="$file" ;;
-    *image*)             image[${#image}]="$file" ;;
-    *mp3*|*MP3*|*audio*) sound[${#sound}]="$file" ;;
-    *AVI*|*movie*)       video[${#video}]="$file";;
-    *PDF*)               pdf[${#pdf}]="$file" ;;
+    *Postscript*)              ps[${#ps}]="$file" ;;
+    *PDF*)                     pdf[${#pdf}]="$file" ;;
+    *text*)                    text[${#text}]="$file" ;;
+    *image*)                   image[${#image}]="$file" ;;
+    *ogg*|*mp3*|*MP3*|*audio*) sound[${#sound}]="$file" ;;
+    *AVI*|*movie*)             video[${#video}]="$file";;
     *)                   echo "Don't know how to open $file";echo "$type";;
     esac
 done
-if [ ${#text}  -ne 0 ] ; then emacsclient -n "${text[@]}" -a emacs ;fi
-if [ ${#image} -ne 0 ] ; then xv "${image[@]}" & fi
-if [ ${#sound} -ne 0 ] ; then xmms -p "${sound[@]}" & fi
-if [ ${#video} -ne 0 ] ; then (for f in "${video[@]}";do aviplay "$f";done)& fi
-if [ ${#odf}   -ne 0 ] ; then for f in "${pdf[@]}";do acroread "$f"& done;fi
-if [ ${#ps}    -ne 0 ] ; then for f in "${ps[@]}";do gv "$f"& done;fi
+
+if [ ${#text}  -ne 0 ] ; then
+     ( emacsclient -n "${text[@]}" -a emacs || echo "Do not know how to open $f" )
+fi
+if [ ${#image} -ne 0 ] ; then
+     ( xv "${image[@]}" || echo "Do not know how to open $f" ) &
+fi
+if [ ${#sound} -ne 0 ] ; then
+     ( xmms -p "${sound[@]}" || mplayer "${sound[@]}" || echo "Do not know how to open $f" ) &
+fi
+if [ ${#video} -ne 0 ] ; then
+    for f in "${video[@]}" ; do 
+        mplayer "$f" || aviplay "$f" || echo "Do not know how to open $f" 
+    done & 
+fi
+if [ ${#pdf}   -ne 0 ] ; then
+     for f in "${pdf[@]}" ; do
+         ( acroread "$f" || xpdf "$f" || echo "Do not know how to open $f" ) & 
+     done 
+fi
+if [ ${#ps}    -ne 0 ] ; then
+     for f in "${ps[@]}" ; do
+         ( gv "$f" || gsview "$f" || echo "Do not know how to open $f" ) & 
+     done
+fi
 exit 0
-#### open                             --                     --          ####
+#### THE END ####
