@@ -36,7 +36,64 @@
 ;;;;    Boston, MA 02111-1307 USA
 ;;;;**************************************************************************
 
-(in-package "COMMON-LISP-USER")
+(cl:in-package "COMMON-LISP-USER")
+
+;;;---------------------------------------------------------------------------
+;;;
+
+(defpackage "COM.INFORMATIMAGO.CLISP.VERSION"
+  (:nicknames "VERSION")
+  (:use "COMMON-LISP")
+  (:export
+   "CLISP-VERSION"
+   "VERSION="    "VERSION<"    "VERSION<="
+   "RT-VERSION=" "RT-VERSION<" "RT-VERSION<="
+   ))
+(in-package "COM.INFORMATIMAGO.CLISP.VERSION")
+
+
+(defun clisp-version (&optional (version-string (LISP-IMPLEMENTATION-VERSION)))
+  (loop
+     :with r = '()
+     :with start = 0
+     :do (multiple-value-bind (n p)
+             (parse-integer version-string :start start :junk-allowed t)
+           (push n r)
+           (if (or (<= (length version-string) p)
+                   (char= #\space (aref version-string p)))
+               (return-from clisp-version (nreverse r))
+               (setf start (1+ p))))))
+
+(defun version= (a b)
+  (equal (if (stringp a) (clisp-version a) a)
+         (if (stringp b) (clisp-version b) b)))
+
+(defun version< (a b)
+  (setf a (if (stringp a) (clisp-version a) a)
+        b (if (stringp b) (clisp-version b) b))
+  (cond
+    ((null a)            (not (null b)))
+    ((null b)            nil)
+    ((< (car a) (car b)) t)
+    ((= (car a) (car b)) (version< (cdr a) (cdr b)))
+    (t                   nil)))
+
+(defun version<= (a b)
+  (setf a (if (stringp a) (clisp-version a) a)
+        b (if (stringp b) (clisp-version b) b))
+  (or (version= a b) (version< a b)))
+
+(defun rt-version=  (a b) (if (version=  a b) '(and) '(or)))
+(defun rt-version<  (a b) (if (version<  a b) '(and) '(or)))
+(defun rt-version<= (a b) (if (version<= a b) '(and) '(or)))
+
+
+;;;---------------------------------------------------------------------------
+;;;
+;;;
+
+(cl:in-package "COMMON-LISP-USER")
+
 (defpackage "COM.INFORMATIMAGO.COMMON-LISP.SCRIPT"
   (:nicknames "SCRIPT")
   (:use "COMMON-LISP")
@@ -59,6 +116,8 @@
 
            "SHELL" "RUN-PROGRAM"
            "UNAME" "PARSE-OPTIONS"
+           "WITH-PAGER"
+
            ))
 (in-package "COM.INFORMATIMAGO.COMMON-LISP.SCRIPT")
 
@@ -82,6 +141,13 @@ otherwise we fallback to *DEFAULT-PROGRAM-NAME*.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;
+
+
 (defmacro redirecting-stdout-to-stderr (&body body)
   (let ((verror  (gensym))
         (voutput (gensym)))
@@ -101,6 +167,48 @@ otherwise we fallback to *DEFAULT-PROGRAM-NAME*.")
         (terpri *error-output*)
         #-testing-script (ext:exit 1)))))
 
+
+
+(defmacro with-pager ((&key lines) &body body)
+  "
+Executes the BODY, redirecting *STANDARD-OUTPUT* to a pager.
+
+If no option is given, use the system pager obtained from the
+environment variable PAGER.  If none is defined, then no pager is
+used.
+
+The following is NOT IMPLEMENTED YET:
+
+If an option is given, then it defines a local pager.
+
+LINES     Number of line to output in a single chunk.
+          After this number of line has been written,
+          some user input is required to further display lines.
+"
+  (when lines
+    (error "~S: Sorry :LINES is not implemented yet." 'with-pager))
+  ;; (print (list (version:clisp-version)
+  ;;              (version:rt-version<= "2.48" (version:clisp-version))))
+  #+#.(version:rt-version<= "2.44" (version:clisp-version))
+  `(progn ,@body)
+  #-#.(version:rt-version<= "2.44" (version:clisp-version))
+  (let ((pager (ext:getenv "PAGER")))
+    (if pager
+        (let ((pager-stream (gensym)))
+          `(let ((,pager-stream (ext:make-pipe-output-stream
+                                 ,pager
+                                 :external-format charset:utf-8
+                                 :buffered nil)
+                   ;; (ext:run-program ,pager
+                   ;;                  :input :stream
+                   ;;                  :output :terminal
+                   ;;                  :wait nil)
+                   ))
+             (unwind-protect
+                  (let ((*standard-output* ,pager-stream))
+                    ,@body)
+               (close ,pager-stream))))
+        `(progn ,@body))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -319,19 +427,20 @@ RETURN:     The lisp-name of the option (this is a symbol
 
 (define-option ("help" "-h" "--help") ()
   "Give this help."
-  (let ((options '()))
-    (maphash (lambda (key option)
-               (declare (ignore key))
-               (pushnew option options))
-             *options*)
-    (format t "~2%~A options:~2%" (pname))
-    (dolist (option (sort options (function string<)
-                          :key (lambda (option) (first (option-keys option)))))
-      (format t "    ~{~A~^ | ~}  ~:@(~{~A ~}~)~%~@[~{~%        ~A~}~]~2%"
-              (option-keys option)
-              (option-arguments option)
-              (option-documentation option)))
-    (format t "~%")))
+  (with-pager ()
+      (let ((options '()))
+        (maphash (lambda (key option)
+                   (declare (ignore key))
+                   (pushnew option options))
+                 *options*)
+        (format t "~2%~A options:~2%" (pname))
+        (dolist (option (sort options (function string<)
+                              :key (lambda (option) (first (option-keys option)))))
+          (format t "    ~{~A~^ | ~}  ~:@(~{~A ~}~)~%~@[~{~%        ~A~}~]~2%"
+                  (option-keys option)
+                  (option-arguments option)
+                  (option-documentation option)))
+        (format t "~%"))))
 
 
 (defun parse-options (arguments)
