@@ -816,7 +816,8 @@ package.  available and all are synonyms and the default."
        :pattern package-pattern))
 
 
-(define-option ("list-files" "files" "-l" "--list-files" "--files" "list-file" "file") (package-name)
+(define-option ("list-files" "files" "-l" "--list-files" "--files" "list-file" "file" "contents" "content")
+    (package-name)
   ;; [list] files [in] <package-name>
   "Lists the full pathnames of the files in the package named PACKAGE-NAME.
 PACKAGE-NAME may include some specific version or version constraint

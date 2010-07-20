@@ -1,0 +1,9 @@
+#!/bin/bash
+host="$1"
+pname="$(basename "$0")"
+if [ "$host" = "" ] ; then
+   echo "$pname usage:"
+   echo "    $pname HOST"
+   exit 0
+fi
+sed -i -e "/$host/d" ~/.ssh/known_hosts
