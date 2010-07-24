@@ -33,7 +33,35 @@
 
 (load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common
                      :defaults *load-pathname*))
-(use-package "SCRIPT")
+
+(defpackage "FRONT-END-UNIX-PACKAGE-MANAGEMENT"
+  (:use "COMMON-LISP" "SCRIPT")
+  (:nicknames "FPM")
+  (:shadow "PACKAGE" "PACKAGEP" "PACKAGE-NAME")
+  (:documentation "
+
+fpm = Front-end Package Management
+
+
+The purpose of this command is to provide a unique user interface
+to all the various and gratuituously distinct package management
+user interfaces.
+
+Supported package managers:
+
+RedHat:   rpm  (Not implemented yet)
+SuSE:     rpm  (Not implemented yet)
+Debian:   apt
+MacOSX:   macport
+Gentoo:   portage
+
+Some commands may be not implemented yet, since I don't
+necessarily know how to do everything with each package
+management system (hence the need of this tool!).
+
+"))
+(in-package "FRONT-END-UNIX-PACKAGE-MANAGEMENT")
+
 (setf *program-name* (pname))
 
 
@@ -142,8 +170,10 @@
 
 ;;;---------------------------------------------------------------------
 
+(defvar *verbose* t)
 (defun print-command (command)
-  (format t "~A~%" command) (finish-output)
+  (when *verbose*
+   (format t "~A~%" command)) (finish-output)
   command)
 
 
@@ -247,6 +277,26 @@ Signals an error if they exit with an error status or are killed by a signal."
 
 
 ;;;------------------------------------------------------------
+
+(defun compose-sexp (functions var)
+  (if (null functions)
+      var
+      (list (car functions) (compose-sexp (cdr functions) var))))
+
+(defmacro COMPOSE (&rest functions)
+  `(lambda (x) ,(compose-sexp functions 'x)))
+
+(defun ensure-list (x) (if (listp x) x (list x)))
+
+(defun prefixp (prefix string)
+  (and (<= (length prefix) (length string))
+       (string= prefix string :end2 (length prefix))))
+
+(defun suffixp (suffix string)
+  (and (<= (length suffix) (length string))
+       (string= suffix string :start2 (- (length string) (length suffix)))))
+
+;;;------------------------------------------------------------
 (defclass package-manager ()
   ((name :accessor package-manager-name :initarg :name :type string)))
 
@@ -265,6 +315,41 @@ Signals an error if they exit with an error status or are killed by a signal."
 (defgeneric pm-find-package-with-info        (pm pattern))
 (defgeneric pm-dependencies                  (pm package-designator))
 (defgeneric pm-dependants                    (pm package-designator))
+
+
+
+(defgeneric pm-package-designator (pm package-designator)
+  (:documentation 
+   "Return a single package, a list of packages, 
+or an expression such as (= <package>)  (<= <package>) etc."))
+
+;;;------------------------------------------------------------
+(defclass package ()
+  ((category :initarg :category :initform "" :accessor package-category)
+   (name     :initarg :name     :initform "" :accessor package-name)
+   (version  :initarg :version  :initform "" :accessor package-version)))
+
+(defun packagep (x) (typep x 'package))
+
+(defmethod print-object ((self package) stream)
+  (print-unreadable-object (self stream :type t)
+    (format stream ":CATEGORY ~S :NAME ~S :VERSION ~S"
+            (package-category self)
+            (package-name self)
+            (package-version self)))
+  self)
+
+
+(defgeneric package-file-pathname (package))
+
+(defmethod existp ((self package))
+   (probe-file (package-file-pathname self)))
+
+(defmethod check-exists ((self package))
+  "Returns SELF if it exists, or signals an error otherwise."
+  (if (existp self)
+      self
+      (error "Package ~A doesn't exist." self)))
 
 
 
@@ -372,10 +457,183 @@ Signals an error if they exit with an error status or are killed by a signal."
 
 
 
+
 ;;;------------------------------------------------------------
 (defclass portage (package-manager)
   ()
   (:documentation "This is the package manager of gentoo."))
+
+
+(defclass portage-package (package)
+  ())
+
+(defmethod package-file-pathname ((self portage-package))
+  (pathname (format nil "/usr/portage/~A/~A/~:*~A-~A.ebuild"
+                    (package-category self)
+                    (package-name self)
+                    (package-version self))))
+
+(defmethod package-atom ((self portage-package))
+  (format nil "~A/~A-~A"
+          (package-category self)
+          (package-name self)
+          (package-version self)))
+
+;; (defparameter *portage-package-regexp*
+;; "^\\(/usr/portage/\\)\\?\\([^/]*\\)/\\([^/]*\\)/\\([-_+A-Za-z0-9]*\\)-\\([0-9][.0-9]*[-_a-z0-9]*\\)\\(-r[0-9][0-9]*\\)\\?\\(\\.ebuild\\)\\?$"
+
+;; /usr/portage/cat/pac/pac-vers.ebuild
+;;              cat/pac/pac-vers
+
+;;              cat/pac-vers
+;;             =cat/pac-vers
+;;             <=cat/pac-vers
+;;             >=cat/pac-vers
+;;             <cat/pac-vers
+;;             >cat/pac-vers
+
+
+;; /usr/portage/\([-a-zA-Z0-9]\)/\([-A-Za-z0-9]\)/\([-A-Za-z0-9]\)-\([0-9][.0-9]
+
+
+(defparameter *portage-category-regexp*         "\\([A-Za-z0-9][-A-Za-z0-9]*\\)")
+(defparameter *portage-name-regexp*             "\\([A-Za-z0-9][-_+A-Za-z0-9]*[+A-Za-z0-9]\\)")
+(defparameter *portage-optional-version-regexp* "\\(\\(-\\([0-9][.0-9]*[-_a-z0-9]*\\)\\(-r[0-9][0-9]*\\)\\?\\)\\?\\)")
+
+(defparameter *portage-pv-regexp*   (format nil "^~A~A$"
+                                           *portage-name-regexp*
+                                           *portage-optional-version-regexp*))
+
+(defparameter *portage-cpv-regexp*  (format nil "^~A/~A~A$" 
+                                           *portage-category-regexp*
+                                           *portage-name-regexp*
+                                           *portage-optional-version-regexp*))
+
+(defparameter *portage-cppv-regexp* (format nil "^~A/~A/~:*~A~A$" 
+                                           *portage-category-regexp*
+                                           *portage-name-regexp*
+                                           *portage-optional-version-regexp*))
+
+
+(defun parse-portage-package-designator (package-designator &optional version-must-exist-p)
+  (let ((designator (princ-to-string package-designator)))
+    (if (zerop (length designator))
+        '()
+        (labels ((unambiguous (packages) 
+                   ;; (print `(unambiguous ,packages))
+                   (if (= 1 (length packages))
+                       (first packages)
+                       (error "Ambiguous package designator: ~S~& could be any of:~{  ~A~^~%~}" 
+                              package-designator packages)))
+                 (ambiguous (packages)
+                   ;; (print `(ambiguous ,packages))
+                   (cond
+                     ((null packages) '()) 
+                     ((null (rest packages))
+                      (first packages))
+                     (t
+                      packages)))
+                 (cppve (designator)
+                   ;; (print `(cppve ,designator))
+                   (if (suffixp ".ebuild" designator)
+                       (cppv (subseq designator 0 (- (length designator) (length ".ebuild"))))
+                       (cppv designator)))
+                 (make-cpv (category name version)
+                   (cond
+                     ((string= version "")
+                      (mapcan (compose ensure-list parse-portage-package-designator)
+                              (directory (make-pathname :directory (list :absolute "usr" "portage" category name) 
+                                                        :name (format nil "~A-*" name)
+                                                        :type "ebuild"
+                                                        :case :local))))
+                     ((not version-must-exist-p) ; note: version must not be empty, but it may not exist.
+                      (if (directory (make-pathname :directory (list :absolute "usr" "portage" category name) 
+                                                    :name (format nil "~A-*" name)
+                                                    :type "ebuild"
+                                                    :case :local))
+                          (list (make-instance 'portage-package
+                                               :category category 
+                                               :name name
+                                               :version (subseq version 1)))
+                          (error "There is no such package: ~S" package-designator)))
+                     (t
+                      (list (check-exists (make-instance 'portage-package
+                                                         :category category
+                                                         :name name
+                                                         :version (subseq version 1)))))))
+                 (cppv (designator)
+                   ;; (print `(cppv ,designator))
+                   (multiple-value-bind (all category name1 name2 version)
+                       (regexp:match *portage-cppv-regexp* designator)
+                     ;; (print (list all category name1 name2 version))
+                     (if all
+                         (let ((category (regexp:match-string designator category))
+                               (name1    (regexp:match-string designator name1))
+                               (name2    (regexp:match-string designator name2))
+                               (version  (regexp:match-string designator version)))
+                           (if (string= name1 name2)
+                                 (make-cpv category name1 version)
+                              (error "Invalid package designator, inconsistent package names: ~S" 
+                                     package-designator)))
+                         (error "Invalid package designator: ~S" package-designator))))
+                 (cpv (designator) 
+                   ;; (print `(cpv ,designator))
+                   (multiple-value-bind (all category name version)
+                       (regexp:match *portage-cpv-regexp* designator)
+                     ;; (print (list all category name version))
+                     (if all
+                         (let ((category (regexp:match-string designator category))
+                               (name     (regexp:match-string designator name))
+                               (version  (regexp:match-string designator version)))
+                           (make-cpv category name version))
+                         (error "Invalid package designator: ~S" package-designator))))
+                 (pv (designator)
+                   ;; (print `(pv ,designator))
+                   (multiple-value-bind (all name version)
+                       (regexp:match *portage-pv-regexp* designator)
+                     ;; (print (list all name version))
+                     (if all
+                         (let ((name     (regexp:match-string designator name))
+                               (version  (regexp:match-string designator version)))
+                           (mapcan (compose ensure-list parse-portage-package-designator)
+                                   (directory (make-pathname :directory (list :absolute "usr" "portage" :wild name) 
+                                                             :name (format nil "~A~A" name
+                                                                           (if (string= version "")
+                                                                               "-*"
+                                                                               version))
+                                                             :type "ebuild"
+                                                             :case :local))))
+                         (error "Invalid package designator: ~S" package-designator)))))
+          (cond
+            ((position (char designator 0) "=")
+             (list '= (unambiguous (cpv (subseq designator 1)))))
+            ((position (char designator 0) "<>")
+             (if (and (< 2 (length designator))
+                      (char= (char designator 1) #\=))
+                 (list (intern (subseq designator 0 2))
+                       (unambiguous (cpv (subseq designator 2))))
+                 (list (intern (subseq designator 0 1))
+                       (unambiguous (cpv (subseq designator 1))))))
+            (t 
+             (ambiguous
+              (let ((slashes (count #\/ designator)))
+                (case slashes
+                  ((0)   (pv designator))
+                  ((1)   (cpv designator))
+                  ((2)   (cppv designator))
+                  ((5)   (cond
+                           ((prefixp "/usr/portage/" designator)
+                            (cppve (subseq designator (length "/usr/portage/"))))
+                           ((suffixp ".ebuild" designator)
+                            (cppv  (subseq designator 0 (- (length designator) (length ".ebuild")))))
+                           (t 
+                            (error "Invalid package designator: ~S" package-designator))))
+                  (otherwise
+                   (error "Invalid package designator: ~S" package-designator)))))))))))
+
+
+(defmethod pm-package-designator ((self portage) package-designator)
+  (parse-portage-package-designator package-designator))
 
 
 (defmethod pm-version ((self portage))
@@ -391,7 +649,28 @@ Signals an error if they exit with an error status or are killed by a signal."
   (s "emerge --unmerge" package-designator))
 
 (defmethod pm-info    ((self portage) package-designator)
-  (s "echo 'I do not know how to get info about packages in gentoo'"))
+  (flet ((info (package)
+           (let ((*verbose* nil))
+             (s "equery meta" (package-atom package))
+             (run  "for EBUILD in ~A ; do ( ~
+                                cd $(dirname $EBUILD) ; EBUILD_PHASE=depend ; ECLASSDIR=/usr/portage/eclass ; PORTAGE_TMPDIR=/tmp ; ~
+                                ~A ~
+                                . $EBUILD ; ~
+                                printf \"File:        %-20s\\nDescription: %s\\nHomepage:    %s\\n\\n\" \"$EBUILD\" \"$DESCRIPTION\" \"$HOMEPAGE\"  ~
+                              ) ; done"
+                   (package-file-pathname package)
+                   (format nil ". ~{/~A~}/fpm-portage-functions.sh ; "
+                           (rest (pathname-directory (or *load-pathname* "/home/pjb/bin/"))))))))
+    (let ((packages (ensure-list (pm-package-designator self package-designator))))
+      (cond
+        ((null packages) (format *error-output* "No package specified.~%"))
+        ((packagep (first packages))
+         (dolist (package packages)
+           (info package)))
+        ((eq '= (first packages))
+         (info (second packages)))
+        (t
+         (error "Ambiguous package designator: ~S" package-designator))))))
 
 
 (defmethod pm-list-packages ((self portage)
@@ -537,7 +816,8 @@ package.  available and all are synonyms and the default."
        :pattern package-pattern))
 
 
-(define-option ("list-files" "files" "-l" "--list-files" "--files" "list-file" "file") (package-name)
+(define-option ("list-files" "files" "-l" "--list-files" "--files" "list-file" "file" "contents" "content")
+    (package-name)
   ;; [list] files [in] <package-name>
   "Lists the full pathnames of the files in the package named PACKAGE-NAME.
 PACKAGE-NAME may include some specific version or version constraint

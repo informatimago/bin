@@ -1,13 +1,37 @@
 #!/bin/bash
 pname="$(basename "$0")"
-if [ $# -ne 2 ] ; then
-   printf "%s usage:\n" "$pname"
-   printf "   %s \$HOST \$REMOTE_REPOSITORY_DIRECTORY\n" "$pname"
-   exit 1
-fi
 
-host="$1"
+function usage(){
+   printf "%s usage:\n" "$pname"
+   printf "   %s [-a|--add \$NAME] \$USER_HOST \$REMOTE_REPOSITORY_DIRECTORY\n\n" "$pname"
+   printf "If a remote \$NAME is specified, then a secondary remote with that name is added."
+}
+
+remote='origin'
+uhost=''
+repository=''
+
+case "$1" in
+-a|--add)
+    shift 
+    if [ $# -ne 3 ] ; then
+        usage
+        exit 1
+    fi
+    remote="$1"
+    shift
+    ;;
+*)
+    if [ $# -ne 2 ] ; then
+        usage
+        exit 1
+    fi
+    ;;
+esac
+
+uhost="$1"
 repository="$2"
+
 case "$repository" in
 /*)
     true
@@ -30,19 +54,20 @@ fi
 intr="$(stty -a|tr ';' '\012'|awk '/intr/{print $3}')"
 # intr="C-c"
 
-printf "Will create a remote repository on ssh://%s%s\n" "$host" "$repository"
+printf "Will create a remote repository on ssh://%s%s\n" "$uhost" "$repository"
 printf "and push there the current local git repository %s\n" "$(pwd)"
 printf "Please confirm (RET/%s): " "$intr"
 read line
 
-printf "mkdir -p \"%s\" && cd \"%s\" && git --bare init" "$repository" "$repository" \
-| ssh "$host" source /dev/stdin
+function remote(){
+    local temp=$(echo /tmp/create-remote-git-repository--$(hostname -f)--$$.sh | sed -e 's/ /-/g')
+    printf "$@" | ssh "$uhost" bash -c "cat > $temp ; source $temp ; rm $temp"
+}
 
-git remote add origin ssh://$host$repository
-git push origin master
-
-printf "cd \"%s\" && git update-server-info" "$repository" \
-| ssh "$host" source /dev/stdin
+remote "mkdir -p \"%s\" && cd \"%s\" && git --bare init" "$repository" "$repository" \
+&& git remote add "$remote" "ssh://$uhost$repository" \
+&& git push "$remote" master \
+&& remote "cd \"%s\" && git update-server-info" "$repository"
 
 exit 0
 
