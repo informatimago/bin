@@ -4,7 +4,7 @@ pname="$(basename "$0")"
 function usage(){
    printf "%s usage:\n" "$pname"
    printf "   %s [-a|--add \$NAME] \$USER_HOST \$REMOTE_REPOSITORY_DIRECTORY\n\n" "$pname"
-   printf "If a remote \$NAME is specified, then a secondary remote with that name is added."
+   printf "If a remote \$NAME is specified, then a secondary remote with that name is added.\n\n"
 }
 
 remote='origin'
