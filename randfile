@@ -75,7 +75,7 @@ if [ $nfile -eq 0 ] ; then
     if [ $(/bin/ls -1|wc -l) -eq 0 ] ; then
         echo No files.
     else
-        "$0" "$@" *
+        "$0" "$@" -- *
     fi
 else
     # echo ${nfile} ; echo ${files[@]}

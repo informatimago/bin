@@ -1,6 +1,7 @@
 #!/bin/bash
-URL=http://copefm.cope.stream.flumotion.com/cope/copefm.mp3.m3u
-exec mplayer $URL
+URL="http://copefm.cope.stream.flumotion.com/cope/copefm.mp3.m3u"
+OPTIONS=(-nojoystick)
+exec mplayer "${OPTIONS[@]}" "$URL"
 
 export WRITE_ASF=1
 POSITION=+512-1

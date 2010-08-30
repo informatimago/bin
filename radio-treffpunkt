@@ -1,5 +1,9 @@
 #!/bin/bash
-URL=http://www.cibersoft.com.ar/radio/radio.m3u
+URL="http://www.cibersoft.com.ar/radio/radio.m3u"
+OPTIONS=(-nojoystick)
+exec mplayer "${OPTIONS[@]}" "$URL"
+
+
 POSITION=+512-0
 exec realplayer $URL
 

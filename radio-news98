@@ -1,5 +1,8 @@
 #!/bin/bash
-URL=http://himusic.aboutmedia.com.tw/ufo/ms-news98/asx/news98.asx
+URL="http://himusic.aboutmedia.com.tw/ufo/ms-news98/asx/news98.asx"
+OPTIONS=(-nojoystick)
+exec mplayer "${OPTIONS[@]}" "$URL"
+
 POSITION=+512-0
 export WRITE_ASF=1
 exec aviplay  -geometry $POSITION  $URL  /dev/null > /tmp/aviplay.log 2>&1
