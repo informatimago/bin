@@ -95,20 +95,19 @@
      (function string-lessp))))
 
 
-(defparameter *frames*
-  (let ((frames '()))
-    (dolist (socket *sockets* (reverse frames))
-      (let ((frame
-              (with-open-stream (frame (ext:run-program
+(defparameter *emacsen*
+  (let ((emacsen '()))
+    (dolist (socket *sockets* (reverse emacsen))
+      (let ((frames
+             (with-open-stream (frames (ext:run-program
                                         "emacsclient"
                                         :arguments (list (format nil "--socket-name=~A" socket)
                                                          "--eval"
-                                                         "(mapcar (function frame-name) (frame-list))")
+                                                         "(mapcar (lambda (f) (list (frame-name f) (frame-display f))) (frame-list))")
                                         :output :stream))
-                (read frame nil nil))))
-
-        (if frame
-            (push (list socket frame) frames)
+               (read frames nil nil))))
+        (if frames
+            (push (list socket frames) emacsen)
             (multiple-value-bind (all pid) (regexp:match "^.*server-\\([0-9]\\+\\)$" socket)
               (if all
                   (let ((pid (regexp:match-string socket  pid)))
@@ -131,8 +130,8 @@
   "List the available emacs servers."
   (loop
      :for i :from 1
-     :for (server frames) :in *frames*
-     :do (format t "~2D) ~30A ~{~A~^~%                                   ~A~}~%"
+     :for (server frames) :in *emacsen*
+     :do (format t "~2D) ~30A ~:{~1@*~16A ~0@*~S~:^~%~35T~}~%"
                  i server frames)))
 
 
@@ -140,24 +139,24 @@
   "Select the server at the given index (from 1 up) as the default server."
   (let* ((index (parse-integer index))
          (uid    (getuid))
-         (server (ignore-errors (nth (1- index) *frames*))))
+         (server (ignore-errors (nth (1- index) *emacsen*))))
     (if server
         (ext:run-program "ln" :arguments (list "-sf"
                                                (first server)
                                                (format nil "/tmp/emacs~A/server" uid)))
         (error "~A is not a server index. Please give an index between 1 and ~A"
-               index (length *frames*)))))
+               index (length *emacsen*)))))
 
 
 (define-option ("open" "-o" "--open") (index)
   "Make a new frame from the server at the given index (from 1 up) on the current DISPLAY."
   (let* ((index (parse-integer index))
          (uid    (getuid))
-         (server (ignore-errors (nth (1- index) *frames*)))(display (ext:getenv "DISPLAY")))
+         (server (ignore-errors (nth (1- index) *emacsen*)))(display (ext:getenv "DISPLAY")))
     (cond
       ((null server)
        (error "~A is not a server index. Please give an index between 1 and ~A"
-              index (length *frames*)))
+              index (length *emacsen*)))
       ((null display)
        (error "There is no DISPLAY environment variable."))
       (t
@@ -171,7 +170,7 @@
 
 
 (ext:exit
- (if (null *frames*)
+ (if (null *emacsen*)
      (progn
        (format t "There is no emacs server~%")
        EX-UNAVAILABLE)
