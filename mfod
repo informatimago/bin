@@ -67,10 +67,22 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun function-named (sname pname)
+  (let ((pack (find-package pname)))
+    (and pack
+         (let ((sym (find-symbol sname pack)))
+           (and sym
+                (fboundp sym)
+                sym)))))
 
+(defun getuid ()
+  (funcall (or (function-named "UID" "POSIX")
+               (function-named "getuid" "LINUX")
+               (function-named "GETUID" "LINUX")
+               (error "Cannot get the UID."))))
 
 (defparameter *sockets*
-  (let ((uid (posix:uid)))
+  (let ((uid (getuid)))
     (sort
      (mapcar (function namestring)
              (remove-if-not (function probe-file)
@@ -99,7 +111,7 @@
             (push (list socket frame) frames)
             (multiple-value-bind (all pid) (regexp:match "^.*server-\\([0-9]\\+\\)$" socket)
               (if all
-                  (let ((pid (regexp:match-string pid socket)))
+                  (let ((pid (regexp:match-string socket  pid)))
                     (with-open-stream (ps (ext:run-program "ps" :arguments (list "-p" pid) :output :stream))
                       (unless (loop
                                  :named search-emacs
@@ -111,10 +123,6 @@
                         (delete-file socket)
                         (setf *sockets* (delete socket *sockets*))))))))))))
 
-
-(when (null *frames*)
-  (format t "There is no emacs server~%")
-  (ext:exit 0))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -129,33 +137,50 @@
 
 
 (define-option ("select" "-s" "--select") (index)
-  "Selects the server at the given index (from 1 up) as the default server."
+  "Select the server at the given index (from 1 up) as the default server."
   (let* ((index (parse-integer index))
-         (uid    (posix:uid))
+         (uid    (getuid))
          (server (ignore-errors (nth (1- index) *frames*))))
     (if server
-        (ext:run-program "ln" :arguments (list "-sf" (first server) (format nil "/tmp/emacs~A/server" uid)))
+        (ext:run-program "ln" :arguments (list "-sf"
+                                               (first server)
+                                               (format nil "/tmp/emacs~A/server" uid)))
         (error "~A is not a server index. Please give an index between 1 and ~A"
                index (length *frames*)))))
 
 
 (define-option ("open" "-o" "--open") (index)
-  "Makes a new frame from the server at the given index (from 1 up) on the current DISPLAY."
+  "Make a new frame from the server at the given index (from 1 up) on the current DISPLAY."
   (let* ((index (parse-integer index))
-         (uid    (posix:uid))
-         (server (ignore-errors (nth (1- index) *frames*))))
-    (if server
-        (let ((display (ext:getenv "DISPLAY")))
-          (if display
-              (ext:run-program "emacsclient"
-                               :arguments (list (format nil "--socket-name=~A" socket)
-                                                "--no-wait"
-                                                "--eval" (format nil "(make-frame-on-display \"~A\")" display)))
-              (error "There is no DISPLAY environment variable.")))
-        (error "~A is not a server index. Please give an index between 1 and ~A"
-               index (length *frames*)))))
+         (uid    (getuid))
+         (server (ignore-errors (nth (1- index) *frames*)))(display (ext:getenv "DISPLAY")))
+    (cond
+      ((null server)
+       (error "~A is not a server index. Please give an index between 1 and ~A"
+              index (length *frames*)))
+      ((null display)
+       (error "There is no DISPLAY environment variable."))
+      (t
+       (ext:run-program "emacsclient"
+                        :arguments (list (format nil "--socket-name=~A" (first server))
+                                         "--no-wait"
+                                         "--eval" (format nil "(make-frame-on-display \"~A\")"
+                                                          display)))))))
 
 
-(parse-options ext:*args*)
-(ext:exit 0)
+
+
+(ext:exit
+ (if (null *frames*)
+     (progn
+       (format t "There is no emacs server~%")
+       EX-UNAVAILABLE)
+     (parse-options ext:*args*
+                    (lambda ()
+                      (call-option-function "help" '())
+                      EX-NOINPUT))))
+
+;;;; THE END ;;;;
+
+
 

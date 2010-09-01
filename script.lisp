@@ -443,11 +443,15 @@ RETURN:     The lisp-name of the option (this is a symbol
         (format t "~%"))))
 
 
-(defun parse-options (arguments)
+(defun parse-options (arguments &optional default)
   (handler-case
-      (loop
-         :while arguments
-         :do (setf arguments (call-option-function  (pop arguments) arguments)))
+      (cond
+        (arguments
+         (loop
+            :while arguments
+            :do (setf arguments (call-option-function  (pop arguments) arguments))))
+        (default
+         (funcall default)))
     (error (err)
       (format *error-output* "~%ERROR: ~A~%" err)
       ;; TODO: return a LINUX sysexit.h error codes.
