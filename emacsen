@@ -5,7 +5,7 @@ else
     EMACS=emacs
 fi
 
-EMACS_USE=pgm  $EMACS & disown ; sleep 5
-EMACS_USE=gnus $EMACS & disown ; sleep 5
+EMACS_USE=pgm  $EMACS & disown ; sleep 7
+EMACS_USE=gnus $EMACS & disown ; sleep 7
 EMACS_USE=erc  $EMACS & disown 
 
