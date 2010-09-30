@@ -86,17 +86,23 @@ echo "(format t \"~{~A ~}~2%\" $version)"  >> $script
 echo "$show"                               >> $script
 #echo "(ignore-errors (show $@))"           >> $script
 for arg ; do echo "(show $arg)" ; done     >> $script
-echo "#+clisp (ext:quit) #+sbcl (sb-ext:quit) #+cmu (ext:quit) #+gcl (lisp:quit) #+ecl (si:quit) " >> $script
-#  #+allegro (excl:exit) ;; This dumps an "; Exiting" message...
+echo "#+ccl   (ccl:quit)"    >> $script
+echo "#+clisp (ext:quit)"    >> $script
+echo "#+cmu   (ext:quit)"    >> $script
+echo "#+ecl   (si:quit)"     >> $script
+echo "#+gcl   (lisp:quit)"   >> $script
+echo "#+sbcl  (sb-ext:quit)" >> $script
+# #+allegro (excl:exit) ;; This dumps an "; Exiting" message...
 
 
 echo ''
-type -p clisp >/dev/null && clisp -ansi  -q  -norc                                   $script
-type -p sbcl  >/dev/null && sbcl  --noinform --no-userinit                   --load  $script
-type -p lisp  >/dev/null && lisp   -noinit -eval '(setq *load-verbose* nil)'  -load  $script
-type -p gcl   >/dev/null && gcl   -batch                                      -load  $script
-type -p ecl   >/dev/null && ecl              -norc                            -shell $script
 type -p alisp >/dev/null && alisp -batch -q                                   -L     $script -kill
+type -p ccl   >/dev/null && ccl  --batch --no-init                           --load  $script
+type -p clisp >/dev/null && clisp -ansi  -q  -norc                                   $script
+type -p ecl   >/dev/null && ecl              -norc                            -load  $script
+type -p gcl   >/dev/null && gcl   -batch                                      -load  $script
+type -p lisp  >/dev/null && lisp  -noinit -eval '(setq *load-verbose* nil)'   -load  $script
+type -p sbcl  >/dev/null && sbcl --noinform --no-userinit                    --load  $script
 echo ''
 echo '========================================================================'
 echo ''
