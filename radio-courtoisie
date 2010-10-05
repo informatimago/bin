@@ -1,15 +1,15 @@
 #!/bin/bash
-options=()
+OPTIONS=(-nojoystick)
 case "$1" in
 -r|--record|record)
     date=$(date +%Y%m%dT%H%M%S) # 20100324T084801
-    options=( -ao pcm:file=/tmp/rc-${date}.wav )
+    OPTIONS=( "${OPTIONS[@]}" -ao "pcm:file=/tmp/rc-${date}.wav" )
     ;;
 esac
 
 # URL="http://mp3.live.tv-radio.com/courtoisie/all/courtoisie.mp3"
 URL="http://www.tv-radio.com/station/courtoisie/courtoisie.m3u"
-exec mplayer "${options[@]}" "$URL"
+exec mplayer "${OPTIONS[@]}" "$URL"
 ########################################################################
 
 # export WRITE_ASF=1

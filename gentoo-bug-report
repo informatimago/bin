@@ -1,0 +1,36 @@
+#!/bin/bash
+
+
+# * If you need support, post the output of 'emerge --info =x11-base/xorg-server-1.9.0',
+# * the complete build log and the output of 'emerge -pqv =x11-base/xorg-server-1.9.0'.
+# * The complete build log is located at '/var/tmp/portage/x11-base/xorg-server-1.9.0/temp/build.log'.
+# * The ebuild environment file is located at '/var/tmp/portage/x11-base/xorg-server-1.9.0/temp/environment'.
+# * S: '/var/tmp/portage/x11-base/xorg-server-1.9.0/work/xorg-server-1.9.0'
+
+
+package="$1"
+case "$package" in
+    =*)
+        true
+        ;;
+    *)
+        echo "Please, give a complete package name such as  =x11-base/xorg-server-1.9.0"
+        exit 1
+        ;;
+esac
+
+pdir="${package/=}"
+base="${pdir/\//--}"
+name="$base--$(date +%Y%m%dT%H%M%S)"
+tdir="/tmp/$name"
+mkdir "$tdir"
+cd "$tdir"
+emerge --info "$package" > emerge--info.txt
+emerge  -pqv  "$package" > emerge-pqv.txt
+cp "/var/tmp/portage/$pdir/temp/build.log"   .
+cp "/var/tmp/portage/$pdir/temp/environment" .
+cd ..
+tar jcf "${name}.tar.bz2" "$name"
+ls -l "/tmp/${name}.tar.bz2"
+#### THE END ####
+

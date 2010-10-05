@@ -1,2 +1,4 @@
 #!/bin/bash
-exec mplayer http://dradio-live.mp3.t-bn.de/dlf_live
+URL="http://dradio-live.mp3.t-bn.de/dlf_live"
+OPTIONS=(-nojoystick)
+exec mplayer "${OPTIONS[@]}" "$URL"

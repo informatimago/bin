@@ -1,139 +1,185 @@
-#!/bin/bash
-#**************************************************************************
-#FILE:               mfod
-#LANGUAGE:           bash shell
-#SYSTEM:             unix
-#USER-INTERFACE:     NONE
-#DESCRIPTION
-#    
-#    Shows all the emacs servers available, and let the user select one
-#    on which to open a new frame.
-#    
-#AUTHORS
-#    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
-#MODIFICATIONS
-#    2009-09-12 <PJB> Created.
-#BUGS
-#LEGAL
-#    GPL
-#    
-#    Copyright Pascal J. Bourguignon 2009 - 2010
-#    
-#    This program is free software; you can redistribute it and/or
-#    modify it under the terms of the GNU General Public License
-#    as published by the Free Software Foundation; either version
-#    2 of the License, or (at your option) any later version.
-#    
-#    This program is distributed in the hope that it will be
-#    useful, but WITHOUT ANY WARRANTY; without even the implied
-#    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-#    PURPOSE.  See the GNU General Public License for more details.
-#    
-#    You should have received a copy of the GNU General Public
-#    License along with this program; if not, write to the Free
-#    Software Foundation, Inc., 59 Temple Place, Suite 330,
-#    Boston, MA 02111-1307 USA
-#**************************************************************************
+#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1
+;;;; -*- mode:lisp;coding:utf-8 -*-
+;;;;**************************************************************************
+;;;;FILE:               mfod.lisp
+;;;;LANGUAGE:           Common-Lisp
+;;;;SYSTEM:             Common-Lisp
+;;;;USER-INTERFACE:     NONE
+;;;;DESCRIPTION
+;;;;    
+;;;;    Shows all the emacs servers available, and let the user select one
+;;;;    on which to open a new frame.
+;;;;    
+;;;;AUTHORS
+;;;;    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
+;;;;MODIFICATIONS
+;;;;    2010-08-30 <PJB> Translated from bash...
+;;;;    2009-09-12 <PJB> Created as a bash script.
+;;;;BUGS
+;;;;LEGAL
+;;;;    GPL
+;;;;    
+;;;;    Copyright Pascal J. Bourguignon 2010 - 2010
+;;;;    
+;;;;    This program is free software; you can redistribute it and/or
+;;;;    modify it under the terms of the GNU General Public License
+;;;;    as published by the Free Software Foundation; either version
+;;;;    2 of the License, or (at your option) any later version.
+;;;;    
+;;;;    This program is distributed in the hope that it will be
+;;;;    useful, but WITHOUT ANY WARRANTY; without even the implied
+;;;;    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+;;;;    PURPOSE.  See the GNU General Public License for more details.
+;;;;    
+;;;;    You should have received a copy of the GNU General Public
+;;;;    License along with this program; if not, write to the Free
+;;;;    Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;;    Boston, MA 02111-1307 USA
+;;;;**************************************************************************
+(in-package "COMMON-LISP-USER")
 
-select=0
-
-pname="$(basename "$0")"
-function usage(){
-    printf "%s usage:\n    $s [select]\n" "$pname" "$pname"
-}
-
-for arg ; do 
-    case "$arg" in
-    select|-s|--select) select=1 ;;
-    *) usage ; exit 1 ;;
-    esac
-done
+;; Clean the packages imported into COMMON-LISP-USER:
+(MAPC (LAMBDA (package) (UNUSE-PACKAGE package "COMMON-LISP-USER"))
+      (set-difference
+       (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))
+       (delete nil (list ;; A list of all the "CL" packages possible:
+                    (FIND-PACKAGE "COMMON-LISP")
+                    (FIND-PACKAGE "IMAGE-BASED-COMMON-LISP")))))
 
 
-sockets=()
-for socket in /tmp/emacs$UID/server /tmp/emacs$UID/server-* ; do
-    if [ -r $socket ] ; then
-        sockets[${#sockets[@]}]=$socket
-    fi
-done
+(load (make-pathname :name "SCRIPT" :type nil :version NIL :case :common
+                      :defaults *load-pathname*))
+(use-package "SCRIPT")
 
-servers=()
-frames=()
-for socket in ${sockets[@]} ; do
-    frame=$(emacsclient --socket-name="${socket}" --eval '(mapcar (function frame-name)  (frame-list))' 2>/dev/null || echo DEAD)
-    if [ "$frame" = "DEAD" ] ; then
-        # let's check there's no emacs process at that pid
-        server_pid="${socket/*server-}"
-        ps -p "$server_pid" | grep -s -q emacs || rm -f "${socket}"
-    else
-        servers[${#servers[@]}]="${socket}"
-        frames[${#frames[@]}]="${frame}"
-    fi
-done
+(setf *program-name* (pname))
 
-case ${#servers[@]} in 
-0)
-    printf "There is no emacs server.\n"
-    exit 0
-    ;;
-1)
-    server=${servers[0]}
-    ;;
-*)
-    choice=-1
-    while [ $choice -lt 0 -o  ${#sockets[@]} -le $choice ] ; do
-        i=0
-        while [ $i -lt ${#servers[@]} ] ; do
-            printf "%2d) %-30s %s\n" "$i" "${servers[$i]}" "${frames[$i]}"
-            i=$(( $i + 1 ))
-        done
-        if [ $select -eq 1 ] ; then
-            read -p 'What instance must be the default emacs? ' index
-        else
-            read -p 'What instance do you want a frame from? ' index
-        fi
-        case x$index in
-        x[Nn][Oo][Nn][Ee]|x[Cc][Aa][Nn][Cc][Ee][Ll]|x[Qq][Uu][Ii][Tt]|x[Aa][Bb][Oo][Rr][Tt])
-            exit 0
-            ;;
-        x*[^0-9]*) 
-            # search the index response into the frames lists.
-            lindex=$( echo "$index" | tr '[:upper:]' '[:lower:]')
-            choice=0
-            found=no
-            while [ $choice -lt ${#frames[@]} -a $found = no ] ; do 
-                eval f=$(echo "${frames[$choice]}" | tr '[:upper:]' '[:lower:]')
-                for frame in ${f[@]} ; do
-                    if [ "$frame" = "$lindex" ] ; then
-                        found=yes
-                        break
-                    fi
-                done
-                if [ $found = no ] ; then
-                    choice=$(( $choice + 1 ))
-                fi
-            done
-            if [ $found = no ] ; then
-                printf "Please enter an integer between 0 and %d inclusive.\n" "$(( ${#servers[@]} - 1 ))"
-                choice=-1
-            fi
-            ;;
-        x*)
-            choice=$index
-            if  [ $choice -lt 0 -o  ${#servers[@]} -le $choice ] ; then
-                printf "Please enter an integer between 0 and %d inclusive.\n" "$(( ${#servers[@]} - 1 ))"
-            fi
-            ;;
-        esac
-    done
-    server=${servers[$choice]}
-    ;;
-esac
 
-if [ $select -eq 1 ] ; then
-    ln -sf $server /tmp/emacs$UID/server
-else
-    emacsclient --socket-name=${server} --no-wait --eval '(make-frame-on-display "'$DISPLAY'")'
-fi
+;; (redirecting-stdout-to-stderr (load #p"/etc/gentoo-init.lisp"))
+;; (redirecting-stdout-to-stderr
+;;  (let ((*load-verbose* nil)
+;;        (*compile-verbose* nil))
+;;    (load (make-pathname :name ".clisprc" :type "lisp" :case :local
+;;                         :defaults (user-homedir-pathname)))
+;;    ;; (setf *features* (delete :testing-script *features*))
+;;    ))
+;; (redirecting-stdout-to-stderr (asdf:oos 'asdf:load-op :split-sequence)
+;;                               (asdf:oos 'asdf:load-op :cl-ppcre))
 
-#### THE END ####
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun function-named (sname pname)
+  (let ((pack (find-package pname)))
+    (and pack
+         (let ((sym (find-symbol sname pack)))
+           (and sym
+                (fboundp sym)
+                sym)))))
+
+(defun getuid ()
+  (funcall (or (function-named "UID" "POSIX")
+               (function-named "getuid" "LINUX")
+               (function-named "GETUID" "LINUX")
+               (error "Cannot get the UID."))))
+
+(defparameter *sockets*
+  (let ((uid (getuid)))
+    (sort
+     (mapcar (function namestring)
+             (remove-if-not (function probe-file)
+                            (remove-duplicates
+                             ;; getting server is not so useful since directory will
+                             ;; return the truename...
+                             (append (directory (format nil "/tmp/emacs~A/server"   uid))
+                                     (directory (format nil "/tmp/emacs~A/server-*" uid)))
+                             :test (function equalp))))
+     (function string-lessp))))
+
+
+(defparameter *emacsen*
+  (let ((emacsen '()))
+    (dolist (socket *sockets* (reverse emacsen))
+      (let ((frames
+             (with-open-stream (frames (ext:run-program
+                                        "emacsclient"
+                                        :arguments (list (format nil "--socket-name=~A" socket)
+                                                         "--eval"
+                                                         "(mapcar (lambda (f) (list (frame-name f) (frame-display f))) (frame-list))")
+                                        :output :stream))
+               (read frames nil nil))))
+        (if frames
+            (push (list socket frames) emacsen)
+            (multiple-value-bind (all pid) (regexp:match "^.*server-\\([0-9]\\+\\)$" socket)
+              (if all
+                  (let ((pid (regexp:match-string socket  pid)))
+                    (with-open-stream (ps (ext:run-program "ps" :arguments (list "-p" pid) :output :stream))
+                      (unless (loop
+                                 :named search-emacs
+                                 :for line = (read-line ps nil nil)
+                                 :while line
+                                 :if (regexp:match "emacs" line)
+                                 :do (return-from search-emacs t)
+                                 :finally  (return-from search-emacs nil))
+                        (delete-file socket)
+                        (setf *sockets* (delete socket *sockets*))))))))))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(define-option ("list" "-l" "--list") ()
+  "List the available emacs servers."
+  (loop
+     :for i :from 1
+     :for (server frames) :in *emacsen*
+     :do (format t "~2D) ~30A ~:{~1@*~16A ~0@*~S~:^~%~35T~}~%"
+                 i server frames)))
+
+
+(define-option ("select" "-s" "--select") (index)
+  "Select the server at the given index (from 1 up) as the default server."
+  (let* ((index (parse-integer index))
+         (uid    (getuid))
+         (server (ignore-errors (nth (1- index) *emacsen*))))
+    (if server
+        (ext:run-program "ln" :arguments (list "-sf"
+                                               (first server)
+                                               (format nil "/tmp/emacs~A/server" uid)))
+        (error "~A is not a server index. Please give an index between 1 and ~A"
+               index (length *emacsen*)))))
+
+
+(define-option ("open" "-o" "--open") (index)
+  "Make a new frame from the server at the given index (from 1 up) on the current DISPLAY."
+  (let* ((index (parse-integer index))
+         (uid    (getuid))
+         (server (ignore-errors (nth (1- index) *emacsen*)))(display (ext:getenv "DISPLAY")))
+    (cond
+      ((null server)
+       (error "~A is not a server index. Please give an index between 1 and ~A"
+              index (length *emacsen*)))
+      ((null display)
+       (error "There is no DISPLAY environment variable."))
+      (t
+       (ext:run-program "emacsclient"
+                        :arguments (list (format nil "--socket-name=~A" (first server))
+                                         "--no-wait"
+                                         "--eval" (format nil "(make-frame-on-display \"~A\")"
+                                                          display)))))))
+
+
+
+
+(ext:exit
+ (if (null *emacsen*)
+     (progn
+       (format t "There is no emacs server~%")
+       EX-UNAVAILABLE)
+     (parse-options ext:*args*
+                    (lambda ()
+                      (call-option-function "help" '())
+                      EX-NOINPUT))))
+
+;;;; THE END ;;;;
+
+
+
