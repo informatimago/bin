@@ -1,0 +1,55 @@
+
+
+The kickstart utility is located here:
+
+/System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart
+
+You need an administrator account to use the kickstart utility. To begin using the kickstart utility, use the sudo command, such as:
+
+$ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -restart -agent
+
+Note: All commands presented in this document should be typed as one line of text. It's OK if the text wraps as you enter it, just be sure not to enter hard carriage returns.
+
+Following are some examples of other things you could do.
+
+1. Activate Remote Desktop Sharing, enable access privileges for all users, restart ARD Agent:
+
+$ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -restart -agent -privs -all
+
+2. Activate Remote Desktop Sharing, enable access privileges for the users "admin", grant full privileges for the users "admin", restart ARD Agent and Menu extra:
+
+$ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -users admin -privs -all -restart -agent -menu
+
+Note: The -users flag should reference the shortname of a user of the system.
+
+3. Activate Remote Desktop Sharing, disable access privileges for all users:
+
+$ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -off
+
+4. If you just want to stop the ARD Agent process:
+
+$ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -agent -stop
+
+5. If you want to deactivate it:
+
+$ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -configure -access -off
+
+6. Apple Remote Desktop 3.2 or later only: Allow access for all users and give all users full access
+
+$ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -configure -allowAccessFor -allUsers -privs -all 
+
+7. Apple Remote Desktop 3.2 or later only: Allow access for only a specific set of users.
+
+$ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -configure -allowAccessFor -specifiedUsers
+
+The set of users must be specified in a separate command using the -configure, -access and -privs options. For example, this command gives the users with the short names "teacher" and "student" access to observe (but not control) the machine and to send text messages:
+
+$ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -configure -users teacher,student -access -on -privs -ControlObserve -ObserveOnly -TextMessages
+
+
+Note: Unlike other kickstart options, you cannot combine the allowAccessFor options with other kickstart options. You must use it like one of the examples above (items 6 and 7 above). This means you may have to call kickstart more than one time to completely configure a computer.
+Additional Information
+
+Tip: For more information about using the kickstart command, add the -help flag. For example:
+
+$ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -help

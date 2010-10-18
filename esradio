@@ -1,7 +1,19 @@
 #!/bin/bash
-#URL='mms://a1856.l8111237855.c81112.e.lm.akamaistream.net/D/1856/81112/v0001/reflector:37855'
+OPTIONS=(-nojoystick)
+case "$1" in
+-r|--record|record)
+    date=$(date +%Y%m%dT%H%M%S) # 20100324T084801
+    OPTIONS=( "${OPTIONS[@]}" -ao "pcm:file=/tmp/rc-${date}.wav" )
+    ;;
+esac
+
 URL='mms://streaming.esradio.fm/EsRadio'
-exec mplayer "$URL"
+exec mplayer "${OPTIONS[@]}" "$URL"
 ########################################################################
-export WRITE_ASF=1
+
+# export WRITE_ASF=1
+# POSITION=+512-0
+# exec aviplay  -geometry $POSITION  $URL # /dev/null > /tmp/aviplay.log 2>&1
+
+#### THE END ####
 

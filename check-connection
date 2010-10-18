@@ -1,0 +1,113 @@
+#!/bin/bash
+
+check="/var/log/check"
+local_router=81.202.16.46
+remote_router=81.202.16.1
+google_host=74.125.39.105
+ping_count=50
+
+vigor="/tmp/$$.vigor.ping"
+ono="/tmp/$$.onort.ping"
+google="/tmp/$$.googl.ping"
+
+
+status_url="http://192.168.7.254:25080/doc/status.htm"
+inet5_url="http://192.168.7.254:25080/doc/inet5.sht"
+
+get_router_page(){
+    local url="$1"
+    expect <<EOF
+spawn w3m -dump "$url"
+expect "Username for Login to the Router Web Configurator:"
+log_user 0
+send "\r"
+expect "Password:"
+send "admin\r"
+log_user 1
+expect "^Version"
+EOF
+}
+
+stamp(){
+    date "+%Y-%m-%dT%H:%M:%S%:::z"
+}
+
+start_date="$(stamp)"
+out="/tmp/check-connection-${start_date}.log"
+
+log(){
+    printf "%s %s\n" $(stamp) "$@" >> "$out"
+}
+
+function docmd(){
+    local status=0
+    local err="/tmp/$$.err"
+    "$@" > "$err" 2>&1 ; status=$?
+    if [ $status -ne 0 ] ; then
+        log "Command `$@` returned with status $status"
+        log "stdout and stderr:"
+        cat "$err" >> "$out"
+    fi
+    rm -f "$err"
+    return $status
+}
+
+
+
+
+log "Empezando la verificacíon de la connexión"
+
+#     # log { source(router); destination(check); };
+
+log "Activación del registro de los logs de paquetes del router."
+docmd rm    "$check"
+docmd touch "$check"
+docmd sed -i -e 's/^[	 ]*#[	 ]*\(.*destination(check);.*\)/\1/'  /etc/syslog-ng/syslog-ng.conf
+docmd /etc/init.d/syslog-ng restart
+log "Hecho"
+
+sleep 10
+
+log "Página del estatus del router"
+get_router_page "$status_url" >> "$out"
+
+log "Página del estatus de la configuración inet del router"
+get_router_page "$inet5_url" >> "$out"
+
+log "20 pings simultaneamente con el los routers y google."
+log "[kuiper 192.167.7.2]---(lan ethernet)---[192.168.7.254 Vigor2100 ${local_router}]---(cable ono)---[${remote_router} router ono]"
+
+
+ping -c $ping_count "$local_router"  > "$vigor"   2>&1 &
+ping -c $ping_count "$remote_router" > "$ono"     2>&1 &
+ping -c $ping_count "$google_host"   > "$google"  2>&1 &
+wait ; wait ; wait
+
+log "Ping $local_router"
+cat "$vigor" >> "$out"
+log "Ping $remote_router"
+cat "$ono" >> "$out"
+log "Ping $google"
+cat "$google" >> "$out"
+
+
+sleep 10
+
+log "Desactivación del registro de los logs de paquetes del router."
+docmd sed -i -e 's/^[ 	]*\(.*destination(check);.*\)/# \1/'         /etc/syslog-ng/syslog-ng.conf
+docmd /etc/init.d/syslog-ng restart
+log "Hecho"
+
+
+log "Fin de la verificacíon de la connexión"
+
+log "Logs del router vigor durante el chequeo"
+cat "$check" >> "$out"
+log "Fin"
+
+
+grep 'packet loss' "$vigor" "$ono" "$google"
+echo "$out"
+rm -f "$vigor" "$ono" "$google"
+exit 0
+

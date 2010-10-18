@@ -62,6 +62,7 @@ management system (hence the need of this tool!).
 "))
 (in-package "FRONT-END-UNIX-PACKAGE-MANAGEMENT")
 
+
 (setf *program-name* (pname))
 
 
@@ -170,7 +171,9 @@ management system (hence the need of this tool!).
 
 ;;;---------------------------------------------------------------------
 
-(defvar *verbose* t)
+(defvar *verbose* nil
+  "Whether the underlying commands run should be written to stdout.")
+
 (defun print-command (command)
   (when *verbose*
    (format t "~A~%" command)) (finish-output)
@@ -650,17 +653,16 @@ or an expression such as (= <package>)  (<= <package>) etc."))
 
 (defmethod pm-info    ((self portage) package-designator)
   (flet ((info (package)
-           (let ((*verbose* nil))
-             (s "equery meta" (package-atom package))
-             (run  "for EBUILD in ~A ; do ( ~
+           ;; (s "equery meta" (package-atom package))
+           (run  "for EBUILD in ~A ; do ( ~
                                 cd $(dirname $EBUILD) ; EBUILD_PHASE=depend ; ECLASSDIR=/usr/portage/eclass ; PORTAGE_TMPDIR=/tmp ; ~
                                 ~A ~
                                 . $EBUILD ; ~
                                 printf \"File:        %-20s\\nDescription: %s\\nHomepage:    %s\\n\\n\" \"$EBUILD\" \"$DESCRIPTION\" \"$HOMEPAGE\"  ~
                               ) ; done"
-                   (package-file-pathname package)
-                   (format nil ". ~{/~A~}/fpm-portage-functions.sh ; "
-                           (rest (pathname-directory (or *load-pathname* "/home/pjb/bin/"))))))))
+                 (package-file-pathname package)
+                 (format nil ". ~{/~A~}/fpm-portage-functions.sh ; "
+                         (rest (pathname-directory (or *load-pathname* "/home/pjb/bin/")))))))
     (let ((packages (ensure-list (pm-package-designator self package-designator))))
       (cond
         ((null packages) (format *error-output* "No package specified.~%"))
@@ -761,10 +763,15 @@ or an expression such as (= <package>)  (<= <package>) etc."))
 
 
 
-(define-option ("version" "-v" "--version") ()
+(define-option ("version" "-V" "--version") ()
   "Report the version of this script and the underlying package system."
   (format t "~A ~A~%" *program-name* *program-version*)
   (fpm version))
+
+
+(define-option ("verbose" "-v" "--verbose") ()
+  "Report writes the underlying commands that are run."
+  (setf *verbose* t))
 
 
 (define-option ("install" "-I" "--install") (package-name)

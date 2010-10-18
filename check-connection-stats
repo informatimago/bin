@@ -1,0 +1,42 @@
+#!/bin/bash
+do_upload=1
+for arg ; do
+    case "$arg" in
+    --no-upload)
+        do_upload=0 
+        ;;
+    *) 
+        printf "%s error: invalid argument: %s\n" "$(basename "$0")" "$arg" 
+        exit 1
+        ;;
+    esac
+done
+
+data="/tmp/check-connection.data"
+
+awk '
+/pings simultaneamente/ {date=substr($1,1,index($1,"+")-1);}
+/ping statistics/       {printf "%s %16s ",date,$2;}
+/packet loss/           {printf "%3s %3s %4s %10s ",$1,$4,substr($6,1,(length($6)-1)),substr($10,1,(length($10)-2));
+                         if($6=="100%"){ printf("\n"); }}
+/rtt min/               {printf "%s\n",$4;}
+'  /tmp/check-connection-* \
+| awk '
+/81.202.16.46/  {printf "%s %s ",$1,$5;}
+/81.202.16.1/   {printf "%s ",$5;}
+/74.125.39.105/ {printf "%s\n",$5;}
+' \
+> "$data"
+
+gnuplot "$0".gnuplot
+
+if [ $do_upload -eq 1 ] ; then
+    scp /tmp/check-connection-stats.png voyager.informatimago.com:/srv/ftp/users/pjb/
+fi
+
+# | sort -k2 -k1 "$data" \
+# | awk '{printf " %16s %s %s\n",$2,$1,$5;}' \
+# > "$data"
+
+
+

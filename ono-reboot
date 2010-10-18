@@ -1,0 +1,49 @@
+#!/bin/bash
+router="ono.lan.informatimago.com"
+other_side_ip="81.202.16.1"
+
+# wget doesn't seem to be able to output to stdout to a pipe...
+rebout_out="/tmp/ono-reboot.html"
+trap 0 "rm -f  $rebout_out"
+
+netrc_query(){
+    local machine="$1" ; shift
+    awk '
+BEGIN{s=0;l="";p="";}
+/machine/{if($2=="'"$machine"'"){s=1;}}
+/login/{if(s==1){l=$2;}}
+/password/{if(s==1){p=$2; printf("%s\n%s\n",l,p); exit(0);}}
+' < "$HOME/.netrc" 
+}
+
+
+netrc_query "$router" \
+| (
+    read login
+    read password
+    # --server-response 
+    wget \
+        --quiet \
+        --no-http-keep-alive \
+        --read-timeout=3 \
+        --user="$login" \
+        --password="$password" \
+        --tries='1' \
+        --post-data='sReboot=Current&submit=OK' \
+        --referer='http://192.168.7.254:25080/doc/reboot.sht' \
+        'http://192.168.7.254:25080/cgi-bin/reboot.cgi' \
+        -O "$reboot_out"
+)
+
+cat "$reboot_out" \
+| tr '<>' '\012\012' \
+| awk '
+BEGIN{title=0;}
+/^title/{title=1;next;}
+{if(title==1){print $0;title=2;}}
+/After booting router/{if(title!=2){printf "Success.\n";title=2;}}' \
+
+ping -c 10 "$other_side_ip"
+
+
+#### THE END ####
