@@ -1413,7 +1413,7 @@ Bridgit Manilla Dancer SJT6546554  123
 
 (defparameter *real-genius*
   '("
-* Telecommunicattions users limited
+* Telecommunications users limited
 * to Level 7 access.
 
 Usser ID: SYSTEM
@@ -1429,6 +1429,8 @@ Password: ******
 INVALID Authorization Code - ACCESS DENIED
 
 "))
+
+
 (defparameter *party-apartment*
   (expt 2 267709)
   "The Hitch Hiker's Guide to the Galaxy says that if you hold a lungful
