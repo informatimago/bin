@@ -1,0 +1,68 @@
+#!/usr/bin/clisp -ansi -Kfull -E iso-8859-1 -norc -C
+;;;; -*- mode:lisp -*-
+
+(defun non-empty-string-p (value)
+  (and (stringp value) 
+       (string> value "")))
+
+
+(defun substitute-expression (text regexp substitution)
+  "
+DO:      Modifies text, replacing all parts matching regexp with
+         the substitution strings, possibly repeated.
+RETURN:  A string containing the repeated substitution string.
+"
+  (loop
+     :with start-search = 0
+     :for match = (regexp:regexp-exec regexp text :start start-search)
+     :while match
+     :do (let* ((match-start  (regexp:match-start match))
+                (match-end    (regexp:match-end match))
+                (match-length (-  match-end match-start))
+                (substitution (loop :while (< (length substitution) match-length)
+                                 :do (setf substitution (concatenate 'string substitution substitution))
+                                 :finally (return substitution))))
+           (setf start-search match-end)
+           (replace text substitution :start1 match-start :end1 match-end))
+     :finally (return substitution)))
+
+
+
+(defmacro check (default-program-name usage &rest clauses)
+  (let ((messages (gensym)))
+    `(let ((,messages '()))
+       ,@(mapcar (lambda (clause)
+                   (destructuring-bind (assertion error-message) clause
+                     `(unless ,assertion (push ,error-message ,messages))))
+                 clauses)
+       (when ,messages
+         (format *error-output* "~&Error~P:~{~%  ~A~}" (length ,messages) ,messages)
+         (format *error-output* "~&Usage:~%   ~A ~A~2%"
+                 (or *load-pathname* ,default-program-name)
+                 ,usage)))))
+
+
+(defun main (args)
+  (destructuring-bind (&optional input-filename output-filename regexp substitution &rest others) args
+
+    (check "substitute-expression" "$inputfile $outputfile $regexp $substitution"
+     ((null others)                        "Too many arguments")
+     ((non-empty-string-p input-filename)  "Missing input file argument")
+     ((non-empty-string-p output-filename) "Missing output file argument")
+     ((non-empty-string-p regexp)          "Missing regular expression")
+     ((non-empty-string-p substitution)    "Missing substitution string"))
+    
+    (let ((regexp (regexp:regexp-compile regexp)))
+      (with-open-file (input-stream input-filename)
+        (with-open-file (output-stream output-filename
+                                       :direction :output
+                                       :if-exists :supersede)
+          (loop
+             :for current-line = (read-line input-stream nil)
+             :while current-line
+             :do (setf substitution (substitute-expression current-line regexp substitution))
+                 (write-line current-line output-stream)))))))
+
+
+(main ext:*args*)
+

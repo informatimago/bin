@@ -1,4 +1,4 @@
-set size 1024.0/1024, 768.0/768
+set size 2048.0/2048, 768.0/768
 set terminal png truecolor size 1024 768 enhanced font "Vera,9"
 set output "/tmp/check-connection-stats.png"
 
