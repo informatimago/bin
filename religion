@@ -35,7 +35,7 @@
 pname="$(basename $0)"
 pblan="${pname//?/ }"
 
-religiondb="$HOME/.religions"
+religiondb="$HOME/religions.data"
 # could be a common file such as /usr/local/share/lib/religions or whatever..
 
 
