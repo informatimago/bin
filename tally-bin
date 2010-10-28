@@ -1,7 +1,6 @@
 #!/bin/bash
-file ~/bin/* | sed -n -e 's/^\([^:]*[^~]\): *//p' \
-| sort | uniq -c \
-| egrep 'shell|cmu|lisp|perl|mz|awk' 
+file ~/bin/*[A-Za-z0-9] | sed -n -e 's/^\([^:]*[^~]\): *//p' \
+| sort | uniq -c | sort -rn | egrep -i 'shell|cmu|lisp|perl|mz|awk' 
 
 
 # From: rpw3@rpw3.org (Rob Warnock)
