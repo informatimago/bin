@@ -12,12 +12,15 @@
 #AUTHORS
 #    <PJB> Pascal Bourguignon <pjb@informatimago.com>
 #MODIFICATIONS
+#    2010-11-01 <PJB> Improved.  
+#                     Added the -r option to just print the results.
+#                     Added abcl.
 #    2007-07-05 <PJB> Added this header.
 #BUGS
 #LEGAL
 #    GPL
 #    
-#    Copyright Pascal Bourguignon 2007 - 2007
+#    Copyright Pascal Bourguignon 2007 - 2010
 #    
 #    This program is free software; you can redistribute it and/or
 #    modify it under the terms of the GNU General Public License
@@ -36,76 +39,163 @@
 #*****************************************************************************
 
 script=/tmp/clall-$$.lisp
-trap 'rm $script' 0
-version='(list (lisp-implementation-type) (lisp-implementation-version))'
+output=/tmp/clall-$$.output
+trap 'rm $script $output' 0
 
-show='
+command=show
+
+usage(){
+    pname="$(basename $0)"
+    printf "%s usage:\n\n  %s [-f|--full | -r|--result] expression...\n\n" "$pname" "$pname"
+    printf "      -f|--full   which is the default, shows detailed results.\n"
+    printf "      -r|--result  shows only the results, on a single line, for each implementation.\n"
+    printf "\n\n"
+}
+
+case "$1" in
+-f|--full)    command=show   ; shift ;;
+-r|--result)  command=result ; shift ;;
+-*)  printf "%s error: Unknown option: %s\n" "$0" "$1"  ; usage ; exit 1 ;;
+esac
+
+clall_lisp='
 #+gcl (defmacro ignore-errors (&body body) `(progn ,@body))
 
-(defmacro show (&body expressions)
-  (let ((width (reduce (function max)
-                       (mapcar (lambda (expr) (length (format nil "~S" expr)))
-                               expressions)
-                       :initial-value 0)))
-    (declare (ignorable width))
-    `(progn
-       ,@(mapcar
-          (lambda (expr) 
-            `(let (vals condi output error)
-               (setf output (with-output-to-string (*standard-output*)
-                  (setf error (with-output-to-string (*error-output*)
-                     (multiple-value-setq (vals condi)
-                            (ignore-errors (multiple-value-list ,expr)))))))
-               (format t "~%Evaluation of~%~S~%" (quote ,expr))
-               (if (string= "" output)
-                 (format t "produced nothing on *STANDARD-OUTPUT*~%")
-                 (progn
-                    (format t "produced the following *STANDARD-OUTPUT* (lines excluded):")
-                    (format t "~&~V,,,'\''-A~%" 72 "")
-                    (format t "~A" output)
-                    (format t "~&~V,,,'\''-A~%" 72 "")))
-               (if (string= "" error)
-                 (format t "produced nothing on *ERROR-OUTPUT*~%")
-                 (progn
-                    (format t "produced the following *ERROR-OUTPUT* (lines excluded):")
-                    (format t "~&~V,,,'\''-A~%" 72 "")
-                    (format t "~A" error)
-                    (format t "~&~V,,,'\''-A~%" 72 "")))
-              (if (null condi)
-                (format t "produced no error~%")
-                (format t "produced the following error:~%  ~S~%  ~:*~A~%" condi))
-              (format t "produced the following values:~%--> ~{~S~^ ;~%    ~}~2%" 
-                      vals)))
-          expressions)
-       (values))))
+(defvar *double-line* "========================================================================")
+(defvar *sinple-line* "------------------------------------------------------------------------")
+
+(defun read-eval (input)
+  "Read and evaluate the input.
+Return:  input
+         nil or read error
+         expression
+         nil or eval error
+         list of values
+         *standard-output* string
+         *error-output* string
+"
+  (multiple-value-bind (vals condi)
+      (ignore-errors (multiple-value-list (read-from-string input)))
+    (if condi
+        (values input condi nil nil nil nil nil)
+        (destructuring-bind (expression remains-to-read) vals
+          (unless (= (length input) remains-to-read)
+            (warn "~A byte~:*~P unread."  (- (length input) remains-to-read )))
+          (let* (error
+                 (output (with-output-to-string (*standard-output*)
+                           (setf error (with-output-to-string (*error-output*)
+                                         (multiple-value-setq (vals condi)
+                                           (ignore-errors (multiple-value-list (eval expression)))))))))
+            (values input nil expression condi vals output error))))))
+
+
+(defun report-only-result (report input read-error expression eval-error vals output error)
+  (declare (ignore output error))
+  (cond
+    (read-error
+     (format report "~30A ~A~%"             (lisp-implementation-type)
+             (substitute #\space #\newline (princ-to-string read-error))))
+    (eval-error
+     (format report "~30A ~A~%"             (lisp-implementation-type)
+             (substitute #\space #\newline (princ-to-string eval-error))))
+    ((null vals)
+     (format report "~30A --> No value.~%"  (lisp-implementation-type)))
+    (t
+     (format report "~30A --> ~{~S~^, ~}~%" (lisp-implementation-type) vals))))
+
+
+(defun report-full-result (report input read-error expression eval-error vals output error)
+  (format report "~&~A~%" *double-line*)
+  (format report "Implementation: ~A ~A on ~A~%"
+          (lisp-implementation-type)
+          (lisp-implementation-version)
+          (machine-type))
+  (format report "~%Reading of: ~S~%" input)
+  (if (null read-error)
+      (format report "signaled no error~%")
+      (format report "signaled the following error:~%  ~S~%  ~:*~A~%" read-error))
+  (format report "~%Evaluation of: ~S~%" expression)
+  (if (null eval-error)
+      (format report "signaled no error~%")
+      (format report "signaled the following error:~%  ~S~%  ~:*~A~%" eval-error))
+  (if (or (null error) (string= "" error))
+      (format report "wrote nothing on *ERROR-OUTPUT*~%")
+      (progn
+        (format report "wrote the following *ERROR-OUTPUT* (lines excluded):")
+        (format report "~&~A~%" *simple-line*)
+        (format report "~A" error)
+        (format report "~&~A~%" *simple-line*)))
+  (if (or (null output) (string= "" output))
+      (format report "wrote nothing on *STANDARD-OUTPUT*~%")
+      (progn
+        (format report "wrote the following *STANDARD-OUTPUT* (lines excluded):")
+        (format report "~&~A~%" *simple-line*)
+        (format report "~A" output)
+        (format report "~&~A~%" *simple-line*)))
+  (if (null vals)
+      (format report "returned no value~%")
+      (format report "returned the following value~P:~%--> ~{~S~^ ;~%    ~}~2%"  (length vals) vals)))
+
+
+
+(defmacro result (output &body expressions)
+  `(with-open-file (report ,output
+                           :direction :output
+                           :if-does-not-exist :create
+                           :if-exists :supersede)
+     ,@(mapcar (lambda (input) 
+                 `(multiple-value-call (function report-only-result) report (read-eval ,input)))
+               expressions)
+     (values)))
+
+
+(defmacro show (output &body expressions)
+  `(with-open-file (report ,output
+                           :direction :output
+                           :if-does-not-exist :create
+                           :if-exists :supersede)
+     ,@(mapcar (lambda (input) 
+                 `(multiple-value-call (function report-full-result) report (read-eval ,input)))
+               expressions)
+     (values)))
+
+
 '
 
+quote(){
+    local arg="$1" ; shift
+    local slash="${arg//\\/\\\\}"
+    local quote="${slash//\"/\\\"}"
+    echo "\"${quote}\""
+}
 
-echo "(format t \"~%~V,,,'=A~%\" 72 \"\")" >  $script
-echo "(format t \"~{~A ~}~2%\" $version)"  >> $script
-echo "$show"                               >> $script
-#echo "(ignore-errors (show $@))"           >> $script
-for arg ; do echo "(show $arg)" ; done     >> $script
-echo "#+ccl   (ccl:quit)"    >> $script
-echo "#+clisp (ext:quit)"    >> $script
-echo "#+cmu   (ext:quit)"    >> $script
-echo "#+ecl   (si:quit)"     >> $script
-echo "#+gcl   (lisp:quit)"   >> $script
-echo "#+sbcl  (sb-ext:quit)" >> $script
+( echo "$clall_lisp"
+  echo "($command $(quote "$output")" 
+  for arg ; do echo "$(quote "$arg")" ; done 
+  echo ")" ) >> $script
+
+echo "#+abcl  (extensions:quit)"           >> $script
 # #+allegro (excl:exit) ;; This dumps an "; Exiting" message...
+echo "#+ccl   (ccl:quit)"                  >> $script
+echo "#+clisp (ext:quit)"                  >> $script
+echo "#+cmu   (ext:quit)"                  >> $script
+echo "#+ecl   (si:quit)"                   >> $script
+echo "#+gcl   (lisp:quit)"                 >> $script
+echo "#+sbcl  (sb-ext:quit)"               >> $script
 
 
-echo ''
-type -p alisp >/dev/null && alisp -batch -q                                   -L     $script -kill
-type -p ccl   >/dev/null && ccl  --batch --no-init                           --load  $script
-type -p clisp >/dev/null && clisp -ansi  -q  -norc                                   $script
-type -p ecl   >/dev/null && ecl              -norc                            -load  $script
-type -p gcl   >/dev/null && gcl   -batch                                      -load  $script
-type -p lisp  >/dev/null && lisp  -noinit -eval '(setq *load-verbose* nil)'   -load  $script
-type -p sbcl  >/dev/null && sbcl --noinform --no-userinit                    --load  $script
-echo ''
-echo '========================================================================'
-echo ''
+printf '\n'
+type -p abcl  >/dev/null && abcl                                             --load  $script        > /tmp/clall-abcl.out  2>&1 && cat "$output"
+type -p alisp >/dev/null && alisp -batch -q                                   -L     $script -kill  > /tmp/clall-alisp.out 2>&1 && cat "$output"
+type -p ccl   >/dev/null && ccl  --batch --no-init                           --load  $script        > /tmp/clall-ccl.out   2>&1 && cat "$output"
+type -p clisp >/dev/null && clisp -ansi  -q  -norc                                   $script        > /tmp/clall-clisp.out 2>&1 && cat "$output"
+type -p lisp  >/dev/null && lisp  -noinit -eval '(setq *load-verbose* nil)'   -load  $script        > /tmp/clall-cmucl.out 2>&1 && cat "$output"
+type -p ecl   >/dev/null && ecl              -norc                            -load  $script        > /tmp/clall-ecl.out   2>&1 && cat "$output"
+type -p gcl   >/dev/null && gcl   -batch                                      -load  $script        > /tmp/clall-gcl.out   2>&1 && cat "$output"
+type -p sbcl  >/dev/null && sbcl --noinform --no-userinit                    --load  $script        > /tmp/clall-sbcl.out  2>&1 && cat "$output"
+printf '\n'
+printf '========================================================================\n'
+printf '\n'
 exit 0
 
 # clall \
