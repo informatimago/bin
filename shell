@@ -69,6 +69,18 @@ INPUNT TRUNK            INTERRUPTS    TIMER
 ; Seems to be an octal computer.
 )))
 
+(defparameter men-in-black
+  '("
+
+   BROOKLYN      BATTERY     TUNNEL
+
+               TRIBOROUGH
+                 BRIDGE
+                   &
+                 TUNNEL
+                AUTHORITY
+  "))
+
 (defparameter |http://www.youtube.com/watch?v=kFw0MYAS9qA|
   '((:green-screen "
 03/08/2039/13:01:02:06:45:23

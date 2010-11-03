@@ -1,10 +1,13 @@
 #!/bin/bash
 HOSTS="
-    despina.informatimago.com
-    galatea.informatimago.com
-    larissa.informatimago.com
-    thalassa.informatimago.com
-    hermes.afaa.asso.fr
+    kuiper.lan.informatimago.com
+    hubble.lan.informatimago.com
+    galatea.lan.informatimago.com
+    triton.lan.informatimago.com
+    galle.lan.informatimago.com
+    lassell.lan.informatimago.com
+    voyager.informatimago.com
+    neuron.intergruas.com
 "
 
 AHOSTS=
@@ -13,8 +16,19 @@ for h in $HOSTS ; do
     && AHOSTS="$AHOSTS $h"
 done
 
+quote(){
+    for arg ; do
+        local slash=${arg//\\/\\\\}
+        local quote=\'${slash//\'/\'\\\'\'}\' # no "${...}" here! It would break the \'
+        printf "%s " ${quote}
+    done
+    printf "\n"
+}
+
+args=$(quote "$@")
+
 for h in $AHOSTS ; do
-    printf "%-16s" ${h/\.*/} ; ssh $h "$@"
+    printf "%-16s" ${h/\.*/} ; echo "ssh $h bash -c $(quote "$args")" ; ssh $h bash -c $(quote "$args")
 done
 
 #END#

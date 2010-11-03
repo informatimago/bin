@@ -163,11 +163,22 @@ Return:  input
 '
 
 quote(){
-    local arg="$1" ; shift
-    local slash="${arg//\\/\\\\}"
-    local quote="${slash//\"/\\\"}"
-    echo "\"${quote}\""
+    for arg ; do
+        local slash=${arg//\\/\\\\}
+        local quote=\"${slash//\"/\\\"}\"
+        printf  "%s " ${quote}
+    done
+    printf "\n"
 }
+
+# quote(){
+#     for arg ; do
+#         local slash=${arg//\\/\\\\}
+#         local quote=\'${slash//\'/\'\\\'\'}\' # no "${...}" here! It would break the \'
+#         printf "%s " ${quote}
+#     done
+#     printf "\n"
+# }
 
 ( echo "$clall_lisp"
   echo "($command $(quote "$output")" 
@@ -185,7 +196,7 @@ echo "#+sbcl  (sb-ext:quit)"               >> $script
 
 
 printf '\n'
-type -p abcl  >/dev/null && abcl                                             --load  $script        > /tmp/clall-abcl.out  2>&1 && cat "$output"
+type -p abcl  >/dev/null && abcl         --eval '(setq *load-verbose* nil)'  --load  $script        > /tmp/clall-abcl.out  2>&1 && cat "$output"
 type -p alisp >/dev/null && alisp -batch -q                                   -L     $script -kill  > /tmp/clall-alisp.out 2>&1 && cat "$output"
 type -p ccl   >/dev/null && ccl  --batch --no-init                           --load  $script        > /tmp/clall-ccl.out   2>&1 && cat "$output"
 type -p clisp >/dev/null && clisp -ansi  -q  -norc                                   $script        > /tmp/clall-clisp.out 2>&1 && cat "$output"
