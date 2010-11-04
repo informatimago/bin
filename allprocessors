@@ -1,0 +1,6 @@
+#!/bin/bash
+out=/tmp/$$.out
+trap "rm -f $out" 0
+allhosts -h bash -c  'out=/tmp/$$.out ; ( (cat /proc/cpuinfo 2>/dev/null | grep -c processor > $out) || (hostinfo | sed -n "/processors are physically/s/ .*//p" > $out) ) 2>&1 > /dev/null ; cat $out' \
+| awk '{printf "%-16s %3d\n",$1,$2;s+=$2;} END{printf "%-16s%4d\n","Total:",s;}'
+
