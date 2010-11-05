@@ -35,8 +35,7 @@
 ;;;;    Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;;    Boston, MA 02111-1307 USA
 ;;;;**************************************************************************
-
-(cl:in-package "COMMON-LISP-USER")
+(in-package "COMMON-LISP-USER")
 
 ;;;---------------------------------------------------------------------------
 ;;;
@@ -97,9 +96,10 @@
 (defpackage "COM.INFORMATIMAGO.COMMON-LISP.SCRIPT"
   (:nicknames "SCRIPT")
   (:use "COMMON-LISP")
-  (:export "PNAME" "*PROGRAM-NAME*" "*VERBOSE*"
+  (:export "PNAME" "*PROGRAM-NAME*" "*VERBOSE*" "*DEBUG*"
            "REDIRECTING-STDOUT-TO-STDERR"
-           "DEFINE-OPTION" "CALL-OPTION-FUNCTION"  "MAIN" 
+           "DEFINE-OPTION" "CALL-OPTION-FUNCTION"  "MAIN"
+           "SET-DOCUMENTATION-TEXT"
            ;; Utilities:
            "FIND-DIRECTORIES"
            "CONCAT" "MAPCONCAT"
@@ -132,6 +132,9 @@ otherwise we fallback to *DEFAULT-PROGRAM-NAME*.")
 
 (defvar *verbose* nil
   "Adds some trace output.")
+
+(defvar *debug* nil
+  "Errors break into the debugger.")
 
 #-(or use-ppcre use-regexp) (push #-(and) :use-ppcre
                                   #+(and) :use-regexp
@@ -209,6 +212,95 @@ LINES     Number of line to output in a single chunk.
                     ,@body)
                (close ,pager-stream))))
         `(progn ,@body))))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;
+;;; From /usr/include/sysexits.h (Linux)
+;;;
+
+(DEFCONSTANT EX-OK            0   "successful termination")
+
+
+(DEFCONSTANT EX--BASE         64  "base value for error messages")
+
+
+(DEFCONSTANT EX-USAGE         64  "command line usage error
+    The command was used incorrectly, e.g., with
+    the wrong number of arguments, a bad flag, a bad
+    syntax in a parameter, or whatever.") ;;EX-USAGE
+
+(DEFCONSTANT EX-DATAERR       65  "data format error
+    The input data was incorrect in some way.
+    This should only be used for user's data & not
+    system files.") ;;EX-DATAERR
+
+(DEFCONSTANT EX-NOINPUT       66  "cannot open input
+    An input file (not a system file) did not
+    exist or was not readable.  This could also include
+    errors like \"No message\" to a mailer (if it cared
+    to catch it).") ;;EX-NOINPUT
+
+(DEFCONSTANT EX-NOUSER        67  "addressee unknown
+    The user specified did not exist.  This might
+    be used for mail addresses or remote logins.
+    ") ;;EX-NOUSER
+
+(DEFCONSTANT EX-NOHOST        68  "host name unknown
+    The host specified did not exist.  This is used
+    in mail addresses or network requests.") ;;EX-NOHOST
+
+(DEFCONSTANT EX-UNAVAILABLE   69  "service unavailable
+    A service is unavailable.  This can occur
+    if a support program or file does not exist.  This
+    can also be used as a catchall message when something
+    you wanted to do doesn't work, but you don't know
+    why.") ;;EX-UNAVAILABLE
+
+(DEFCONSTANT EX-SOFTWARE      70  "internal software error
+    An internal software error has been detected.
+    This should be limited to non-operating system related
+    errors as possible.") ;;EX-SOFTWARE
+
+(DEFCONSTANT EX-OSERR         71  "system error (e.g., can't fork)
+    An operating system error has been detected.
+    This is intended to be used for such things as \"cannot
+    fork\", \"cannot create pipe\", or the like.  It includes
+    things like getuid returning a user that does not
+    exist in the passwd file.") ;;EX-OSERR
+
+(DEFCONSTANT EX-OSFILE        72  "critical OS file missing
+    Some system file (e.g., /etc/passwd, /etc/utmp,
+    etc.) does not exist, cannot be opened, or has some
+    sort of error (e.g., syntax error).") ;;EX-OSFILE
+
+(DEFCONSTANT EX-CANTCREAT     73  "can't create (user) output file
+    A (user specified) output file cannot be created.") ;;EX-CANTCREAT
+
+(DEFCONSTANT EX-IOERR         74  "input/output error
+     An error occurred while doing I/O on some file.") ;;EX-IOERR
+
+(DEFCONSTANT EX-TEMPFAIL      75  "temp failure; user is invited to retry
+    temporary failure, indicating something that
+    is not really an error.  In sendmail, this means
+    that a mailer (e.g.) could not create a connection,
+    and the request should be reattempted later.") ;;EX-TEMPFAIL
+
+(DEFCONSTANT EX-PROTOCOL      76  "remote error in protocol
+    the remote system returned something that
+    was \"not possible\" during a protocol exchange.") ;;EX-PROTOCOL
+
+(DEFCONSTANT EX-NOPERM        77  "permission denied
+    You did not have sufficient permission to
+    perform the operation.  This is not intended for
+    file system problems, which should use NOINPUT or
+    CANTCREAT, but rather for higher level permissions.") ;;EX-NOPERM
+
+(DEFCONSTANT EX-CONFIG        78  "configuration error")
+
+
+(DEFCONSTANT EX--MAX          78  "maximum listed value")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -384,7 +476,6 @@ BUG: when the optionals or keys have a present indicator,
     (funcall (option-function option) arguments)))
 
 
-
 (defmacro define-option (names parameters &body body)
   "
 DO:         Define a new option for the scirpt.
@@ -425,6 +516,12 @@ RETURN:     The lisp-name of the option (this is a symbol
        ',lisp-name)))
 
 
+(defvar *documentation-text* "")
+
+(defun set-documentation-text (text)
+  (setf *documentation-text* text))
+
+
 (define-option ("help" "-h" "--help") ()
   "Give this help."
   (with-pager ()
@@ -440,112 +537,26 @@ RETURN:     The lisp-name of the option (this is a symbol
                   (option-keys option)
                   (option-arguments option)
                   (option-documentation option)))
-        (format t "~%"))))
+        (format t "~A~%" *documentation-text*))))
 
 
 (defun parse-options (arguments &optional default)
-  (handler-case
-      (cond
-        (arguments
-         (loop
-            :while arguments
-            :do (setf arguments (call-option-function  (pop arguments) arguments))))
-        (default
-         (funcall default)))
-    (error (err)
-      (format *error-output* "~%ERROR: ~A~%" err)
-      ;; TODO: return a LINUX sysexit.h error codes.
-      (return-from parse-options 1)))
+  (flet ((process-arguments ()
+           (cond
+             (arguments
+              (loop
+                 :while arguments
+                 :do (setf arguments (call-option-function  (pop arguments) arguments))))
+             (default
+              (funcall default)))))
+    (if *debug*
+        (process-arguments)
+        (handler-case (process-arguments)
+          (error (err)
+            (format *error-output* "~%ERROR: ~A~%" err)
+            ;; TODO: select different sysexits codes depending on the error class.
+            (return-from parse-options ex-software)))))
   0)
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;
-;;; From /usr/include/sysexists.h (Linux)
-;;;
-
-(DEFCONSTANT EX-OK            0   "successful termination")
-
-
-(DEFCONSTANT EX--BASE         64  "base value for error messages")
-
-
-(DEFCONSTANT EX-USAGE         64  "command line usage error
-    The command was used incorrectly, e.g., with
-    the wrong number of arguments, a bad flag, a bad
-    syntax in a parameter, or whatever.") ;;EX-USAGE
-
-(DEFCONSTANT EX-DATAERR       65  "data format error
-    The input data was incorrect in some way.
-    This should only be used for user's data & not
-    system files.") ;;EX-DATAERR
-
-(DEFCONSTANT EX-NOINPUT       66  "cannot open input
-    An input file (not a system file) did not
-    exist or was not readable.  This could also include
-    errors like \"No message\" to a mailer (if it cared
-    to catch it).") ;;EX-NOINPUT
-
-(DEFCONSTANT EX-NOUSER        67  "addressee unknown
-    The user specified did not exist.  This might
-    be used for mail addresses or remote logins.
-    ") ;;EX-NOUSER
-
-(DEFCONSTANT EX-NOHOST        68  "host name unknown
-    The host specified did not exist.  This is used
-    in mail addresses or network requests.") ;;EX-NOHOST
-
-(DEFCONSTANT EX-UNAVAILABLE   69  "service unavailable
-    A service is unavailable.  This can occur
-    if a support program or file does not exist.  This
-    can also be used as a catchall message when something
-    you wanted to do doesn't work, but you don't know
-    why.") ;;EX-UNAVAILABLE
-
-(DEFCONSTANT EX-SOFTWARE      70  "internal software error
-    An internal software error has been detected.
-    This should be limited to non-operating system related
-    errors as possible.") ;;EX-SOFTWARE
-
-(DEFCONSTANT EX-OSERR         71  "system error (e.g., can't fork)
-    An operating system error has been detected.
-    This is intended to be used for such things as \"cannot
-    fork\", \"cannot create pipe\", or the like.  It includes
-    things like getuid returning a user that does not
-    exist in the passwd file.") ;;EX-OSERR
-
-(DEFCONSTANT EX-OSFILE        72  "critical OS file missing
-    Some system file (e.g., /etc/passwd, /etc/utmp,
-    etc.) does not exist, cannot be opened, or has some
-    sort of error (e.g., syntax error).") ;;EX-OSFILE
-
-(DEFCONSTANT EX-CANTCREAT     73  "can't create (user) output file
-    A (user specified) output file cannot be created.") ;;EX-CANTCREAT
-
-(DEFCONSTANT EX-IOERR         74  "input/output error
-     An error occurred while doing I/O on some file.") ;;EX-IOERR
-
-(DEFCONSTANT EX-TEMPFAIL      75  "temp failure; user is invited to retry
-    temporary failure, indicating something that
-    is not really an error.  In sendmail, this means
-    that a mailer (e.g.) could not create a connection,
-    and the request should be reattempted later.") ;;EX-TEMPFAIL
-
-(DEFCONSTANT EX-PROTOCOL      76  "remote error in protocol
-    the remote system returned something that
-    was \"not possible\" during a protocol exchange.") ;;EX-PROTOCOL
-
-(DEFCONSTANT EX-NOPERM        77  "permission denied
-    You did not have sufficient permission to
-    perform the operation.  This is not intended for
-    file system problems, which should use NOINPUT or
-    CANTCREAT, but rather for higher level permissions.") ;;EX-NOPERM
-
-(DEFCONSTANT EX-CONFIG        78  "configuration error")
-
-
-(DEFCONSTANT EX--MAX          78  "maximum listed value")
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

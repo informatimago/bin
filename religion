@@ -1,531 +1,454 @@
-#!/bin/bash
-#******************************************************************************
-#FILE:              religion
-#LANGUAGE:          bash
-#SYSTEM:            POSIX
-#USER-INTERFACE:    POSIX
-#DESCRIPTION
-#    This  script is a religion code generator, explainer and editor.
-#    (See http://www.galactic-guide.com/articles/2R10.html)
-#USAGE
-#    religion -h
-#AUTHORS
-#    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
-#MODIFICATIONS
-#    2002-03-22 <PJB> Creation.
-#BUGS
-#    Please report them to the author.
-#LEGAL
-#    Copyright Pascal J. Bourguignon 2002 - 2002.
-#
-#    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation; either version 2 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#******************************************************************************
-pname="$(basename $0)"
-pblan="${pname//?/ }"
+#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1 -on-error debug
+;;;; -*- mode:lisp;coding:iso-8859-1 -*-
+;;;; -on-error debug
+;;;;**************************************************************************
+;;;;FILE:               religion.lisp
+;;;;LANGUAGE:           Common-Lisp
+;;;;SYSTEM:             Common-Lisp
+;;;;USER-INTERFACE:     Command Line Interface
+;;;;DESCRIPTION
+;;;;
+;;;;    This  script is a religion code generator, explainer and editor.
+;;;;    (See http://www.galactic-guide.com/articles/2R10.html)
+;;;;
+;;;;    Depends on ~/bin/script.lisp
+;;;;
+;;;;USAGE
+;;;;    religion --help
+;;;;AUTHORS
+;;;;    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
+;;;;MODIFICATIONS
+;;;;    2010-11-05 <PJB> Converted to Common Lisp from bash.
+;;;;    2002-03-22 <PJB> Creation.
+;;;;BUGS
+;;;;    Please report them to the author.
+;;;;LEGAL
+;;;;    Copyright Pascal J. Bourguignon 2002 - 2010
+;;;;
+;;;;    This program is free software; you can redistribute it and/or modify
+;;;;    it under the terms of the GNU General Public License as published by
+;;;;    the Free Software Foundation; either version 2 of the License, or
+;;;;    (at your option) any later version.
+;;;;
+;;;;    This program is distributed in the hope that it will be useful,
+;;;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;;    GNU General Public License for more details.
+;;;;
+;;;;    You should have received a copy of the GNU General Public License
+;;;;    along with this program; if not, write to the Free Software
+;;;;    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+;;;;******************************************************************************
+(in-package "COMMON-LISP-USER")
 
-religiondb="$HOME/religions.data"
-# could be a common file such as /usr/local/share/lib/religions or whatever..
-
-
-fmt --help > /dev/null 2>&1 ; gnufmt=$?
-
-function fmt () {
-    local width
-    local goal
-    local files=""
-    if [ 0 -eq $gnufmt ] ; then
-        command fmt $@
-    else
-        while [ $# -ge 1 ] ; do
-            case "$1" in
-            -w)
-                if [ $# -le 1 ] ; then
-                    echo "fmt: missing argument after '$1'." 1>&2
-                    exit 1
-                fi
-                shift
-                width="$1"
-                ;;
-            --width=*)
-                width="${1/--width=/}"
-                ;;
-            -[0-9]|-[0-9][0-9]|-[0-9][0-9][0-9]|-[0-9][0-9][0-9][0-9])
-                width="${1/-/}"
-                ;;
-            -*)
-                echo "fmt: invalid or non emulated argument '$1'." 1>&2
-                exit 1
-                ;;
-            *)
-                files="$files $1"
-                ;;
-            esac
-            shift
-        done
-        if [ -n "$width" ] ; then
-            goal=$(( $width - 1 ))
-        fi
-        command fmt $goal $width $files
-    fi
-}
-
-function usage () {
-    echo ""
-    echo "${pname} usage:"
-    echo ""
-    echo "    ${pname} -g|--generate | -G|--generate-and-explain \\"
-    echo "    ${pblan} | -i|--interactive | (-e|--explain) CODE \\"
-    echo "    ${pblan} | -h|--help | -v|--version | -c|--copyright"
-    echo ""
-    echo "See also: http://www.galactic-guide.com/articles/2R10.html"
-    echo ""
-}
-
-numdeity=(\
-    "A:All powerful, all knowing, benevolent." \
-    "B:All powerful, but one can usually pull pranks due to lack of all knowingness, benevolent." \
-    "C:All knowing, but who the hell really cares due to lack of all powerfulness, benevolent." \
-    "D:Neither all knowing nor all powerful, but just kind of there, benevolent." \
-    "E:All powerful, all knowing, malevolent." \
-    "F:All powerful, but one can usually pull pranks due to lack of all knowingness, malevolent." \
-    "G:All knowing, but who the hell really cares due to lack of all powerfulness, malevolent." \
-    "H:Neither all knowing nor all powerful, but just kind of there, malevolent." \
-    "I:Whoever happens to be leader of the people at the time." \
-    "J:Everything and everybody is part of the god." \
-    "K:Everything and everybody, except for people members of the religion don't like, is part of god." \
-    "L:God is a head of lettuce named Ralph." \
-    "?:Unknown." \
-    )
-
-afterdeath=(\
-    "0:Everybody goes to a nice place." \
-    "1:Members of the religion go to a nice place, everybody else goes to an unpleasant place." \
-    "2:Members of the religion go to an unpleasant place, everybody else goes to a nice place." \
-    "3:Everybody goes to an unpleasant place." \
-    "4:Nobody goes anywhere." \
-    "5:Really bad people are forced to work in all night convenience stores in New Jersey." \
-    "6:Everybody is reincarnated." \
-    "7:Only people who deserve punishment are reincarnated." \
-    "?:Unknown." \
-    )
-
-#organization:
-# A representing very organized, Z representing chaos. Follow this by a
-# hyphen to make it easier to find the next section. 
-
-#bubba:
-# The next number represents the percentage of members that are named
-# "Bubba." Do this on a scale from 0 to 9, with 0 meaning that nobody is named
-# Bubba and 9 meaning that everyone is named Bubba. Southern Baptists are
-# rated a 5 and the First Congregational Church of Bubba is a 9. 
-
-policy=(\
-    "A:Handed down from a single source." \
-    "B:Voted upon by a collection of elders." \
-    "C:Voted upon by everybody." \
-    "D:Chosen by a random number generator." \
-    "E:Determined by careful computer analysis." \
-    "F:Determined by combatants representing each view playing Super Mario Brothers." \
-    "Z:Nobody has ever tried to change the policy, so nobody knows just yet." \
-    "?:Unknown." \
-    )
-
-#numspellings:
-# Then follows a digit representing the number of ways one can spell the name
-# of the religion. 
-
-place=(\
-    "A:No meetings." \
-    "B:A building set aside for the purpose." \
-    "C:A building which is also the gym for the local high school." \
-    "D:Outside." \
-    "E:In an airport or bus terminal." \
-    "F:In a submarine." \
-    "G:In a graveyard or mausoleum." \
-    "F:In a bathtub or jacuzzi." \
-    "?:Unknown." \
-    )
-
-function random () {
-    # return one of its arguments, randomly.
-    local num=$(( 1 + $RANDOM % $# ))
-    echo ${!num}
-}
-
-function car () {
-    # return what is before : in its argument.
-    echo ${1/:*/}
-}
-
-function isupper () {
-    case "$1" in
-    A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z)
-        echo yes
-        ;;
-    *)
-        ;;
-    esac
-}
-
-function isdigit () {
-    case "$1" in
-    0|1|2|3|4|5|6|7|8|9)
-        echo yes
-        ;;
-    *)
-        ;;
-    esac
-}
+;; Clean the packages imported into COMMON-LISP-USER:
+(MAPC (LAMBDA (package) (UNUSE-PACKAGE package "COMMON-LISP-USER"))
+      (set-difference
+       (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))
+       (delete nil (list ;; A list of all the "CL" packages possible:
+                    (FIND-PACKAGE "COMMON-LISP")
+                    (FIND-PACKAGE "IMAGE-BASED-COMMON-LISP")))))
 
 
-function lookup_name () {
-    local code="$1"
-    touch "$religiondb"
-    egrep "^${code}:" "$religiondb" | sed -e "s/^${code}://" 
-}
+(load (make-pathname :name "SCRIPT" :type nil :version NIL :case :common
+                     :defaults *load-pathname*))
+(use-package "SCRIPT")
+
+;;;-----------------------------------------------------------------
 
 
-function generate () {
-    local num="$(car $(random "${numdeity[@]}"))"
-    local aft="$(car $(random "${afterdeath[@]}"))"
-    local org=$(random A B C D E F G H I J K L M N O P Q R S T U V W X Y Z)
-    local bub=$(random 0 1 2 3 4 5 6 7 8 9)
-    local pol="$(car $(random "${policy[@]}"))"
-    local spe=$(random 0 1 2 3 4 5 6 7 8 9)
-    local pla="$(car $(random "${place[@]}"))"
-    echo $num$aft$org-$bub$pol$spe$pla
-}
+(setf *program-name* (pname))
+(setf *debug* t)
+(setf *random-state* (make-random-state t))
+
+(set-documentation-text
+ "See also: http://www.galactic-guide.com/articles/2R10.html
+
+")
+
+(defparameter *religion-pathname*
+  (make-pathname :name "RELIGIONS" :type "DATA" :version NIL :case :common
+                 :defaults (user-homedir-pathname)))
+;; Could be a common file such as /usr/local/share/lib/religions or whatever..
 
 
-function line_code () {
-    echo "$1" | { IFS=: read code libelle ; echo "$code" ; }
-}
-
-function line_libelle () {
-    echo "$1" | { IFS=: read code libelle ; echo "$libelle" ; }
-}
 
 
-function get_libelle_for_code () {
-    local code="$1"
-    shift
-    while [ $# -ge 1 ] ; do
-        if [ "$code" = "$(line_code "$1")" ] ; then
-            echo "$(line_libelle "$1")"
-            return;
-        fi
-        shift
-    done
-}
+;;;-----------------------------------------------------------------
+
+(defparameter *numdeity*
+  '(
+    "A:All powerful, all knowing, benevolent." 
+    "B:All powerful, but one can usually pull pranks due to lack of all knowingness, benevolent." 
+    "C:All knowing, but who the hell really cares due to lack of all powerfulness, benevolent." 
+    "D:Neither all knowing nor all powerful, but just kind of there, benevolent." 
+    "E:All powerful, all knowing, malevolent." 
+    "F:All powerful, but one can usually pull pranks due to lack of all knowingness, malevolent." 
+    "G:All knowing, but who the hell really cares due to lack of all powerfulness, malevolent." 
+    "H:Neither all knowing nor all powerful, but just kind of there, malevolent." 
+    "I:Whoever happens to be leader of the people at the time." 
+    "J:Everything and everybody is part of the god." 
+    "K:Everything and everybody, except for people members of the religion don't like, is part of god." 
+    "L:God is a head of lettuce named Ralph." 
+    "?:Unknown."))
+
+(defparameter *afterdeath*
+  '(
+    "0:Everybody goes to a nice place." 
+    "1:Members of the religion go to a nice place, everybody else goes to an unpleasant place." 
+    "2:Members of the religion go to an unpleasant place, everybody else goes to a nice place." 
+    "3:Everybody goes to an unpleasant place." 
+    "4:Nobody goes anywhere." 
+    "5:Really bad people are forced to work in all night convenience stores in New Jersey." 
+    "6:Everybody is reincarnated." 
+    "7:Only people who deserve punishment are reincarnated." 
+    "?:Unknown."))
+
+;; organization:
+;;   A representing very organized, Z representing chaos. Follow this by a
+;;   hyphen to make it easier to find the next section. 
+
+;; bubba:
+;;  The next number represents the percentage of members that are named
+;;  "Bubba." Do this on a scale from 0 to 9, with 0 meaning that nobody is named
+;;  Bubba and 9 meaning that everyone is named Bubba. Southern Baptists are
+;;  rated a 5 and the First Congregational Church of Bubba is a 9. 
+
+(defparameter *policy*
+  '(
+    "A:Handed down from a single source." 
+    "B:Voted upon by a collection of elders." 
+    "C:Voted upon by everybody." 
+    "D:Chosen by a random number generator." 
+    "E:Determined by careful computer analysis." 
+    "F:Determined by combatants representing each view playing Super Mario Brothers." 
+    "Z:Nobody has ever tried to change the policy, so nobody knows just yet." 
+    "?:Unknown."))
+
+;; numspellings:
+;;  Then follows a digit representing the number of ways one can spell the name
+;;  of the religion. 
+
+(defparameter *place*
+  '(
+    "A:No meetings." 
+    "B:A building set aside for the purpose." 
+    "C:A building which is also the gym for the local high school." 
+    "D:Outside." 
+    "E:In an airport or bus terminal." 
+    "F:In a submarine." 
+    "G:In a graveyard or mausoleum." 
+    "F:In a bathtub or jacuzzi." 
+    "?:Unknown."))
 
 
-    
-function explain () {
-    local code="$1"
-    set $(echo "$code" | sed -e 's/^\(.\)\(.\)\(.\)-\(.\)\(.\)\(.\)\(.\)$/\1 \2 \3 \4 \5 \6 \7/' )
-    local num=$1
-    local aft=$2
-    local org=$3
-    local bub=$4
-    local pol=$5
-    local spe=$6
-    local pla=$7
-    local lib
+(defun line-code  (line) (aref line 0))
+(defun line-label (line) (subseq line 2))
 
-    echo " -------------------------------------------------------------------"
-    echo " RELIGION CODE:            $num$aft$org-$bub$pol$spe$pla"
 
-    if [ "$code" != "$num$aft$org-$bub$pol$spe$pla" ] ; then
-        echo "${pname}: Invalid religion code. Please. use format: lnl-nlnl"
-        echo "${pblan}  with 'l' a majuscule letter and 'n' a digit."
-        exit 2
-    fi
+(defun split-string (string &optional (separators " "))
+  (loop
+     :for start = 0 :then (and end (1+ end))
+     :for end = (and start (position-if (lambda (ch) (find ch separators))
+                                        string :start start))
+     :while start
+     :collect (subseq string start end)))
 
-    echo " RELIGION CHARACTERISTICS: "
 
-    local spaces="                          "
+(defun load-religion-database (path)
+  (with-open-file (db path :if-does-not-exist nil)
+    (and db
+         (loop
+            :for line = (read-line db nil nil)
+            :while line
+            :collect (split-string line ":")))))
 
-    lib=$(get_libelle_for_code "$num" "${numdeity[@]}")
-    if [ -z "$lib" ] ; then
-        echo " INVALID DEITY CODE '$num'."
-    else
-        echo -n "                    DEITY: "
-        echo "$lib" | fmt -w 40 | sed -e '2,$s/^/ '"$spaces/"
-    fi
 
-    local lib=$(get_libelle_for_code "$aft" "${afterdeath[@]}")
-    if [ -z "$lib" ] ; then
-        echo " INVALID AFTER DEATH CODE '$aft'."
-    else
-        echo -n "              AFTER DEATH: "
-        echo "$lib" | fmt -w 40 | sed -e '2,$s/^/ '"$spaces/"
-    fi
+(defun save-religion-database (db path)
+  (with-open-file (stream path
+                      :direction :output
+                      :if-exists :supersede
+                      :if-does-not-exist :create)
+    (format stream "~:{~A:~A~%~}" db)))
 
-    if [ "?" = "$org" ] ; then
-        echo "       ORGANIZATION LEVEL: Unknown."
-    elif [ -z $(isupper $org) ] ; then
-        echo " INVALID ORGANIZATION LEVEL CODE '$org' (SHOULD BE AN UPPER CASE LETTER)."
-    else
-        echo "       ORGANIZATION LEVEL: $org ( A=VERY ORGANIZED, Z=CHAOS )."
-    fi
+(defparameter *religion-db* (load-religion-database *religion-pathname*))
 
-    if [ "?" = "$bub" ] ; then
-        echo " % OF MEMBERS NAMED BUBBA: Unknown."
-    elif [ -z $(isdigit $bub) ] ; then
-        echo " INVALID BUBBA CODE '$bub' (SHOULD BE A DIGIT)."
-    else
-        echo " % OF MEMBERS NAMED BUBBA: ${bub}0 %"
-    fi
+(defun lookup-names (code)
+  (mapcar (function second)
+          (remove code *religion-db*
+                  :test-not (function string-equal)
+                  :key (function first))))
 
-    local lib=$(get_libelle_for_code "$pol" "${policy[@]}")
-    if [ -z "$lib" ] ; then
-        echo " INVALID POLICY CODE '$pol'."
-    else
-        echo -n "                   POLICY: "
-        echo "$lib" | fmt -w 40 | sed -e '2,$s/^/ '"$spaces/"
-    fi
+(defun lookup-code (name)
+  (first (find name *religion-db*
+               :test (function string-equal)
+               :key (function second))))
 
-    if [ "?" = "$spe" ] ; then
-        echo " NUM OF SPELLINGS OF NAME: Unknown."
-    elif [ -z $(isdigit $spe) ] ; then
-        echo " INVALID SPELLINGS NUMBER '$spe' (SHOULD BE A DIGIT)."
-    else
-        echo " NUM OF SPELLINGS OF NAME: ${spe}"
-    fi
+(defun one-of (seq) (elt seq (random (length seq))))
 
-    local lib=$(get_libelle_for_code "$pla" "${place[@]}")
-    if [ -z "$lib" ] ; then
-        echo " INVALID PLACE OF CULT CODE '$pla'."
-    else
-        echo -n "            PLACE OF CULT: "
-        echo "$lib" | fmt -w 40 | sed -e '2,$s/^/ '"$spaces/"
-    fi
-    echo " -------------------------------------------------------------------"
-}
+(defun generate ()
+  (format nil "~A~A~A-~A~A~A~A"
+          (line-code (one-of *numdeity*))
+          (line-code (one-of *afterdeath*))
+          (one-of "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+          (one-of "0123456789")
+          (line-code (one-of *policy*))
+          (one-of "0123456789")
+          (line-code (one-of *place*))))
 
-function yesno () {
-    local msg="$1"
-    local rep=""
-    while [ -z "$rep" ] ; do
-        echo -n "$msg"
-        read rep
-        case "$rep" in
-        1|t|T|true|True|TRUE|v|V|vrai|Vrai|VRAI|verdad|Verdad|VERDAD|y|Y|yes|Yes|YES|o|O|oui|Oui|OUI|j|J|ja|Ja|JA|d|D|da|Da|DA|s|S|si|Si|SI|p|P|positif|Positif|POSITIF|a|A|affirmative|Affirmative|AFFIRMATIVE|affirmatif|Affirmatif|AFFIRMATIF|yep|Yep|YEP|yeah|Yeah|YEAH|ouais|Ouais|OUAIS)
-            rep=Y
-            ;;
-        0|nil|Nil|NIL|f|F|false|False|FALSE|faux|Faux|FAUX|falso|Falso|FALSO|n|N|no|No|NO|non|Non|NON|nein|Nein|NEIN|niet|Niet|NIET|negatif|Negatif|NEGATIF|negative|Negative|NEGATIVE)
-            rep=N
-            ;;
-        *)
-            rep=""
-            ;;
-        esac
-    done > /dev/tty
-    echo $rep
-}
+(defun get-label-for-code (code table)
+  (if (string= "?" code)
+      "Unknown"
+      (let ((line (find code table :key (lambda (line) (aref line 0)))))
+        (when line
+          (subseq line 2)))))
 
-function choose () {
-    local msg="$1"
-    shift
-    local valid=""
-    local code
-    local lib
-    local arg
+(defun wrap-long-string (long-string column-width)
+  (let ((cw (list column-width)))
+    (setf (cdr cw) cw)
+    (format nil "~{~<~%~1,v:;~a~>~^ ~}"
+            (mapcan (function list) cw (split-string long-string " ")))))
 
-    while [ -z "$valid" ] ; do
-        echo ""
-        echo " -----  ------------------------------------------------------------"
-        echo " CODE   DESCRIPTION"
-        echo " -----  ------------------------------------------------------------"
-        for arg ; do
-            code=$(line_code "$arg")
-            lib=$(line_libelle "$arg")
-            echo -n "   ${code}    "
-            echo "$lib" | fmt -w 60 | sed -e '2,$s/^/        /'
-        done
-        echo " -----  ------------------------------------------------------------"
-        echo -n "$msg"
-        read code
-        if [ -z "$(get_libelle_for_code $code "$@")" ] ; then
-            echo " INVALID CODE '$code'."
-            sleep 1
-        else
-            valid=yes
-        fi
-    done > /dev/tty
-    echo $code
-}
-    
-function choose_l () {
-    local msg="$1"
-    shift
-    local valid=""
-    local code
+(defun print-section (indent line-width title text)
+  (let ((lines (split-string (wrap-long-string text (- line-width indent 1)) #(#\newline))))
+    (format t "~VD ~A~%" indent title (first lines))
+    (dolist (line (rest lines))
+      (format t "~VD ~A~%" indent "" line))))
+
+(defun code-valid-p (code)
+  (and (= 8 (length code))
+       (char= #\- (aref code 3))
+       (or (char= #\? (aref code 0)) (upper-case-p (aref code 0)))
+       (or (char= #\? (aref code 1)) (digit-char-p (aref code 1)))
+       (or (char= #\? (aref code 2)) (upper-case-p (aref code 2)))
+       (or (char= #\? (aref code 4)) (digit-char-p (aref code 4)))
+       (or (char= #\? (aref code 5)) (upper-case-p (aref code 5)))
+       (or (char= #\? (aref code 6)) (digit-char-p (aref code 6)))
+       (or (char= #\? (aref code 7)) (upper-case-p (aref code 7)))))
+
+
+(defun explain (code)
+
+  (unless (code-valid-p code)
+    (format t "~A: Invalid religion code '~A'.~%" *program-name* code)
+    (format t "~VA  Please. use format: lnl-nlnl ~%~
+               ~0@*~VA  with 'l' a majuscule letter and 'n' a digit.~%"
+            (length *program-name*) "")
+    (ext:exit 2))
   
-    while [ -z "$valid" ] ; do
-        echo ""
-        echo -n "$msg"
-        read code
-        if [ "$code" = "?" ] ; then
-            valid=yes
-        elif [ -z "$(isupper "$code")" ] ; then
-            echo " INVALID CODE '$code'. SHOULD BE AN UPPER CASE LETTER OR '?'."
-        else
-            valid=yes
-        fi
-    done > /dev/tty
-    echo $code
-}
+  (let* ((num (aref code 0))
+         (aft (aref code 1))
+         (org (aref code 2))
+         (bub (aref code 4))
+         (pol (aref code 5))
+         (spe (aref code 6))
+         (pla (aref code 7))
+         (line " -------------------------------------------------------------------")
+         (line-width (length line))
+         (indent     30))
+    (format t "~A~%" line)
+    (format t " RELIGION CODE:                ~A~A~A-~A~A~A~A~%" num aft org bub pol spe pla)
+    (format t " RELIGION CHARACTERISTICS: ~%")
+    (flet ((describe-code (title code table errorfmt)
+             (let ((lab (get-label-for-code code table)))
+               (if lab
+                   (print-section indent line-width title lab)
+                   (format t errorfmt code)))))
+      (describe-code "DEITY:"       num *numdeity*   " INVALID DEITY CODE '~A'.~%")
+      (describe-code "AFTER DEATH:" aft *afterdeath* " INVALID AFTER DEATH CODE '~A'.~%")
+      (cond
+        ((string= "?"  org) (format t "~VD ~A~%"      indent "ORGANIZATION LEVEL:" "Unknown."))
+        ((upper-case-p org) (format t "~VD ~A ~A~%"   indent "ORGANIZATION LEVEL:" org "(A = VERY ORGANIZED, Z = CHAOS)."))
+        (t (format t  " INVALID ORGANIZATION LEVEL CODE '~A' (SHOULD BE AN UPPER CASE LETTER).~%" org)))
+      (cond
+        ((string= "?"  bub) (format t "~VD ~A~%"      indent "% OF MEMBERS NAMED BUBBA:" "Unknown."))
+        ((digit-char-p bub) (format t "~VD ~A %~%"    indent "% OF MEMBERS NAMED BUBBA:" (round (* 100/9 (digit-char-p bub)))))
+        (t (format t  " INVALID BUBBA CODE '~A' (SHOULD BE A DIGIT).~%" bub)))
+      (describe-code "POLICY:" pol *policy* " INVALID POLICY CODE '~A'.~%")
+      (cond
+        ((string= "?"  spe) (format t "~VD ~A~%"      indent "NUM OF SPELLINGS OF NAME:" "Unknown."))
+        ((digit-char-p spe) (format t "~VD ~A~%"      indent "NUM OF SPELLINGS OF NAME:" spe))
+        (t (format t  " INVALID SPELLINGS NUMBER '~A' (SHOULD BE A DIGIT).~%" spe)))
+      (describe-code "PLACE OF CULT:" pla *place* " INVALID PLACE OF CULT CODE '~A'.~%"))
+    (format t "~A~%" line)))
 
-function choose_n () {
-    local msg="$1"
-    shift
-    local valid=""
-    local code
-  
-    while [ -z "$valid" ] ; do
-        echo ""
-        echo -n "$msg"
-        read code
-        if [ "$code" = "?" ] ; then
-            valid=yes
-        elif [ -z "$(isdigit "$code")" ] ; then
-            echo " INVALID CODE '$code'. SHOULD BE A DIGIT OR '?'."
-        else
-            valid=yes
-        fi
-    done > /dev/tty
-    echo $code
-}
+
+(defun read-answer ()
+  (string-upcase (string-trim #(#\space #\tab) (read-line))))
 
 
-function choose_b () {
-    local msg="$1"
-    shift
-    local valid=""
-    local code
-  
-    while [ -z "$valid" ] ; do
-        echo ""
-        echo -n "$msg"
-        read code
-        if [ "$code" = "?" ] ; then
-            valid=yes
-        else
-            case "$code" in 
-            [0-9]|[0-9][0-9]|[0-1][0-9][0-9])
-                if [ $code -le 100 ] ; then
-                    valid=yes
-                else
-                    echo " PERCENTAGE TOO BIG $code% !. SHOULD BE BETWEEN 0 and 100, OR '?'."
-                fi
-                ;;
-            *)
-                echo " INVALID PERCENTAGE '$code'. SHOULD BE BETWEEN 0 and 100, OR '?'."
-                ;;
-            esac
-        fi
-    done > /dev/tty
-    echo $(( $code / 10 ))
-}
+(defun yeah-nay-p ()
+  (loop
+     :for answer = (read-answer)
+     :do (cond
+           ((find answer '("1" "t" "true" "v" "vrai" "verdad" "y" "yes" "o"
+                           "oui" "j" "ja" "d" "da" "s" "si" "p" "positif"
+                           "a" "affirmative" "affirmatif" "afirmativo" "yep" "yeah"
+                           "ouais")
+                  :test (function string-equal))
+            (return-from yeah-nay-p t))
+           ((find answer '("0" "nil" "f" "false" "faux" "falso" "n" "no" "non"
+                           "nein" "niet" "negatif" "negative" "negativo" "nay")
+                  :test (function string-equal))
+            (return-from yeah-nay-p nil)))))
 
-function interactive () {
-    local rep=N
-    local code
-    while [ $rep != Y ] ; do
-        echo " -------------------------------------------------------------------"
-        echo " LET'S SEE WHAT KIND OF RELIGION YOU WANT..."
-        echo ""
-        local num=$(choose   " PLEASE CHOOSE A DEITY: "        "${numdeity[@]}")
-        local aft=$(choose   " PLEASE CHOOSE AN AFTER DEATH: " "${afterdeath[@]}")
-        local org=$(choose_l " PLEASE CHOOSE AN ORGANIZATION LEVEL (A=VERY ORGANIZED, Z=CHAOS): ")
-        local bub=$(choose_b " PLEASE CHOOSE A BUBBA PERCENTAGE: ")
-        local pol=$(choose   " PLEASE CHOOSE A POLICY: "       "${policy[@]}")
-        local spe=$(choose_n " PLEASE CHOOSE A NUMBER OF SPELLINGS: ")
-        local pla=$(choose   " PLEASE CHOOSE A PLACE OF CULT: " "${place[@]}")
-        code="$num$aft$org-$bub$pol$spe$pla"
-        explain "$code"
-        rep=$(yesno " ARE SATISFIED WITH YOUR RELIGION (Y|N)? ")
-    done
-    local names="$(lookup_name "${code}")"
-    if [ -z "$names" ] ; then
-        local name=""
-        while [ -z "$name" ] ; do
-            echo -n " PLEASE ENTER A NAME FOR YOUR RELIGION: "
-            read name
-            echo " RELIGION CODE:    $code"
-            echo " RELIGION NAME:    $name"
-            if [ "Y" != $(yesno " IS THAT CORRECT (Y|N)? ") ] ; then
-                name=""
-            fi
-        done
-        echo "${code}:${name}" >> "$religiondb"
-        echo " -------------------------------------------------------------------"
-        echo " REGISTERED YOUR NEW RELIGION:"
-        echo " RELIGION CODE:    $code"
-        echo " RELIGION NAME:    $name"
-        echo " -------------------------------------------------------------------"
-    else
-        echo " -------------------------------------------------------------------"
-        echo " YOU CHOOSED THIS RELIGION:"
-        echo " RELIGION CODE:    $code"
-        echo " RELIGION NAME:    $names"
-        echo " -------------------------------------------------------------------"
-    fi
-}
 
-while [ $# -ge 1 ] ; do
-    case "$1" in
-    -g|--generate)
-        generate
-        exit 0
-        ;;
-    -G|--generate-and-explain)
-        r=$(generate)
-        echo $r 1>&2
-        explain $r
-        exit 0
-        ;;
-    -e|--explain)
-        if [ $# -le 1 ] ; then
-            echo "${pname}: Missing argument after '$1'."
-            usage
-            exit 1
-        fi
-        shift
-        code="$1"
-        explain $code
-        exit 0
-        ;;
-    -i|--interactive)
-        interactive
-        exit 0
-        ;;
-    -h|--help)
-        usage
-        exit 0
-        ;;
-    -v|--version)
-        echo "${pname} version 1.0"
-        exit 0
-        ;;
-    -c|--copyright)
-        echo "${pname} copyright and license:"
-        cat <<'EOF'
+(defun choose (message table)
+  (let* ((line " -----  ------------------------------------------------------------")
+         (line-width (length line)))
+    (loop
+       (format t "~2%~A~%" line)
+       (format t " CODE   DESCRIPTION~%")
+       (format t "~A~%" line)
+       (dolist (line table)
+         (print-section 8 line-width (string (line-code line)) (line-label line)))
+       (format t "~A~%" line)
+       (format t "~A" message)
+       (finish-output)
+       (let* ((code (read-answer))
+              (lab (get-label-for-code code table)))
+         (when code
+           (return-from choose code))
+         (format t " INVALID CODE '~A'.~%" code)
+         (finish-output)
+         (sleep 1)))))
 
-    Copyright Pascal J. Bourguignon 2002 - 2002.
+(defun choose-something (message what what-label)
+  (loop
+     (format t "~2%~A" message)
+     (finish-output)
+     (let* ((input (read-answer))
+            (code  (funcall what input)))
+       (when code
+         (return-from choose-something code))
+       (format t " INVALID CODE '~A'. SHOULD BE ~A OR '?'.~%" input what-label)
+       (finish-output)
+       (sleep 1))))
+
+(defun choose-letter (message)
+  (choose-something message
+                    (lambda (input)
+                      (cond ((string= "?" input)            #\?)
+                            ((upper-case-p (aref input 0)) (aref input 0))
+                            (t                             nil)))
+                    "AN UPPER CASE LETTER"))
+
+(defun choose-digit (message)
+  (choose-something message
+                    (lambda (input)
+                      (cond ((string= "?" input)            #\?)
+                            ((digit-char-p (aref input 0)) (aref input 0))
+                            (t                             nil)))
+                    "A DIGIT"))
+
+(defun choose-bubba (message)
+  (choose-something message
+                    (lambda (input)
+                      (cond ((string= "?" input) #\?)
+                            ((let ((b (parse-integer input :junk-allowed t)))
+                               (if (<= 0 b 100)
+                                   (round (* 9/10 b) 10)
+                                   (format t " PERCENTAGE TOO BIG ~A% !. SHOULD BE BETWEEN 0 and 100, OR '?'.~%" b))))
+                            (t (format t " INVALID PERCENTAGE '~A'. SHOULD BE BETWEEN 0 and 100, OR '?'.~%" input))))
+                    "A PERCENTAGE"))
+
+
+
+(defun interactive ()
+  (flet ((show-religion-names (code names)
+           (format t " RELIGION CODE:    ~A~%" code)
+           (format t " RELIGION NAME:    ~{~A~^, ~}~%" names)))
+    (let ((line " -------------------------------------------------------------------")
+          code
+          name)
+      (loop :do
+         (format t "~A~%" line)
+
+         (format t " LET'S SEE WHAT KIND OF RELIGION YOU WANT...~%")
+         (format t "~%")
+         (let ((num (choose        " PLEASE CHOOSE A DEITY: "        *numdeity*))
+               (aft (choose        " PLEASE CHOOSE AN AFTER DEATH: " *afterdeath*))
+               (org (choose-letter " PLEASE CHOOSE AN ORGANIZATION LEVEL (A=VERY ORGANIZED, Z=CHAOS): "))
+               (bub (choose-bubba  " PLEASE CHOOSE A BUBBA PERCENTAGE: "))
+               (pol (choose        " PLEASE CHOOSE A POLICY: "       *policy*))
+               (spe (choose-digit  " PLEASE CHOOSE A NUMBER OF SPELLINGS: "))
+               (pla (choose        " PLEASE CHOOSE A PLACE OF CULT: " *place*)))
+           (setf code (format nil "~A~A~A-~A~A~A~A" num aft org bub pol spe pla))
+           (explain code)
+           (finish-output))
+         :until (yes-or-no-p  " ARE SATISFIED WITH YOUR RELIGION? "))
+      (let ((names (lookup-names code)))
+        (if (null names)
+            (loop
+               (format t " PLEASE ENTER A NAME FOR YOUR RELIGION: ")
+               (finish-output)
+               (setf name (read-answer))
+               (show-religion-names code (list name))
+               (when (yes-or-no-p  " IS THAT CORRECT? ")
+                 (push (list code name) *religion-db*)
+                 (save-religion-database *religion-db* *religion-pathname*)
+                 (format t "~A~%" line)
+                 (format t " REGISTERED YOUR NEW RELIGION:~%")
+                 (show-religion-names code (list name))
+                 (format t "~A~%" line)
+                 (return-from interactive)))
+            (progn
+              (format t "~A~%" line)
+              (format t " YOU CHOSED THIS RELIGION:~%")
+              (show-religion-names code names)
+              (format t "~A~%" line)))))))
+
+
+
+(define-option ("-g" "--generate") ()
+  "Generate a random religion."
+  (princ (generate)) (terpri)
+  (finish-output))
+
+
+(define-option ("-G" "--generate-and-explain") ()
+  "Generate and explain random religion.
+The code is generated and output to stderr,
+while the explainations are written to stdout."
+  (let ((religion-code (generate)))
+    (princ religion-code *error-output*) (terpri *error-output*)
+    (finish-output *error-output*)
+    (explain religion-code)))
+
+(define-option ("-e" "--explain") (religion-code)
+  "Explain a religion code."
+  (cond
+    ((code-valid-p religion-code) (explain religion-code))
+    ((lookup-code religion-code)  (explain (lookup-code religion-code)))
+    (t                            (explain religion-code))))
+
+(define-option ("-i" "--interactive") ()
+  "Creates a religion interactively."
+  (interactive))
+
+(define-option ("-l" "--list") ()
+  "List known religions."
+  (loop
+     :for (code name) :in *religion-db*
+     :initially (progn
+                  (format t " ~8D  ~:(~A~)~%" "--------" "----------------------------------------")
+                  (format t " ~8D  ~:(~A~)~%" "Code" "Name")
+                  (format t " ~8D  ~:(~A~)~%" "--------" "----------------------------------------"))
+     :do (format t " ~4D  ~:(~A~)~%" code name)
+     :finally (format t " ~4D  ~:(~A~)~%" "--------" "----------------------------------------")))
+
+
+(define-option ("-V" "--version") ()
+  "Prints the version of this script."
+  (format t "~A version 2.0~%Running on ~A ~A~%"
+          *program-name*
+          (lisp-implementation-type) (lisp-implementation-version)))
+
+(define-option ("-C" "--copyright") ()
+  "Prints the version of this script."
+  (format t "~A copyright and license:~%" *program-name*)
+  (format t "
+    Copyright Pascal J. Bourguignon 2002 - 2010
 
     mailto:pjb@informatimago.com
 
@@ -543,17 +466,8 @@ while [ $# -ge 1 ] ; do
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-EOF
-        exit 0
-        ;;
-    *)
-        echo "${pname}: Invalid argument '$1'."
-        usage
-        exit 1
-        ;;
-    esac
-    shift
-done
-echo "${pname}: Missing argument."
-usage
-exit 1
+"))
+
+
+(parse-options ext:*args*)
+;;;; THE END ;;;;
