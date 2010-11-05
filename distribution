@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #******************************************************************************
 #FILE:               distribution
 #LANGUAGE:           sh
@@ -44,7 +44,7 @@ function distribution () {
     local systeme=
     local distrib="unknown"
     local release="unknown"
-    systeme=`uname` || systeme="unknown"
+    systeme=$(uname) || systeme="unknown"
 
 
     case "$systeme" in
@@ -52,12 +52,12 @@ function distribution () {
     Linux)
         if [ -e /etc/mandrake-release ] ; then
             distrib=mandrake
-            release=`awk '{print $4}' < /etc/mandrake-release`
+            release=$(awk '{print $4}' < /etc/mandrake-release)
             # Checked with Linux Mandrake 6.1
 
         elif [ -e /etc/redhat-release ] ; then
             distrib=redhat
-            release=`awk '{print $4}' < /etc/redhat-release`
+            release=$(awk '{print $4}' < /etc/redhat-release)
             # Checked with Linux RedHat 6.1, 6.2, 7.0
             # Checked with Linux Immunix 6.2.
             # There seems to be no way to differenciate 
@@ -65,23 +65,23 @@ function distribution () {
     
         elif [ -e /etc/conectiva-release ] ; then
             distrib=conectiva
-            release=`awk '{print $3}' < /etc/conectiva-release`
+            release=$(awk '{print $3}' < /etc/conectiva-release)
             # Checked with Linux Conectiva 6.5
 
         elif [ -e /etc/SuSE-release ] ; then
             distrib=SuSE
-            release=`grep VERSION /etc/SuSE-release|sed -e 's/.*= *//'`
+            release=$(grep VERSION /etc/SuSE-release|sed -e 's/.*= *//')
             # Checked with Linux SuSE 7.0, 7.1
 
         elif [ -e /etc/debian_version ] ; then
             distrib=debian
-            release="`cat /etc/debian_version`"
-            # Checked with Linux DebIan ?
+            release="$(cat /etc/debian_version)"
+            # Checked with Linux DebIan 5.0.4
 
         elif [ -e /etc/gentoo-release ] ; then
             distrib=gentoo
-            release=`awk '{print $NF}' < /etc/gentoo-release`
-            # Checked with Linux gentoo 1.12.9
+            release=$(awk '{print $NF}' < /etc/gentoo-release)
+            # Checked with Linux gentoo 1.12.9, 1.12.13
 
         else
             distrib=unknown
@@ -92,19 +92,38 @@ function distribution () {
     NEXTSTEP)
         # A special case, where a uname has been installed on NeXTSTEP.
         distrib=NeXT
-        release=`uname -r`
+        release=$(uname -r) || release="unknown"
         ;;
 
+    Darwin)
+        release=$(hostinfo | awk '/Darwin Kernel Version/{printf "%s",substr($4,1,index($4,":")-1);}')
+        if [ -r /System/Library/Frameworks/AppKit.framework/AppKit ] ; then
+            distrib=apple
+        fi
+        # [pascal@localhost:/Users/pascal]$ hostinfo
+        # Mach kernel version:
+        #          Darwin Kernel Version 1.3.7:
+        # Sat Jun  9 11:12:48 PDT 2001; root:xnu/xnu-124.13.obj~1/RELEASE_PPC
+        # 
+        # 
+        # Kernel configured for up to 2 processors.
+        # 1 processor is physically available.
+        # Processor type: ppc7400 (PowerPC 7400)
+        # Processor active: 0
+        # Primary memory available: 1024.00 megabytes.
+        # Default processor set: 54 tasks, 125 threads, 1 processors
+        # Load average: 0.70, Mach factor: 0.74
+        ;;
     unknown)
 
         # Mach systems:
-        h=`hostinfo` || h="unknown"
+        h=$(hostinfo) || h="unknown"
 
         case "$h" in 
         Mach*)
             # Well, this works on NeXTSTEP Mach:
-            distrib=`echo "$h" | awk '{print $4}'`
-            release=`echo "$h" | awk '{print $6}'`
+            distrib=$(echo "$h" | awk '{print $4}')
+            release=$(echo "$h" | awk '{print $6}')
             ;;
         *)
             ;;
@@ -123,18 +142,3 @@ distribution
 exit 0
 
 
-    
-    
-[pascal@localhost:/Users/pascal]$ hostinfo
-Mach kernel version:
-         Darwin Kernel Version 1.3.7:
-Sat Jun  9 11:12:48 PDT 2001; root:xnu/xnu-124.13.obj~1/RELEASE_PPC
-
-
-Kernel configured for up to 2 processors.
-1 processor is physically available.
-Processor type: ppc7400 (PowerPC 7400)
-Processor active: 0
-Primary memory available: 1024.00 megabytes.
-Default processor set: 54 tasks, 125 threads, 1 processors
-Load average: 0.70, Mach factor: 0.74
