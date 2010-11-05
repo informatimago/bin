@@ -1,9 +1,0 @@
-#!/bin/csh -f
-set courrant=~/private/comptabilite/courrant.txt
-set credit=`egrep '^[1-9]' $courrant | sed -e 's/...........\(..........\).*/\1/' -e 's/  *//g' | tr '\012' + | sed -e 's/++*/+/g' -e 's/+$//' -e 's/^+//'`
-set debit=`egrep '^[1-9]' $courrant | sed -e 's/......................\(...........\).*/\1/' -e 's/  *//g' | tr '\012' + | sed -e 's/++*/+/g' -e 's/+$//' -e 's/^+//'`
-set solde_euro=`echo \($credit\)-\($debit\)|bc`
-set solde_franc=`echo $solde_euro\*6.55957|bc|sed -e 's/\(\...\).*/\1/'`
-set solde_peseta=`echo $solde_euro\*166.386|bc|sed -e 's/\..*//'`
-echo $solde_euro Euros, $solde_franc Francs, $solde_peseta Pesetas.
-exit 0
