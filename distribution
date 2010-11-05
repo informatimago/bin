@@ -1,7 +1,7 @@
 #!/bin/bash
 #******************************************************************************
 #FILE:               distribution
-#LANGUAGE:           sh
+#LANGUAGE:           bash
 #SYSTEM:             POSIX
 #USER-INTERFACE:     POSIX
 #DESCRIPTION
@@ -10,13 +10,16 @@
 #    Status: 0 upon success.
 #USAGE
 #    distribution
+#BUGS
+#    We should add the processor to the output.
 #AUTHORS
 #    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
 #MODIFICATIONS
+#    2011-11-05 <PJB> Added support for MacOSX.
 #    2001-04-29 <PJB> Creation.
 #BUGS
 #LEGAL
-#	Copyright Pascal J. Bourguignon 2001 - 2001
+#	Copyright Pascal J. Bourguignon 2001 - 2010
 #
 #   This script is free software; you can redistribute it and/or
 #   modify it under the terms of the GNU  General Public
@@ -141,4 +144,4 @@ function distribution () {
 distribution
 exit 0
 
-
+#### THE END ####
