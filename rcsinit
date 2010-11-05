@@ -1,8 +1,0 @@
-#!/bin/csh -f
-
-set filelist=($*)
-rcs -i -L -c'	' $filelist
-set dieze=(`/bin/ls -1 $filelist|grep 'make*'||echo ''`)
-if ( $#dieze > 0 ) then
-	rcs -c'#	' $dieze
-endif

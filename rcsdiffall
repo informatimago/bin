@@ -1,5 +1,0 @@
-#!/bin/csh -f
-foreach f ( RCS/* )    
-	set g=`echo $f|sed -e 's:RCS/::' -e 's:,v::'`
-	rcsdiff $g
-end
