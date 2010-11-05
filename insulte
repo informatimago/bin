@@ -278,7 +278,8 @@
                  (otherwise (concatenate 'string gn ga)))))
     (concatenate 'string
       (string-capitalize (subseq ins 0 1))
-      (subseq ins 1))));;insulte
+      (subseq ins 1)
+      " !")))
 
 
 (princ (insulte)) (terpri)
