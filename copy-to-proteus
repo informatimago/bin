@@ -1,4 +1,0 @@
-#!/bin/bash
-DELETE=(--force --delete --delete-after)
-rsync -e ssh -vcalHpogDtSxz ${DELETE[@]} -W --progress  /local/ t10:/new-local
-#rsync -e ssh -vcalHpogDtSxz ${DELETE[@]} -W --progress  /       t10:/new

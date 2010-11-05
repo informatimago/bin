@@ -20,6 +20,10 @@ for arg ; do
     -r|--record)
         do_record=1
         ;;
+    esradio)
+        URL='mms://streaming.esradio.fm/EsRadio'
+        NAME="$arg"
+        ;;
     cadena-100)
         URL="http://www.cadena100.es/directo/directo.asx"
         NAME="$arg"

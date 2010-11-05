@@ -153,7 +153,7 @@ cameras=( \
 #                         hincrem vincrem display)
 #                         ))))
 # (gen-tiles "galatea"   "galatea.informatimago.com:0.0"  800  600 5 5)
-# (gen-tiles "thalassa" "thalassa.informatimago.com:0.0" 1280 1024 5 5)
+# (gen-tiles "localhost" "localhost.informatimago.com:0.0" 1280 1024 5 5)
 
 
 
@@ -161,11 +161,11 @@ distitle=(\
     "Disp.Name     Offset   Wide High  X screen" \
     "------------- -------- ---- ----  ---------------------------------------" )
 displays=(\
-    "thalassa-full 0,0      1280 1024  thalassa.informatimago.com:0.0" \
-    "thalassa-tl   0,0       640  512  thalassa.informatimago.com:0.0" \
-    "thalassa-tr   640,0     640  512  thalassa.informatimago.com:0.0" \
-    "thalassa-bl   0,512     640  512  thalassa.informatimago.com:0.0" \
-    "thalassa-br   640,512   640  512  thalassa.informatimago.com:0.0" \
+    "localhost-full 0,0      1280 1024  :0.0" \
+    "localhost-tl   0,0       640  512  :0.0" \
+    "localhost-tr   640,0     640  512  :0.0" \
+    "localhost-bl   0,512     640  512  :0.0" \
+    "localhost-br   640,512   640  512  :0.0" \
     "galatea-full  0,0       800  600  galatea.informatimago.com:0.0" \
     "galatea-tl    0,0       400  300  galatea.informatimago.com:0.0" \
     "galatea-tr    400,0     400  300  galatea.informatimago.com:0.0" \
@@ -196,31 +196,31 @@ displays=(\
     "galatea-22    320,480   160  120  galatea.informatimago.com:0.0" \
     "galatea-23    480,480   160  120  galatea.informatimago.com:0.0" \
     "galatea-24    640,480   160  120  galatea.informatimago.com:0.0" \
-    "thalassa-00   0,0       256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-01   256,0     256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-02   512,0     256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-03   768,0     256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-04   1024,0    256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-05   0,204     256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-06   256,204   256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-07   512,204   256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-08   768,204   256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-09   1024,204  256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-10   0,408     256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-11   256,408   256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-12   512,408   256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-13   768,408   256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-14   1024,408  256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-15   0,612     256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-16   256,612   256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-17   512,612   256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-18   768,612   256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-19   1024,612  256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-20   0,816     256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-21   256,816   256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-22   512,816   256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-23   768,816   256  204  thalassa.informatimago.com:0.0" \
-    "thalassa-24   1024,816  256  204  thalassa.informatimago.com:0.0" \
+    "localhost-00   0,0       256  204  :0.0" \
+    "localhost-01   256,0     256  204  :0.0" \
+    "localhost-02   512,0     256  204  :0.0" \
+    "localhost-03   768,0     256  204  :0.0" \
+    "localhost-04   1024,0    256  204  :0.0" \
+    "localhost-05   0,204     256  204  :0.0" \
+    "localhost-06   256,204   256  204  :0.0" \
+    "localhost-07   512,204   256  204  :0.0" \
+    "localhost-08   768,204   256  204  :0.0" \
+    "localhost-09   1024,204  256  204  :0.0" \
+    "localhost-10   0,408     256  204  :0.0" \
+    "localhost-11   256,408   256  204  :0.0" \
+    "localhost-12   512,408   256  204  :0.0" \
+    "localhost-13   768,408   256  204  :0.0" \
+    "localhost-14   1024,408  256  204  :0.0" \
+    "localhost-15   0,612     256  204  :0.0" \
+    "localhost-16   256,612   256  204  :0.0" \
+    "localhost-17   512,612   256  204  :0.0" \
+    "localhost-18   768,612   256  204  :0.0" \
+    "localhost-19   1024,612  256  204  :0.0" \
+    "localhost-20   0,816     256  204  :0.0" \
+    "localhost-21   256,816   256  204  :0.0" \
+    "localhost-22   512,816   256  204  :0.0" \
+    "localhost-23   768,816   256  204  :0.0" \
+    "localhost-24   1024,816  256  204  :0.0" \
     )
 ##
 ## END CONFIGURATION

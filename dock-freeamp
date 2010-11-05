@@ -1,4 +1,0 @@
-#!/bin/bash
-cd /ultimo/bandes/music
-exec freeamp $@
-

@@ -1,3 +1,0 @@
-#!/bin/bash
-DELETE=(--force --delete --delete-after)
-rsync -e ssh -vcalHpogDtSxz ${DELETE[@]} -W --progress  /home/pjb/ mini.informatimago.com:/home/pjb/backup

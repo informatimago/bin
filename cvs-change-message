@@ -1,9 +1,0 @@
-#!/bin/bash
-regexp="$1"
-newmsg="$2"
-
-cvs log 2>/tmp/cvs-change-message.${UID}.log \
-| awk -v newmsg="${newmsg}" "
-/Working file:/{file=\$3; next;}
-/revision/{rev=\$2;  next;}
-/${regexp}/{printf \"cvs admin  -m %s:'%s' %s\n\",rev,gensub(\"\\'\",\"\\'\\\\\\\\'\\'\",\"g\",newmsg),file};"
