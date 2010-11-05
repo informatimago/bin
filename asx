@@ -1,4 +1,0 @@
-#!/bin/bash
-tr -d '\012' < "$1" | sed -e 's/.*[Rr][Ee][Ff]  *[Hh][Rr][Ee][Ff] *= *"\([^"]*\)".*/\1/'
-printf '\n'
-

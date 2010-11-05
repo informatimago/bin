@@ -1,8 +1,0 @@
-#!/bin/bash 
-
-wmweather -s LELC -metric -kPa &
-wmglobe &
-wmspaceweather &
-wmsun -lat 42 -lon 0 &
-
-

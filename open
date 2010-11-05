@@ -8,9 +8,11 @@ sound=()
 video=()
 pdf=()
 ps=()
+html=()
 for file ; do
     type="$(file "$file")"
     case "$type" in
+    *HTML*)                    html[${#html}]="$file" ;; # must be before text.
     *Postscript*)              ps[${#ps}]="$file" ;;
     *PDF*)                     pdf[${#pdf}]="$file" ;;
     *text*)                    text[${#text}]="$file" ;;
@@ -23,6 +25,18 @@ done
 
 if [ ${#text}  -ne 0 ] ; then
      ( emacsclient -n "${text[@]}" -a emacs || echo "Do not know how to open $f" )
+fi
+if [ ${#html}  -ne 0 ] ; then
+    for file in ${html[@]} ; do
+        case "$file" in
+        /*) 
+            emacsclient -e "(browse-url \"file://${file}\")"
+            ;;
+        *)
+            emacsclient -e "(browse-url \"file://$(pwd)/${file}\")"
+            ;;
+        esac
+    done
 fi
 if [ ${#image} -ne 0 ] ; then
      ( xv "${image[@]}" || echo "Do not know how to open $f" ) &

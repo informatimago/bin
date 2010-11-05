@@ -1,4 +1,0 @@
-#!/bin/bash
-OPTIONS=(-nojoystick)
-exec mplayer "${OPTIONS[@]}" "http://www.radiocourtoisie.net/tempo/public/reinfo/reinfo.mp3"
-

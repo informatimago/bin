@@ -1,7 +1,0 @@
-#!/bin/bash
-
-kill `ps ax | grep realplay | awk '{print $1;}'`
-sleep 5
-kill -9 `ps ax | grep realplay | awk '{print $1;}'`
-exit 0
-

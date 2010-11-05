@@ -1,4 +1,0 @@
-#!/bin/bash
-md5sum "$1" 
-sumseg 9728000 "$1"
-

@@ -1,2 +1,0 @@
-#!/bin/bash
-xwininfo -root|egrep 'Width|Height'

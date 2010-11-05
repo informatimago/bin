@@ -1,6 +1,0 @@
-#!/bin/bash
-export WRITE_ASF=1
-POSITION=+512-1
-URL=mms://vipmms9.yacast.net/bfm_bfmtv
-exec mplayer $URL
-exec aviplay  -geometry $POSITION  $URL # /dev/null > /tmp/aviplay.log 2>&1

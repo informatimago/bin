@@ -1,4 +1,0 @@
-#!/bin/bash
-# We have to replace dots by something else since they are taken for
-# decimal points by sort -n.
-tr '.' '@' | sort -t@ -n +0 -1 +1 -2 +2 -3 +3 -4 | tr '@' '.'

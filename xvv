@@ -1,3 +1,0 @@
-#!/bin/bash
-exec xv -windowid $(xwininfo -int  2> /dev/null |awk '/Window id/{print $4}') -maxpect -smooth "$@"
-

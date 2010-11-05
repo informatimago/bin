@@ -1,7 +1,0 @@
-#!/bin/bash
-exec aviplay mms://mediaserver.sinectis.com.ar/AmericaTV/AmericaTV.asx
-
-mms://mediaserver.sinectis.com.ar/AmericaTV-Large/AmericaTV-Large.asx
-http://americatv.uolsinectis.com.ar/programacion/programacion.htm
-
-#### tv-americatv-ar                  -- 2003-11-29 05:51:27 -- pascal   ####

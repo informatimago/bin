@@ -1,5 +1,5 @@
 #!/bin/bash
-OPTIONS=(-nojoystick)
+OPTIONS=( -nojoystick -ontop )
 DATE=$(date +%Y%m%dT%H%M%S) # 20100324T084801
 NAME=radio
 do_record=0
@@ -15,51 +15,62 @@ if [ $# -eq 0 ] ; then
     exit 1
 fi
 
+NAME="$arg"
 for arg ; do
     case "$arg" in
     -r|--record)
         do_record=1
         ;;
+    tv-bfm)
+        URL="mms://vipmms9.yacast.net/bfm_bfmtv"
+        ;;
+    nasatv)
+        asx(){
+            tr '<>\015' '\012\012\012'< "$1" \
+                | sed -n -e 's/.*[Rr][Ee][Ff]  *[Hh][Rr][Ee][Ff] *= *"\([^"]*\)".*/\1/p' \
+                | head -1
+        }
+        trap 'rm -f /tmp/*-$$.nasatv' 0
+        url='http://www.nasa.gov/55644main_NASATV_Windows.asx'
+        wget "$url" -O "/tmp/1-$$.nasatv" > /dev/null 2>&1
+        url2="$(asx /tmp/1-$$.nasatv)"
+        wget "$url2" -O "/tmp/2-$$.nasatv" > /dev/null 2>&1
+        URL="$(asx /tmp/2-$$.nasatv)"
+        # OPTIONS=( "${OPTIONS[@]}" -vo gl:nomanyfmts )
+        ;;
     esradio)
         URL='mms://streaming.esradio.fm/EsRadio'
-        NAME="$arg"
         ;;
     cadena-100)
         URL="http://www.cadena100.es/directo/directo.asx"
-        NAME="$arg"
         ;;
     cadena-cope)
         URL="http://www.cope.es/cadena/directo.asx"
-        NAME="$arg"
         ;;
     cope)
         URL="http://copefm.cope.stream.flumotion.com/cope/copefm.mp3.m3u"
-        NAME="$arg"
+        ;;
+    reinfo)
+        URL="http://www.radiocourtoisie.net/tempo/public/reinfo/reinfo.mp3"
         ;;
     courtoisie)
     # URL="http://mp3.live.tv-radio.com/courtoisie/all/courtoisie.mp3"
         URL="http://www.tv-radio.com/station/courtoisie/courtoisie.m3u"
-        NAME="$arg"
         ;;
     deutchlandfunk)
         URL="http://dradio-live.mp3.t-bn.de/dlf_live"
-        NAME="$arg"
         ;;
     ie)
         URL="mms://screamer.tippnet.ie/tmw"
-        NAME="$arg"
         ;;
     news98)
         URL="http://himusic.aboutmedia.com.tw/ufo/ms-news98/asx/news98.asx"
-        NAME="$arg"
         ;;
     rne3)
         URL="mms://a1830.l830120550.c8301.e.lm.akamaistream.net/D/1830/8301/v0001/reflector:20550"
-        NAME="$arg"
         ;;
     treffpunkt)
         URL="http://www.cibersoft.com.ar/radio/radio.m3u"
-        NAME="$arg"
         ;;
     *)
         usage
@@ -67,6 +78,7 @@ for arg ; do
         ;;
     esac
 done
+
 
 if [ $do_record -ne 0 ] ; then
     OPTIONS=( "${OPTIONS[@]}" -ao "pcm:file=/tmp/${NAME}-${DATE}.wav" )

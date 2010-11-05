@@ -1,6 +1,0 @@
-#!/bin/bash
-for f ; do
-    mv "${f}" "${f}-keep" && svn update "${f}" && mv "${f}" "${f}-old" && mv "${f}-keep" "${f}"
-done
-
-    
