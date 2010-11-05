@@ -10,10 +10,47 @@ HOSTS="
     neuron.intergruas.com
 "
 
+verbose=1
+
+
+usage(){
+    local pname=$(basname "$0")
+    local space="${pname//./ }"
+    printf "%s usage:\n" "$pname"
+    printf "\n"
+    printf "    %s [-s|-h|-v] command arguments...\n" "$pname"
+    printf "\n"
+    printf "    %s -s    outputs only the output of command.\n" "$space"
+    printf "    %s -h    prefix the output of command by the host name.\n" "$space"
+    printf "    %s -v    prefix the output of command by the host name and command.\n" "$space"
+    printf "\n"
+}
+
+case "$1" in
+-s)
+    verbose=0
+n    shift
+    ;;
+-h)
+    verbose=1
+    shift
+    ;;
+-v)
+    verbose=2
+    shift
+    ;;
+-*)
+    usage
+    exit 1
+    ;;
+esac
+
+
+
 AHOSTS=
 for h in $HOSTS ; do 
     ping -q -c 1 -w 4 $h >/dev/null 2>&1 \
-    && AHOSTS="$AHOSTS $h"
+        && AHOSTS="$AHOSTS $h"
 done
 
 quote(){
@@ -27,8 +64,26 @@ quote(){
 
 args=$(quote "$@")
 
-for h in $AHOSTS ; do
-    printf "%-16s" ${h/\.*/} ; echo "ssh $h bash -c $(quote "$args")" ; ssh $h bash -c $(quote "$args")
-done
 
-#END#
+case $verbose in
+0)
+    for h in $AHOSTS ; do
+        ssh $h bash -c $(quote "$args")
+    done
+    ;;
+1)
+    for h in $AHOSTS ; do
+        printf "%-16s" ${h/\.*/}
+        ssh $h bash -c $(quote "$args")
+    done
+    ;;
+2)
+    for h in $AHOSTS ; do
+        printf "%-16s" ${h/\.*/}
+        echo "ssh $h bash -c $(quote "$args")" 
+        ssh $h bash -c $(quote "$args")
+    done
+    ;;
+esac
+
+#### END ####

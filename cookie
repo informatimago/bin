@@ -55,7 +55,9 @@
   '("/data/cookies/fortune.cookies"
     "/data/cookies/mit.cookies"
     "/data/cookies/cmirh.cookies"
-    "/data/cookies/litp.cookies"))
+    "/data/cookies/litp.cookies"
+    "/data/cookies/kenny-tilton.cookies"
+    "/home/pjb/pjb.cookies"))
 
 
 (defun load-file-names (table-path)

@@ -1,0 +1,32 @@
+#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1
+;;;; -*- mode:lisp; coding:iso-8859-1 -*-
+
+(defparameter *escape*    (code-char 27))
+(defparameter *normal*    (format nil "~C[0m" *escape*))
+(defparameter *clear*     (format nil "~Cc" *escape*))
+(defparameter *colors*    (loop for i from 31 to 37 collect (format nil "~C[~Am" *escape* i)))
+(defparameter *key*       (format nil "~C[30;46m" *escape*))
+(defparameter *term*      (if (member (ext:getenv "TERM") '("dumb" "emacs") :test (function string=))
+                              'dumb
+                              'ansi))
+
+(defun one-of (seq) (elt seq (random (length seq))))
+
+(defun clear ()
+  (ecase *term*
+    ((dumb) (format t "~%--------------------------------------------------~10%"))
+    ((ansi) (format t "~A~A" *clear* (one-of *colors*))))
+  (finish-output))
+
+(defun go-on-p ()
+  (format t "~{~A~%~ARET~A to continue; ~1@*~Aquit RET~A to quit. Next? ~}"
+          (ecase *term*
+            ((dumb) (list ""       "["   "]"))
+            ((ansi) (list *normal* *key* *normal*))))
+  (finish-output)
+  (string= "" (string-trim #(#\space #\tab) (read-line))))
+
+
+(loop do (clear) (ext:shell "cookie") while (go-on-p))
+
+;;;; THE END ;;;;
