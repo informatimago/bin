@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #******************************************************************************
 #FILE
 #	/users/pascal/bin/address
@@ -7,10 +7,11 @@
 #AUTHORS
 #	<PJB> Pascal J. Bourguignon
 #MODIFICATIONS
-#	1993/12/20 <PJB> Creation.
-#	1994/03/19 <PJB> Added -i option to grep.
+#   2010-11-04 <PJB> Updated to bash.
+#	1994-03-19 <PJB> Added -i option to grep.
+#	1993-12-20 <PJB> Creation.
 #LEGAL
-#	Copyright Pascal J. Bourguignon 1993 - 1993
+#	Copyright Pascal J. Bourguignon 1993 - 2010
 #	All rights reserved.
 #******************************************************************************
 if [ $# -eq 0 ] ; then
@@ -25,5 +26,5 @@ for f in $* ; do
 done
 echo '......................................'
 exit 0
-#end
+#### THE END ####
 
