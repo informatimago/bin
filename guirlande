@@ -1,6 +1,5 @@
-#!/bin/sh
-cd ~/public_html/img
-/bin/ls -1 *.jpg | while read img ; do
-    xv -root -quit $img 
-    sleep 60
+#!/bin/bash
+/bin/ls -1 *.{jpg,JPG,jpeg,JPEG,png,PNG} 2>/dev/null | while read img ; do
+    xv  -root -rmode 5 -maxpect -quit "$img" 2>/dev/null
+    sleep 3
 done
