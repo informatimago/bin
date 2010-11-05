@@ -1,9 +1,0 @@
-#!/bin/csh -f
-if ( $#argv != 2) then
-	echo $0 usage:
-	echo "	$0 file-1 file-2"
-	exit 1
-endif
-set noclobber
-mv $1 $1.swap$$ &&   ( mv $2 $1 &&  mv $1.swap$$ $2 || mv $1.swap$$ $1 ) 
-
