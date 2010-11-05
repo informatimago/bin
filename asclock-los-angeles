@@ -1,4 +1,0 @@
-#!/bin/sh
-sleep 20
-export TZ=America/Los_Angeles
-exec asclock -24 -das -led CornflowerBlue
