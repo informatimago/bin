@@ -1,13 +1,32 @@
 #!/bin/bash
+pname="$(echo "$0"|sed -e 's/./ /g')"
 OPTIONS=( -nojoystick -ontop )
 DATE=$(date +%Y%m%dT%H%M%S) # 20100324T084801
 NAME=radio
 do_record=0
 
+RADIOS=(
+    tv-bfm
+    nasatv
+    esradio
+    cadena-100
+    cadena-cope
+    cope
+    reinfo
+    courtoisie
+    deutchlandfunk
+    ie
+    news98
+    rne3
+    treffpunkt
+)
 
-usage(){
-    printf "%s [-r|--record] cadena-100 | cadena-cope | cope | courtoisie \\\\\n" "$0"
-    printf "%s | deutchlandfunk | ie | news98 | rne3 | treffpunkt\n" "$(echo "$0"|sed -e 's/./ /g')"
+function usage(){
+    printf '%s options... [station] \n\n' "$pname"
+    printf 'Options are:\n\n'
+    printf '    -r|--record          record the stream to a file /tmp/${RADIO_NAME}-${DATE}.wav\n'
+    printf '    --bash-completions   prints the list of the defined radio stations.\'
+    printf '\n'
 }
 
 if [ $# -eq 0 ] ; then
@@ -15,9 +34,51 @@ if [ $# -eq 0 ] ; then
     exit 1
 fi
 
+function show(){
+    for arg ; do
+        printf '%20s = %s\n' "$arg" "$(eval "echo \$$arg")"
+    done
+}
+
+function completion_all_stations(){
+    for station in ${RADIOS[@]} ; do printf '%s\n' "$station" ; done
+}
+
+function completion_station_prefix(){
+    local prefix="$1"
+    for station in ${RADIOS[@]} ; do printf '%s\n' "$station" ; done | grep -e "^$prefix"
+}
+
+function find_previous_space(){
+    local string="$1"
+    local pos="$2"
+    while [ $pos -ge 0 -a "${string:$pos:1}" != " " ] ; do
+        pos=$(( $pos - 1 ))
+    done
+    echo $(( $pos + 1 ))
+}
+
 NAME="$arg"
 for arg ; do
     case "$arg" in
+    --bash-completions)
+        shift
+        index="$1"
+        shift
+        words=( "$@" )
+        # show index '{words[@]}' '{words[$index]}' COMP_KEY COMP_LINE COMP_POINT COMP_TYPE COMP_WORDBREAKS 
+        if [ "$COMP_KEY" = 9 ] ; then
+            # TAB completion
+            # inside COMP_LINE "$COMP_POINT"
+            completion_all_stations
+        elif [ -n "$index" ] ; then 
+            # inside a word of ${COMP_WORD[@]}
+            completion_station_prefix "${words[$index]}"
+        else
+            completion_all_stations
+        fi
+        exit 0
+        ;;
     -r|--record)
         do_record=1
         ;;
