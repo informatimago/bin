@@ -61,6 +61,10 @@ function find_previous_space(){
 NAME="$arg"
 for arg ; do
     case "$arg" in
+    --bash-completion-function)
+        echo 'function completion_radio(){ COMPREPLY=( $(radio --bash-completions "$COMP_CWORD" "${COMP_WORDS[@]}") ) ; } ; complete -F completion_radio  radio'
+        exit 0
+        ;;
     --bash-completions)
         shift
         index="$1"

@@ -1,6 +1,5 @@
 #!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1 -on-error debug
 ;;;; -*- mode:lisp;coding:iso-8859-1 -*-
-;;;; -on-error debug
 ;;;;**************************************************************************
 ;;;;FILE:               religion.lisp
 ;;;;LANGUAGE:           Common-Lisp
@@ -73,77 +72,220 @@
 
 
 
+;;;-----------------------------------------------------------------
+;;;
+;;;
+
+(defgeneric enumeration-constants (enumeration)
+  (:documentation "Return a list of (\"X\" \"label\")."))
+
+(defgeneric normalize-enumeration-constant (enumeration constant)
+  (:documentation "Returns the character corresponding to the constant designator."))
+
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun make-predicate-name (name)
+    (intern (format nil "~A~:[~;-~]P" name  (find #\- (string name))))))
+
+
+(defmacro define-digit-type (name (&key (min 0) (max 9) (allow-unknown t) documentation))
+  (assert (<= 0 min max 9) (min max) "MIN and MAX must be integers between 0 and 9, and MIN<MAX.")
+  (let ((predicate (make-predicate-name name)))
+   `(progn
+      
+      (deftype ,name () '(member ,@(loop
+                                      :for i :from min :to max
+                                      :collect (digit-char i))
+                                 ,@(when allow-unknown '(#\?))))
+      
+      (defun ,predicate (object)
+        (if (integerp object)
+            (<= ,min object ,max)
+            (and (or (characterp object)
+                     (stringp object)
+                     (symbolp object))
+                 (= 1 (length (string object)))
+                 (typep (character object) ',name))))
+
+      (defmethod enumeration-constants ((self (eql ',name)))
+        ',(let ((table (loop
+                         :for n :from  1
+                         :for i :from min :to max
+                         :collect (list (digit-char i)
+                                        (format nil "~:R ~(~A~) value." n name)
+                                        ;; (if make-label
+                                        ;;     (funcall (coerce make-label 'function) (code-char i))
+                                        ;;     (format nil "~:R ~(~A~) value." i name))
+                                        ))))
+              (if allow-unknown
+                  (append table  `((#\? "Unknown.")))
+                  table)))
+      
+      (defmethod normalize-enumeration-constant ((self (eql ',name)) (constant t))
+        (assert (,predicate constant) (constant)
+                "CONSTANT must be between ~A and ~A." ,min ,max)
+        (character constant))
+      
+      (defmethod normalize-enumeration-constant ((self (eql ',name)) (constant integer))
+        (assert (,predicate constant) (constant)
+                "CONSTANT must be between ~A and ~A." ,min ,max)
+        (digit-char constant))
+            
+      ',name)))
+
+
+(defmacro define-letter-type (name (&key (min #\A) (max #\Z) (allow-unknown t) documentation make-label))
+  (assert (and (characterp min) (characterp max)
+               (char<= min max))
+          (min max) "MIN and MAX must be characters and MIN<MAX.")
+  (let ((predicate (make-predicate-name name)))
+    `(progn
+       
+       (deftype ,name () '(member ,@(loop
+                                       :for i :from (char-code min) :to (char-code max)
+                                       :collect (code-char i))
+                                  ,@(when allow-unknown '(#\?))))
+       
+       (defun ,predicate (object)
+         (and (or (characterp object)
+                  (stringp object)
+                  (symbolp object))
+              (= 1 (length (string object)))
+              (typep (character object) ',name)))
+       
+       (defmethod enumeration-constants ((self (eql ',name)))
+         ',(let ((table (loop
+                           :for n :from 1
+                           :for i :from (char-code min) :to (char-code max)
+                           :collect (list (code-char i)
+                                          (format nil "~:R ~(~A~) value." n name)
+                                          ;; (if make-label
+                                          ;;     (funcall (coerce make-label 'function) (code-char i))
+                                          ;;     (format nil "~:R ~(~A~) value." i name))
+                                          ))))
+                (if allow-unknown
+                    (append table  `((#\? "Unknown.")))
+                    table)))
+
+       (defmethod normalize-enumeration-constant ((self (eql ',name)) (constant t))
+         (assert (,predicate constant) (constant)
+                 "CONSTANT must be between ~A and ~A." ,min ,max)
+         (character constant))
+       
+       ',name)))
+
+
+(defmacro define-enumeration (name (&key (allow-unknown t) documentation) &rest constants)
+  (let ((predicate (make-predicate-name name)))
+   `(progn
+     
+      (deftype ,name () '(member ,@(mapcar (lambda (constant) (character (first constant)))
+                                           constants)
+                                 ,@(when allow-unknown '(#\?))))
+     
+      (defun ,predicate (object)
+        (and (or (characterp object)
+                 (stringp object)
+                 (symbolp object))
+             (= 1 (length (string object)))
+             (typep (character object) ',name)))
+     
+      (defmethod enumeration-constants ((self (eql ',name)))
+        ',(append (mapcar (lambda (constant)
+                           (list (character (first constant))
+                                 (second constant)))
+                         constants)
+                 (when allow-unknown
+                   `((#\? "Unknown.")))))
+
+      (defmethod normalize-enumeration-constant ((self (eql ',name)) (constant t))
+        (assert (,predicate constant) (constant)
+                "CONSTANT must be one of ~{~A~^, ~}."
+                ',(mapcar (function first) constants))
+        (character constant))
+      
+      ',name)))
+
 
 ;;;-----------------------------------------------------------------
+;;;
+;;; Definitions of the encodings
+;;;
 
-(defparameter *numdeity*
-  '(
-    "A:All powerful, all knowing, benevolent." 
-    "B:All powerful, but one can usually pull pranks due to lack of all knowingness, benevolent." 
-    "C:All knowing, but who the hell really cares due to lack of all powerfulness, benevolent." 
-    "D:Neither all knowing nor all powerful, but just kind of there, benevolent." 
-    "E:All powerful, all knowing, malevolent." 
-    "F:All powerful, but one can usually pull pranks due to lack of all knowingness, malevolent." 
-    "G:All knowing, but who the hell really cares due to lack of all powerfulness, malevolent." 
-    "H:Neither all knowing nor all powerful, but just kind of there, malevolent." 
-    "I:Whoever happens to be leader of the people at the time." 
-    "J:Everything and everybody is part of the god." 
-    "K:Everything and everybody, except for people members of the religion don't like, is part of god." 
-    "L:God is a head of lettuce named Ralph." 
-    "?:Unknown."))
+(define-digit-type deity-count (:min 0 :max 9))
 
-(defparameter *afterdeath*
-  '(
-    "0:Everybody goes to a nice place." 
-    "1:Members of the religion go to a nice place, everybody else goes to an unpleasant place." 
-    "2:Members of the religion go to an unpleasant place, everybody else goes to a nice place." 
-    "3:Everybody goes to an unpleasant place." 
-    "4:Nobody goes anywhere." 
-    "5:Really bad people are forced to work in all night convenience stores in New Jersey." 
-    "6:Everybody is reincarnated." 
-    "7:Only people who deserve punishment are reincarnated." 
-    "?:Unknown."))
-
-;; organization:
-;;   A representing very organized, Z representing chaos. Follow this by a
-;;   hyphen to make it easier to find the next section. 
-
-;; bubba:
-;;  The next number represents the percentage of members that are named
-;;  "Bubba." Do this on a scale from 0 to 9, with 0 meaning that nobody is named
-;;  Bubba and 9 meaning that everyone is named Bubba. Southern Baptists are
-;;  rated a 5 and the First Congregational Church of Bubba is a 9. 
-
-(defparameter *policy*
-  '(
-    "A:Handed down from a single source." 
-    "B:Voted upon by a collection of elders." 
-    "C:Voted upon by everybody." 
-    "D:Chosen by a random number generator." 
-    "E:Determined by careful computer analysis." 
-    "F:Determined by combatants representing each view playing Super Mario Brothers." 
-    "Z:Nobody has ever tried to change the policy, so nobody knows just yet." 
-    "?:Unknown."))
-
-;; numspellings:
-;;  Then follows a digit representing the number of ways one can spell the name
-;;  of the religion. 
-
-(defparameter *place*
-  '(
-    "A:No meetings." 
-    "B:A building set aside for the purpose." 
-    "C:A building which is also the gym for the local high school." 
-    "D:Outside." 
-    "E:In an airport or bus terminal." 
-    "F:In a submarine." 
-    "G:In a graveyard or mausoleum." 
-    "F:In a bathtub or jacuzzi." 
-    "?:Unknown."))
+(define-enumeration deity ()
+  ("A" "All powerful, all knowing, benevolent.")
+  ("B" "All powerful, but one can usually pull pranks due to lack of all knowingness, benevolent.")
+  ("C" "All knowing, but who the hell really cares due to lack of all powerfulness, benevolent.")
+  ("D" "Neither all knowing nor all powerful, but just kind of there, benevolent.")
+  ("E" "All powerful, all knowing, malevolent.")
+  ("F" "All powerful, but one can usually pull pranks due to lack of all knowingness, malevolent.")
+  ("G" "All knowing, but who the hell really cares due to lack of all powerfulness, malevolent.")
+  ("H" "Neither all knowing nor all powerful, but just kind of there, malevolent.")
+  ("I" "Whoever happens to be leader of the people at the time.")
+  ("J" "Everything and everybody is part of the god.")
+  ("K" "Everything and everybody, except for people members of the religion don't like, is part of god.")
+  ("L" "God is a head of lettuce named Ralph."))
 
 
-(defun line-code  (line) (aref line 0))
-(defun line-label (line) (subseq line 2))
+(define-enumeration after-death ()
+  ("0" "Everybody goes to a nice place.") 
+  ("1" "Members of the religion go to a nice place, everybody else goes to an unpleasant place.") 
+  ("2" "Members of the religion go to an unpleasant place, everybody else goes to a nice place.") 
+  ("3" "Everybody goes to an unpleasant place.") 
+  ("4" "Nobody goes anywhere.") 
+  ("5" "Really bad people are forced to work in all night convenience stores in New Jersey.") 
+  ("6" "Everybody is reincarnated.") 
+  ("7" "Only people who deserve punishment are reincarnated."))
+
+
+(define-letter-type organization (:min #\A :max #\Z :documentation "
+A representing very organized, Z representing chaos. Follow this by a
+hyphen to make it easier to find the next section."))
+
+
+(define-digit-type bubba (:min 0 :max 9 :documentation "
+The next number represents the percentage of members that are named
+\"Bubba.\"  Do this on a scale from 0 to 9, with 0 meaning that nobody
+is named Bubba and 9 meaning that everyone is named Bubba.  Southern
+Baptists are rated a 5 and the First Congregational Church of Bubba is
+a 9."))
+
+
+(define-enumeration policy ()
+  ("A" "Handed down from a single source.") 
+  ("B" "Voted upon by a collection of elders.") 
+  ("C" "Voted upon by everybody.") 
+  ("D" "Chosen by a random number generator.") 
+  ("E" "Determined by careful computer analysis.") 
+  ("F" "Determined by combatants representing each view playing Super Mario Brothers.") 
+  ("Z" "Nobody has ever tried to change the policy, so nobody knows just yet."))
+
+
+(define-digit-type number-of-spellings (:min 0 :max 9 :allow-unknown t :documentation "
+Then follows a digit representing the number of ways one can spell the name
+of the religion."))
+
+
+(define-enumeration place ()
+  ("A" "No meetings.") 
+  ("B" "A building set aside for the purpose.") 
+  ("C" "A building which is also the gym for the local high school.") 
+  ("D" "Outside.") 
+  ("E" "In an airport or bus terminal.") 
+  ("F" "In a submarine.") 
+  ("G" "In a graveyard or mausoleum.") 
+  ("F" "In a bathtub or jacuzzi."))
+
+
+;;;-----------------------------------------------------------------
+;;;
+;;; Definitions of the encodings
+;;;
+
+(defun line-code  (line) (elt line 0))
+(defun line-label (line) (elt line 1))
 
 
 (defun split-string (string &optional (separators " "))
@@ -154,6 +296,30 @@
      :while start
      :collect (subseq string start end)))
 
+
+(defun read-answer (&optional (stream *standard-input*))
+  (string-upcase (string-trim #(#\space #\tab) (read-line stream))))
+
+(defun yeah-nay-p (&optional (stream *standard-input*) )
+  (loop
+     :for answer = (read-answer stream)
+     :do (cond
+           ((find answer '("1" "t" "true" "v" "vrai" "verdad" "y" "yes" "o"
+                           "oui" "j" "ja" "d" "da" "s" "si" "p" "positif"
+                           "a" "affirmative" "affirmatif" "afirmativo" "yep" "yeah"
+                           "ouais")
+                  :test (function string-equal))
+            (return-from yeah-nay-p t))
+           ((find answer '("0" "nil" "f" "false" "faux" "falso" "n" "no" "non"
+                           "nein" "niet" "negatif" "negative" "negativo" "nay")
+                  :test (function string-equal))
+            (return-from yeah-nay-p nil)))))
+
+
+;;;-----------------------------------------------------------------
+;;;
+;;; Religion database
+;;;
 
 (defun load-religion-database (path)
   (with-open-file (db path :if-does-not-exist nil)
@@ -184,36 +350,37 @@
                :test (function string-equal)
                :key (function second))))
 
+
+;;;-----------------------------------------------------------------
+;;;
+;;; Generation
+;;;
+
+
 (defun one-of (seq) (elt seq (random (length seq))))
 
+
+(defun implode-religion (num dei aft org bub pol spe pla)
+  (format nil "~A~:[~*~;~A~]~A~A-~A~A~A~A"
+          num
+          (char/= #\0 (normalize-enumeration-constant 'deity-count num))
+          dei aft org bub pol spe pla))
+
 (defun generate ()
-  (format nil "~A~A~A-~A~A~A~A"
-          (line-code (one-of *numdeity*))
-          (line-code (one-of *afterdeath*))
-          (one-of "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-          (one-of "0123456789")
-          (line-code (one-of *policy*))
-          (one-of "0123456789")
-          (line-code (one-of *place*))))
+  (apply (function implode-religion)
+         (random 10)
+         (mapcar (lambda (enum) (line-code (one-of (enumeration-constants enum))))
+                 '(deity after-death organization
+                   bubba policy number-of-spellings place))))
 
-(defun get-label-for-code (code table)
-  (if (string= "?" code)
-      "Unknown"
-      (let ((line (find code table :key (lambda (line) (aref line 0)))))
-        (when line
-          (subseq line 2)))))
+;;;-----------------------------------------------------------------
+;;;
+;;; Parsing
+;;;
 
-(defun wrap-long-string (long-string column-width)
-  (let ((cw (list column-width)))
-    (setf (cdr cw) cw)
-    (format nil "~{~<~%~1,v:;~a~>~^ ~}"
-            (mapcan (function list) cw (split-string long-string " ")))))
+(defun imply (p q) (or (not p) q))
+(defun <=> (a b) (or (and a b) (and (not a) (not b))))
 
-(defun print-section (indent line-width title text)
-  (let ((lines (split-string (wrap-long-string text (- line-width indent 1)) #(#\newline))))
-    (format t "~VD ~A~%" indent title (first lines))
-    (dolist (line (rest lines))
-      (format t "~VD ~A~%" indent "" line))))
 
 (defun code-valid-p (code)
   (and (= 8 (length code))
@@ -227,86 +394,145 @@
        (or (char= #\? (aref code 7)) (upper-case-p (aref code 7)))))
 
 
-(defun explain (code)
+(defun explode-religion (rel)
+  (flet ((invalid-religion-code (rel &rest additionnal-message)
+           (cerror "Enter another religion code instead."
+                   "Invalid religion code ~S~:[~;~%~A~]"
+                   rel  additionnal-message
+                   (and additionnal-message (apply (function format) nil additionnal-message)))
+           (format *query-io* "New religion code: ")
+           (finish-output  *query-io*)
+           (setf rel (read-answer  *query-io*))
+           (return-from explode-religion (explode-religion rel))))
+    (let ((rel (handler-case (coerce rel 'string)
+                 (error () (invalid-religion-code rel "rel = ~S; type: ~S" rel (type-of rel))))))
+      (case (length rel)
+        ((8 9) ; one more for the dash.
+         (with-input-from-string (inp rel)
+           (let ((num (read-char inp nil nil))
+                 (dei nil))
+             (unless (<=> (= (length rel) 8) ; 8 = one more for the dash
+                          (char= #\0 num))
+               (invalid-religion-code
+                rel
+                (if (char= #\0 num)
+                    "When the number of deity is 0, there should be no deity code."
+                    "When there is no deity code, the number of deity should be 0.")))
+             (when (char/= #\0 num)
+               (setf dei (read-char inp nil nil))
+               (unless (deityp                dei) (invalid-religion-code rel "Invalid deity code: '~A'" dei)))
+             (let ((aft (read-char inp))
+                   (org (read-char inp))
+                   (das (read-char inp))
+                   (bub (read-char inp))
+                   (pol (read-char inp))
+                   (spe (read-char inp))
+                   (pla (read-char inp)))
+               (unless (after-death-p         aft) (invalid-religion-code rel "Invalid after-death code: '~A'" aft))
+               (unless (organizationp         org) (invalid-religion-code rel "Invalid organization code: '~A'" org))
+               (unless (char= #\-             das) (invalid-religion-code rel "Invalid religion code, it must have a dash in the middle, not '~A'" das))
+               (unless (bubbap                bub) (invalid-religion-code rel "Invalid bubba code: '~A'" bub))
+               (unless (policyp               pol) (invalid-religion-code rel "Invalid policy code: '~A'" pol))
+               (unless (number-of-spellings-p spe) (invalid-religion-code rel "Invalid number of spellings code: '~A'" spe))
+               (unless (placep                pla) (invalid-religion-code rel "Invalid place of cult code: '~A'" pla))
+               (values num dei aft org bub pol spe pla)))))
+        (otherwise
+         (invalid-religion-code rel "Length is ~D, expected 8 or 9"))))))
 
+(defun code-valid-p (rel)
+  (handler-bind ((error (lambda (condi) (declare (ignore condi)) (return-from code-valid-p nil))))
+    (explode-religion rel)
+    t))
+
+(defmacro with-religion-code ((num dei aft org bub pol spe pla) rel &body body)
+  `(multiple-value-bind (,num ,dei ,aft ,org ,bub ,pol ,spe ,pla) (explode-religion ,rel) ,@body))
+
+(defun get-label-for-code (code enum)
+  (let ((line (find (normalize-enumeration-constant enum  code)
+                    (enumeration-constants enum)
+                    :key (function line-code)
+                    :test (function equal))))
+    (when line
+      (line-label line))))
+
+(defun wrap-long-string (long-string column-width)
+  (let ((cw (list column-width)))
+    (setf (cdr cw) cw)
+    (format nil "~{~<~%~1,v:;~a~>~^ ~}"
+            (mapcan (function list) cw (split-string long-string " ")))))
+
+(defun print-section (indent line-width title text)
+  (let ((lines (split-string (wrap-long-string text (- line-width indent 1)) #(#\newline))))
+    (format t " ~VA ~A~%" indent title (first lines))
+    (dolist (line (rest lines))
+      (format t " ~VA ~A~%" indent "" line))))
+
+
+(defun show-religion-names (indent line-width code names)
+  (format t " ~VA ~A~%" indent "RELIGION CODE:" code)
+  (when names
+    (print-section indent line-width
+                   (format nil "RELIGION NAME~:(~P~):" (length names))
+                   (format nil "~{~A~^ ~}" names))))
+
+
+(defun explain (code)
   (unless (code-valid-p code)
     (format t "~A: Invalid religion code '~A'.~%" *program-name* code)
     (format t "~VA  Please. use format: lnl-nlnl ~%~
                ~0@*~VA  with 'l' a majuscule letter and 'n' a digit.~%"
             (length *program-name*) "")
     (ext:exit 2))
-  
-  (let* ((num (aref code 0))
-         (aft (aref code 1))
-         (org (aref code 2))
-         (bub (aref code 4))
-         (pol (aref code 5))
-         (spe (aref code 6))
-         (pla (aref code 7))
-         (line " -------------------------------------------------------------------")
-         (line-width (length line))
-         (indent     30))
-    (format t "~A~%" line)
-    (format t " RELIGION CODE:                ~A~A~A-~A~A~A~A~%" num aft org bub pol spe pla)
-    (format t " RELIGION CHARACTERISTICS: ~%")
-    (flet ((describe-code (title code table errorfmt)
-             (let ((lab (get-label-for-code code table)))
-               (if lab
-                   (print-section indent line-width title lab)
-                   (format t errorfmt code)))))
-      (describe-code "DEITY:"       num *numdeity*   " INVALID DEITY CODE '~A'.~%")
-      (describe-code "AFTER DEATH:" aft *afterdeath* " INVALID AFTER DEATH CODE '~A'.~%")
-      (cond
-        ((string= "?"  org) (format t "~VD ~A~%"      indent "ORGANIZATION LEVEL:" "Unknown."))
-        ((upper-case-p org) (format t "~VD ~A ~A~%"   indent "ORGANIZATION LEVEL:" org "(A = VERY ORGANIZED, Z = CHAOS)."))
-        (t (format t  " INVALID ORGANIZATION LEVEL CODE '~A' (SHOULD BE AN UPPER CASE LETTER).~%" org)))
-      (cond
-        ((string= "?"  bub) (format t "~VD ~A~%"      indent "% OF MEMBERS NAMED BUBBA:" "Unknown."))
-        ((digit-char-p bub) (format t "~VD ~A %~%"    indent "% OF MEMBERS NAMED BUBBA:" (round (* 100/9 (digit-char-p bub)))))
-        (t (format t  " INVALID BUBBA CODE '~A' (SHOULD BE A DIGIT).~%" bub)))
-      (describe-code "POLICY:" pol *policy* " INVALID POLICY CODE '~A'.~%")
-      (cond
-        ((string= "?"  spe) (format t "~VD ~A~%"      indent "NUM OF SPELLINGS OF NAME:" "Unknown."))
-        ((digit-char-p spe) (format t "~VD ~A~%"      indent "NUM OF SPELLINGS OF NAME:" spe))
-        (t (format t  " INVALID SPELLINGS NUMBER '~A' (SHOULD BE A DIGIT).~%" spe)))
-      (describe-code "PLACE OF CULT:" pla *place* " INVALID PLACE OF CULT CODE '~A'.~%"))
-    (format t "~A~%" line)))
+  (with-religion-code
+      (num dei aft org bub pol spe pla) code
+      (let* ((line " -------------------------------------------------------------------")
+             (line-width (length line))
+             (indent     30))
+        (format t "~A~%" line)
+        (let ((code (implode-religion num dei aft org bub pol spe pla)))
+          (show-religion-names indent line-width  code (lookup-names code)))
+        (format t " RELIGION CHARACTERISTICS: ~%")
+        (flet ((describe-code (title code enum errorfmt)
+                 (let ((lab (get-label-for-code code enum)))
+                   (if lab
+                       (print-section indent line-width title lab)
+                       (format t errorfmt code)))))
+          (print-section indent line-width "NUMBER OF DEITIES:" (princ-to-string num))
+          (when dei
+           (describe-code "DEITY:"             dei  'deity       "INVALID DEITY CODE '~A'.~%"))
+          (describe-code "AFTER DEATH:"       aft  'after-death "INVALID AFTER DEATH CODE '~A'.~%")
+          (cond
+            ((string= "?"  org) (format t " ~VA ~A~%"     indent "ORGANIZATION LEVEL:""Unknown."))
+            ((upper-case-p org) (format t " ~VA ~A ~A~%"  indent "ORGANIZATION LEVEL:"org "(A = VERY ORGANIZED, Z = CHAOS)."))
+            (t (format t  "INVALID ORGANIZATION LEVEL CODE '~A' (SHOULD BE AN UPPER CASE LETTER).~%"org)))
+          (cond
+            ((string= "?"  bub) (format t " ~VA ~A~%"     indent "% OF MEMBERS NAMED BUBBA:""Unknown."))
+            ((digit-char-p bub) (format t " ~VA ~A %~%"   indent "% OF MEMBERS NAMED BUBBA:"(round (* 100/9 (digit-char-p bub)))))
+            (t (format t  "INVALID BUBBA CODE '~A' (SHOULD BE A DIGIT).~%"bub)))
+          (describe-code "POLICY:"            pol  'policy      "INVALID POLICY CODE '~A'.~%")
+          (cond
+            ((string= "?"  spe) (format t " ~VA ~A~%"     indent "NUM OF SPELLINGS OF NAME:""Unknown."))
+            ((digit-char-p spe) (format t " ~VA ~A~%"     indent "NUM OF SPELLINGS OF NAME:"spe))
+            (t (format t  "INVALID SPELLINGS NUMBER '~A' (SHOULD BE A DIGIT).~%"spe)))
+          (describe-code "PLACE OF CULT:"     pla  'place       "INVALID PLACE OF CULT CODE '~A'.~%"))
+        (format t "~A~%"line))))
 
 
-(defun read-answer ()
-  (string-upcase (string-trim #(#\space #\tab) (read-line))))
 
-
-(defun yeah-nay-p ()
-  (loop
-     :for answer = (read-answer)
-     :do (cond
-           ((find answer '("1" "t" "true" "v" "vrai" "verdad" "y" "yes" "o"
-                           "oui" "j" "ja" "d" "da" "s" "si" "p" "positif"
-                           "a" "affirmative" "affirmatif" "afirmativo" "yep" "yeah"
-                           "ouais")
-                  :test (function string-equal))
-            (return-from yeah-nay-p t))
-           ((find answer '("0" "nil" "f" "false" "faux" "falso" "n" "no" "non"
-                           "nein" "niet" "negatif" "negative" "negativo" "nay")
-                  :test (function string-equal))
-            (return-from yeah-nay-p nil)))))
-
-
-(defun choose (message table)
+(defun choose (message enum)
   (let* ((line " -----  ------------------------------------------------------------")
          (line-width (length line)))
     (loop
        (format t "~2%~A~%" line)
        (format t " CODE   DESCRIPTION~%")
        (format t "~A~%" line)
-       (dolist (line table)
+       (dolist (line (enumeration-constants enum))
          (print-section 8 line-width (string (line-code line)) (line-label line)))
        (format t "~A~%" line)
        (format t "~A" message)
        (finish-output)
        (let* ((code (read-answer))
-              (lab (get-label-for-code code table)))
+              (lab (get-label-for-code code enum)))
          (when code
            (return-from choose code))
          (format t " INVALID CODE '~A'.~%" code)
@@ -353,50 +579,50 @@
                     "A PERCENTAGE"))
 
 
-
 (defun interactive ()
-  (flet ((show-religion-names (code names)
-           (format t " RELIGION CODE:    ~A~%" code)
-           (format t " RELIGION NAME:    ~{~A~^, ~}~%" names)))
-    (let ((line " -------------------------------------------------------------------")
-          code
-          name)
-      (loop :do
-         (format t "~A~%" line)
+  (let* ((line " -------------------------------------------------------------------")
+         (line-width (length line))
+         (indent 30)
+         code
+         name)
+    (loop :do
+       (format t "~A~%" line)
 
-         (format t " LET'S SEE WHAT KIND OF RELIGION YOU WANT...~%")
-         (format t "~%")
-         (let ((num (choose        " PLEASE CHOOSE A DEITY: "        *numdeity*))
-               (aft (choose        " PLEASE CHOOSE AN AFTER DEATH: " *afterdeath*))
-               (org (choose-letter " PLEASE CHOOSE AN ORGANIZATION LEVEL (A=VERY ORGANIZED, Z=CHAOS): "))
-               (bub (choose-bubba  " PLEASE CHOOSE A BUBBA PERCENTAGE: "))
-               (pol (choose        " PLEASE CHOOSE A POLICY: "       *policy*))
-               (spe (choose-digit  " PLEASE CHOOSE A NUMBER OF SPELLINGS: "))
-               (pla (choose        " PLEASE CHOOSE A PLACE OF CULT: " *place*)))
-           (setf code (format nil "~A~A~A-~A~A~A~A" num aft org bub pol spe pla))
-           (explain code)
-           (finish-output))
-         :until (yes-or-no-p  " ARE SATISFIED WITH YOUR RELIGION? "))
-      (let ((names (lookup-names code)))
-        (if (null names)
-            (loop
-               (format t " PLEASE ENTER A NAME FOR YOUR RELIGION: ")
-               (finish-output)
-               (setf name (read-answer))
-               (show-religion-names code (list name))
-               (when (yes-or-no-p  " IS THAT CORRECT? ")
-                 (push (list code name) *religion-db*)
-                 (save-religion-database *religion-db* *religion-pathname*)
-                 (format t "~A~%" line)
-                 (format t " REGISTERED YOUR NEW RELIGION:~%")
-                 (show-religion-names code (list name))
-                 (format t "~A~%" line)
-                 (return-from interactive)))
-            (progn
-              (format t "~A~%" line)
-              (format t " YOU CHOSED THIS RELIGION:~%")
-              (show-religion-names code names)
-              (format t "~A~%" line)))))))
+       (format t " LET'S SEE WHAT KIND OF RELIGION YOU WANT...~%")
+       (format t "~%")
+       (let* ((num (choose-digit  " PLEASE CHOOSE A NUMBER OF DEITIES: "))
+              (dei (unless (char= #\0 num)
+                     (choose        " PLEASE CHOOSE A DEITY: "        'deity)))
+              (aft (choose        " PLEASE CHOOSE AN AFTER DEATH: " 'after-death))
+              (org (choose-letter " PLEASE CHOOSE AN ORGANIZATION LEVEL (A=VERY ORGANIZED, Z=CHAOS): "))
+              (bub (choose-bubba  " PLEASE CHOOSE A BUBBA PERCENTAGE: "))
+              (pol (choose        " PLEASE CHOOSE A POLICY: "       'policy))
+              (spe (choose-digit  " PLEASE CHOOSE A NUMBER OF SPELLINGS: "))
+              (pla (choose        " PLEASE CHOOSE A PLACE OF CULT: " 'place)))
+         (setf code (implode-religion num dei aft org bub pol spe pla))
+         (explain code)
+         (finish-output))
+       :until (yes-or-no-p  " ARE SATISFIED WITH YOUR RELIGION? "))
+    (let ((names (lookup-names code)))
+      (if (null names)
+          (loop
+             (format t " PLEASE ENTER A NAME FOR YOUR RELIGION: ")
+             (finish-output)
+             (setf name (read-answer))
+             (show-religion-names indent line-width code (list name))
+             (when (yes-or-no-p  " IS THAT CORRECT? ")
+               (push (list code name) *religion-db*)
+               (save-religion-database *religion-db* *religion-pathname*)
+               (format t "~A~%" line)
+               (format t " REGISTERED YOUR NEW RELIGION:~%")
+               (show-religion-names indent line-width code (list name))
+               (format t "~A~%" line)
+               (return-from interactive)))
+          (progn
+            (format t "~A~%" line)
+            (format t " YOU CHOSED THIS RELIGION:~%")
+            (show-religion-names indent line-width code names)
+            (format t "~A~%" line))))))
 
 
 
@@ -429,13 +655,13 @@ while the explainations are written to stdout."
 (define-option ("-l" "--list") ()
   "List known religions."
   (loop
-     :for (code name) :in *religion-db*
+     :for (code name) :in (sort *religion-db* (function string<) :key (function line-code))
      :initially (progn
-                  (format t " ~8D  ~:(~A~)~%" "--------" "----------------------------------------")
-                  (format t " ~8D  ~:(~A~)~%" "Code" "Name")
-                  (format t " ~8D  ~:(~A~)~%" "--------" "----------------------------------------"))
-     :do (format t " ~4D  ~:(~A~)~%" code name)
-     :finally (format t " ~4D  ~:(~A~)~%" "--------" "----------------------------------------")))
+                  (format t " ~9D  ~:(~A~)~%" "---------" "----------------------------------------")
+                  (format t " ~9D  ~:(~A~)~%" "Code" "Name")
+                  (format t " ~9D  ~:(~A~)~%" "---------" "----------------------------------------"))
+     :do (format t " ~9D  ~:(~A~)~%" code name)
+     :finally (format t " ~9D  ~:(~A~)~%" "---------" "----------------------------------------")))
 
 
 (define-option ("-V" "--version") ()

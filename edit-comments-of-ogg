@@ -1,4 +1,4 @@
-#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1
+#!/usr/bin/clisp -ansi -q -kfull -e iso-8859-1
 ;;;; -*- mode:lisp; coding:iso-8859-1 -*-
 ;;;;*****************************************************************************
 ;;;;FILE:              edit-comments-of-ogg.lisp
@@ -39,53 +39,51 @@
 ;;;;*****************************************************************************
 
 ;; Clean the packages imported into COMMON-LISP-USER:
-(MAPC (LAMBDA (USED) (UNUSE-PACKAGE USED "COMMON-LISP-USER"))
-      (REMOVE (FIND-PACKAGE "COMMON-LISP")
-              (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))))
+(mapc (lambda (used) (unuse-package used "COMMON-LISP-USER"))
+      (remove (find-package "COMMON-LISP")
+              (copy-seq (package-use-list "COMMON-LISP-USER"))))
 
 
 ;; arguments are ext:*args* (list of string)
 
 ;; From /usr/include/sysexists.h (Linux)
-(DEFCONSTANT _SYSEXITS_H      1)
-(DEFCONSTANT EX-OK            0)
-(DEFCONSTANT EX--BASE        64)
-(DEFCONSTANT EX-USAGE        64)
-(DEFCONSTANT EX-DATAERR      65)
-(DEFCONSTANT EX-NOINPUT      66)
-(DEFCONSTANT EX-NOUSER       67)
-(DEFCONSTANT EX-NOHOST       68)
-(DEFCONSTANT EX-UNAVAILABLE  69)
-(DEFCONSTANT EX-SOFTWARE     70)
-(DEFCONSTANT EX-OSERR        71)
-(DEFCONSTANT EX-OSFILE       72)
-(DEFCONSTANT EX-CANTCREAT    73)
-(DEFCONSTANT EX-IOERR        74)
-(DEFCONSTANT EX-TEMPFAIL     75)
-(DEFCONSTANT EX-PROTOCOL     76)
-(DEFCONSTANT EX-NOPERM       77)
-(DEFCONSTANT EX-CONFIG       78)
-(DEFCONSTANT EX--MAX         78)
+(defconstant _sysexits_h      1)
+(defconstant ex-ok            0)
+(defconstant ex--base        64)
+(defconstant ex-usage        64)
+(defconstant ex-dataerr      65)
+(defconstant ex-noinput      66)
+(defconstant ex-nouser       67)
+(defconstant ex-nohost       68)
+(defconstant ex-unavailable  69)
+(defconstant ex-software     70)
+(defconstant ex-oserr        71)
+(defconstant ex-osfile       72)
+(defconstant ex-cantcreat    73)
+(defconstant ex-ioerr        74)
+(defconstant ex-tempfail     75)
+(defconstant ex-protocol     76)
+(defconstant ex-noperm       77)
+(defconstant ex-config       78)
+(defconstant ex--max         78)
 
 
 
-(DEFUN STREAM-TO-STRING-LIST (STREAM)
-  (LOOP WITH LINE = (READ-LINE STREAM NIL NIL)
-        WHILE LINE
-        COLLECT LINE INTO RESULT
-        DO (SETQ LINE (READ-LINE STREAM NIL NIL))
-        FINALLY RETURN RESULT)
-  );;STREAM-TO-STRING-LIST
+(defun stream-to-string-list (stream)
+  (loop with line = (read-line stream nil nil)
+     while line
+     collect line into result
+     do (setq line (read-line stream nil nil))
+     finally (return result)))
 
 
-(DEFUN COPY-STREAM (SRC-STREAM DST-STREAM)
-  (LOOP WITH LINE = (READ-LINE SRC-STREAM NIL NIL)
-        WHILE LINE
-        DO (WRITE-LINE LINE DST-STREAM))
-  );;COPY-STREAM
+(defun copy-stream (src-stream dst-stream)
+  (loop with line = (read-line src-stream nil nil)
+     while line
+     do (write-line line dst-stream)))
 
 
-(DEFUN STRING-REPLACE (STRING REGEXP REPLACE &OPTIONAL FIXEDCASE LITERAL)
+(defun string-replace (string regexp replace &optional fixedcase literal)
   "
 RETURN: a string build from `string' where all matching `regexp' 
         are replaced by the `replace' string.
@@ -93,470 +91,469 @@ NOTE:   Current implementat accepts only literal pattern as `regexp';
         `fixedcase' and `literal' are ignored.
 "
 
-  (LOOP WITH REGEXP-LENGTH = (LENGTH REGEXP)
-        WITH RESULT = ""
-        WITH PREVIOUS = 0
-        WITH POSITION = (SEARCH REGEXP STRING)
-        WHILE POSITION
-        DO (SETQ RESULT (CONCATENATE 'STRING 
-                            RESULT (SUBSEQ STRING PREVIOUS POSITION) REPLACE)
-                 PREVIOUS (+ POSITION REGEXP-LENGTH)
-                 POSITION (SEARCH REGEXP STRING :START2 PREVIOUS))
-        FINALLY (SETQ RESULT (CONCATENATE 'STRING 
-                                 RESULT 
-                                 (SUBSEQ STRING PREVIOUS (LENGTH STRING))))
-        FINALLY RETURN RESULT)
-  );;STRING-REPLACE
+  (loop with regexp-length = (length regexp)
+     with result = ""
+     with previous = 0
+     with position = (search regexp string)
+     while position
+     do (setq result (concatenate 'string 
+                       result (subseq string previous position) replace)
+              previous (+ position regexp-length)
+              position (search regexp string :start2 previous))
+     finally (setq result (concatenate 'string 
+                            result 
+                            (subseq string previous (length string))))
+     finally (return result)))
 
 
-(DEFUN SPLIT-STRING (STRING &OPTIONAL SEPARATORS)
+(defun split-string (string &optional separators)
   "
 NOTE:   current implementation only accepts as separators 
         a string containing only one character.
 "
-  (LET ((SEP (AREF SEPARATORS 0))
-        (CHUNKS  '())
-        (POSITION 0)
-        (NEXTPOS  0)
-        (STRLEN   (LENGTH STRING))
+  (let ((sep (aref separators 0))
+        (chunks  '())
+        (position 0)
+        (nextpos  0)
+        (strlen   (length string))
         )
 
-    (LOOP WHILE (< POSITION STRLEN)
-          DO 
-          (LOOP WHILE (AND (< NEXTPOS STRLEN)
-                           (CHAR/= SEP (AREF STRING NEXTPOS)))
-                DO (SETQ NEXTPOS (1+ NEXTPOS))
-                );;loop
-          (PUSH (SUBSEQ STRING POSITION NEXTPOS) CHUNKS)
-          (SETQ POSITION (1+ NEXTPOS))
-          (SETQ NEXTPOS  POSITION)
-          );;loop
-    (NREVERSE CHUNKS)
+    (loop while (< position strlen)
+       do 
+         (loop while (and (< nextpos strlen)
+                          (char/= sep (aref string nextpos)))
+            do (setq nextpos (1+ nextpos))
+              );;loop
+         (push (subseq string position nextpos) chunks)
+         (setq position (1+ nextpos))
+         (setq nextpos  position)
+         );;loop
+    (nreverse chunks)
     );;let
   );;SPLIT-STRING
 
 
-(DEFUN SPLIT-NAME-VALUE (STRING)
+(defun split-name-value (string)
   "
 RETURN:  a cons with two substrings of string such as: 
          (string= (concat (car res) \"=\" (cdr res)) string)
          and (length (car res)) is minimum.
 "
-  (LET ((POSITION 0)
-        (STRLEN   (LENGTH STRING))
+  (let ((position 0)
+        (strlen   (length string))
         )
-    (LOOP WHILE (AND (< POSITION STRLEN)
-                     (CHAR/= (CHARACTER "=") (AREF STRING POSITION)))
-          DO (SETQ POSITION (1+ POSITION)))
-    (IF (< POSITION STRLEN)
-        (CONS (SUBSEQ STRING 0 POSITION) (SUBSEQ STRING (1+ POSITION) STRLEN))
-      NIL)
+    (loop while (and (< position strlen)
+                     (char/= (character "=") (aref string position)))
+       do (setq position (1+ position)))
+    (if (< position strlen)
+        (cons (subseq string 0 position) (subseq string (1+ position) strlen))
+        nil)
     );;let
   );;SPLIT-NAME-VALUE
 
 
 
-(DEFCONSTANT PNAME  "edit-comments-of-ogg")
-(DEFCONSTANT COMEXT ".inf")
+(defconstant pname  "edit-comments-of-ogg")
+(defconstant comext ".inf")
 
-(DEFCONSTANT FIELDS '(ARTIST ALBUM TITLE VERSION TRACKNUMBER ORGANIZATION GENRE 
-                             DESCRIPTION DATE LOCATION COPYRIGHT));;FIELDS
-(DEFVAR FIELDS-NAMES (MAPCAR 'SYMBOL-NAME FIELDS))
+(defconstant fields '(artist album title version tracknumber organization genre 
+                      description date location copyright));;FIELDS
+(defvar fields-names (mapcar 'symbol-name fields))
 
-(DEFUN USAGE ()
-  (FORMAT 
-   T (CONCATENATE 
-      'STRING
-      "~%"
-      "~a usage:~%"
-      "~%"
-      "    ~a [-h|--help|-e|--edit|-w|--write]... DIR_OR_OGG_FILE... ~%"
-      "~%"
-      " -e  edits the attribute files of the .ogg found in DIRECTORY.~%"
-      " -w  writes the attributes data to the .ogg files. (unfortunately ~%"
-      "     this means copying the .ogg file to a new version ~%"
-      "     per vorbis-comment).~%"
-      "~%")
-   PNAME PNAME)
+(defun usage ()
+  (format 
+   t (concatenate 
+         'string
+       "~%"
+       "~a usage:~%"
+       "~%"
+       "    ~a [-h|--help|-e|--edit|-w|--write]... DIR_OR_OGG_FILE... ~%"
+       "~%"
+       " -e  edits the attribute files of the .ogg found in DIRECTORY.~%"
+       " -w  writes the attributes data to the .ogg files. (unfortunately ~%"
+       "     this means copying the .ogg file to a new version ~%"
+       "     per vorbis-comment).~%"
+       "~%")
+   pname pname)
   );;USAGE
 
 
-(DEFVAR ARTIST       "")
-(DEFVAR ALBUM        "")
-(DEFVAR TITLE        "")
-(DEFVAR VERSION      "")
-(DEFVAR TRACKNUMBER  "")
-(DEFVAR ORGANIZATION "")
-(DEFVAR GENRE        "")
-(DEFVAR DESCRIPTION  "")
-(DEFVAR DATE         "")
-(DEFVAR LOCATION     "")
-(DEFVAR COPYRIGHT    "")
+(defvar artist       "")
+(defvar album        "")
+(defvar title        "")
+(defvar version      "")
+(defvar tracknumber  "")
+(defvar organization "")
+(defvar genre        "")
+(defvar description  "")
+(defvar date         "")
+(defvar location     "")
+(defvar copyright    "")
 
-(DEFVAR LAST_ARTIST       "")
-(DEFVAR LAST_ALBUM        "")
-(DEFVAR LAST_TITLE        "")
-(DEFVAR LAST_VERSION      "")
-(DEFVAR LAST_TRACKNUMBER  "")
-(DEFVAR LAST_ORGANIZATION "")
-(DEFVAR LAST_GENRE        "")
-(DEFVAR LAST_DESCRIPTION  "")
-(DEFVAR LAST_DATE         "")
-(DEFVAR LAST_LOCATION     "")
-(DEFVAR LAST_COPYRIGHT    "")
+(defvar last_artist       "")
+(defvar last_album        "")
+(defvar last_title        "")
+(defvar last_version      "")
+(defvar last_tracknumber  "")
+(defvar last_organization "")
+(defvar last_genre        "")
+(defvar last_description  "")
+(defvar last_date         "")
+(defvar last_location     "")
+(defvar last_copyright    "")
 
 
-(DEFUN DISPLAY (INDEX MAX FILE)
-  (FORMAT T
-          (CONCATENATE
-           'STRING
-           "c~%"
-           "    INDEX        = ~a/~a~%"
-           "    FILE         = ~a~%"
-           ""
-           "1)  ARTIST       = ~a~%"
-           "2)  ALBUM        = ~a~%"
-           "3)  TITLE        = ~a~%"
-           "4)  VERSION      = ~a~%"
-           "5)  TRACKNUMBER  = ~a~%"
-           "6)  ORGANIZATION = ~a~%"
-           "7)  GENRE        = ~a~%"
-           "8)  DESCRIPTION  = ~a~%"
-           "9)  DATE         = ~a~%"
-           "a)  LOCATION     = ~a~%"
-           "b)  COPYRIGHT    = ~a~%"
-           )
-          INDEX MAX
-          FILE ARTIST ALBUM TITLE VERSION TRACKNUMBER ORGANIZATION GENRE
-          DESCRIPTION DATE LOCATION COPYRIGHT)
+(defun display (index max file)
+  (format t
+          (concatenate
+              'string
+            "c~%"
+            "    INDEX        = ~a/~a~%"
+            "    FILE         = ~a~%"
+            ""
+            "1)  ARTIST       = ~a~%"
+            "2)  ALBUM        = ~a~%"
+            "3)  TITLE        = ~a~%"
+            "4)  VERSION      = ~a~%"
+            "5)  TRACKNUMBER  = ~a~%"
+            "6)  ORGANIZATION = ~a~%"
+            "7)  GENRE        = ~a~%"
+            "8)  DESCRIPTION  = ~a~%"
+            "9)  DATE         = ~a~%"
+            "a)  LOCATION     = ~a~%"
+            "b)  COPYRIGHT    = ~a~%"
+            )
+          index max
+          file artist album title version tracknumber organization genre
+          description date location copyright)
   );;DISPLAY
 
 
-(DEFUN INFO-LOAD (TXT)
-  (IF (PROBE-FILE TXT)
+(defun info-load (txt)
+  (if (probe-file txt)
 
-      (DOLIST (LINE (WITH-OPEN-FILE (STREAM TXT :DIRECTION :INPUT)
-                        (STREAM-TO-STRING-LIST STREAM)))
-        (LET* ((NV (SPLIT-NAME-VALUE LINE))
-               (NAME (CAR NV))
-               (VALUE (CDR NV)))
-          (WHEN (MEMBER NAME FIELDS-NAMES :TEST 'STRING=)
-            (SET (INTERN NAME) VALUE))
+      (dolist (line (with-open-file (stream txt :direction :input)
+                      (stream-to-string-list stream)))
+        (let* ((nv (split-name-value line))
+               (name (car nv))
+               (value (cdr nv)))
+          (when (member name fields-names :test 'string=)
+            (set (intern name) value))
           ))
 
-    ;;else there's no existing .inf file.
-    (SETQ ARTIST       ""
-          ALBUM        ""
-          TITLE        ""
-          VERSION      ""
-          TRACKNUMBER  ""
-          ORGANIZATION ""
-          GENRE        ""
-          DESCRIPTION  ""
-          DATE         ""
-          LOCATION     ""
-          COPYRIGHT    "")
-    )
+      ;;else there's no existing .inf file.
+      (setq artist       ""
+            album        ""
+            title        ""
+            version      ""
+            tracknumber  ""
+            organization ""
+            genre        ""
+            description  ""
+            date         ""
+            location     ""
+            copyright    "")
+      )
   );;INFO-LOAD
 
 
-(DEFUN INFO-SAVE (TXT)
-  (WITH-OPEN-FILE (OUT TXT :DIRECTION :OUTPUT :IF-EXISTS :SUPERSEDE)
-    (FORMAT OUT
-            (CONCATENATE
-             'STRING
-             "ARTIST=~a~%"
-             "ALBUM=~a~%"
-             "TITLE=~a~%"
-             "VERSION=~a~%"
-             "TRACKNUMBER=~a~%"
-             "ORGANIZATION=~a~%"
-             "GENRE=~a~%"
-             "DESCRIPTION=~a~%"
-             "DATE=~a~%"
-             "LOCATION=~a~%"
-             "COPYRIGHT=~a~%")
-            ARTIST ALBUM TITLE VERSION TRACKNUMBER ORGANIZATION GENRE
-            DESCRIPTION DATE LOCATION COPYRIGHT)
+(defun info-save (txt)
+  (with-open-file (out txt :direction :output :if-exists :supersede)
+    (format out
+            (concatenate
+                'string
+              "ARTIST=~a~%"
+              "ALBUM=~a~%"
+              "TITLE=~a~%"
+              "VERSION=~a~%"
+              "TRACKNUMBER=~a~%"
+              "ORGANIZATION=~a~%"
+              "GENRE=~a~%"
+              "DESCRIPTION=~a~%"
+              "DATE=~a~%"
+              "LOCATION=~a~%"
+              "COPYRIGHT=~a~%")
+            artist album title version tracknumber organization genre
+            description date location copyright)
     );;with-open-file
-  (SETQ LAST_ARTIST           ARTIST)
-  (SETQ LAST_ALBUM            ALBUM)
-  (SETQ LAST_TITLE            TITLE)
-  (SETQ LAST_VERSION          VERSION)
-  (SETQ LAST_TRACKNUMBER      TRACKNUMBER)
-  (SETQ LAST_ORGANIZATION     ORGANIZATION)
-  (SETQ LAST_GENRE            GENRE)
-  (SETQ LAST_DESCRIPTION      DESCRIPTION)
-  (SETQ LAST_DATE             DATE)
-  (SETQ LAST_LOCATION         LOCATION)
-  (SETQ LAST_COPYRIGHT        COPYRIGHT)
+  (setq last_artist           artist)
+  (setq last_album            album)
+  (setq last_title            title)
+  (setq last_version          version)
+  (setq last_tracknumber      tracknumber)
+  (setq last_organization     organization)
+  (setq last_genre            genre)
+  (setq last_description      description)
+  (setq last_date             date)
+  (setq last_location         location)
+  (setq last_copyright        copyright)
   );;INFO-SAVE
 
 
-(DEFUN TITLE (FILE)
-  (WHEN (STRING= ".ogg" (SUBSEQ FILE (- (LENGTH FILE) 4) (LENGTH FILE)))
-    (SETQ FILE (SUBSEQ FILE 0 (- (LENGTH FILE) 4))))
-  (LOOP FOR I FROM 0 TO (1- (LENGTH FILE))
-        WHEN (MEMBER (AREF FILE I) '( #\- #\_ ) :TEST 'EQ)
-        DO   (ASET FILE I 32)
-        );;loop
-  FILE
+(defun title (file)
+  (when (string= ".ogg" (subseq file (- (length file) 4) (length file)))
+    (setq file (subseq file 0 (- (length file) 4))))
+  (loop for i from 0 to (1- (length file))
+     when (member (aref file i) '( #\- #\_ ) :test 'eq)
+     do   (aset file i 32)
+       );;loop
+  file
   );;title
 
 
 
-(DEFUN EDIT (FILES)
-  (LET ((INDEX 0)
-        (FCOM 'NONE)
-        (STATE 'EDITING)
-        (FLIST (SORT
-                (STREAM-TO-STRING-LIST
-                 (EXT:RUN-PROGRAM 
+(defun edit (files)
+  (let ((index 0)
+        (fcom 'none)
+        (state 'editing)
+        (flist (sort
+                (stream-to-string-list
+                 (ext:run-program 
                   "/usr/bin/find" 
-                  :ARGUMENTS (APPEND FILES '("-name" "*.ogg" "-print"))
-                  :INPUT     NIL
-                  :OUTPUT    :STREAM))
-                'STRING<))
+                  :arguments (append files '("-name" "*.ogg" "-print"))
+                  :input     nil
+                  :output    :stream))
+                'string<))
         )
 
-    (WHEN (= 0 (LENGTH FLIST))
-      (FORMAT *ERROR-OUTPUT*
-              "~a: I could not find any .ogg file in ~a.~%" PNAME FILES)
-      (EXT:EXIT EX-DATAERR)
+    (when (= 0 (length flist))
+      (format *error-output*
+              "~a: I could not find any .ogg file in ~a.~%" pname files)
+      (ext:exit ex-dataerr)
       );;when
 
 
-    (LOOP UNTIL (EQ STATE 'DONE) DO
-          (LET* ((FOGG (NTH INDEX FLIST))
-                 (FCOM (STRING-REPLACE FOGG ".ogg" COMEXT))
+    (loop until (eq state 'done) do
+         (let* ((fogg (nth index flist))
+                (fcom (string-replace fogg ".ogg" comext))
                 )
-            (INFO-LOAD FCOM)
+           (info-load fcom)
 
-            (SETQ STATE 'EDITING)
-            (LOOP WHILE (EQ STATE 'EDITING) DO
-                  (DISPLAY INDEX (LENGTH FLIST) FOGG)
-                  (FORMAT T "~%")
-                  (WHEN (< INDEX (1- (LENGTH FLIST)))
-                    (FORMAT T "n)ext,  "))
-                  (WHEN (< 0 INDEX)
-                    (FORMAT T "p)revious,  "))
-                  (FORMAT T (CONCATENATE 
-                                'STRING 
-                                "q)quit,  copy from l)ast,  S)earch,  "
-                                "s)et all,  ~%"
-                                "or:  digit) set one field.  ? "
-                              ))
-                  (LET ((CMD (LET ((LINE (READ-LINE NIL "q")))
-                               (IF (< 0 (LENGTH LINE)) (AREF LINE 0) 0))))
+           (setq state 'editing)
+           (loop while (eq state 'editing) do
+                (display index (length flist) fogg)
+                (format t "~%")
+                (when (< index (1- (length flist)))
+                  (format t "n)ext,  "))
+                (when (< 0 index)
+                  (format t "p)revious,  "))
+                (format t (concatenate 
+                              'string 
+                            "q)quit,  copy from l)ast,  S)earch,  "
+                            "s)et all,  ~%"
+                            "or:  digit) set one field.  ? "
+                            ))
+                (let ((cmd (let ((line (read-line nil "q")))
+                             (if (< 0 (length line)) (aref line 0) 0))))
 
-                    (COND
+                  (cond
 
-                     ((EQ (CHARACTER '\n) CMD)
-                      (INFO-SAVE FCOM)
-                      (WHEN (< INDEX (1- (LENGTH FLIST)))
-                        (SETQ INDEX (1+ INDEX)))
-                      (SETQ STATE 'NEXT))
+                    ((eq (character '\n) cmd)
+                     (info-save fcom)
+                     (when (< index (1- (length flist)))
+                       (setq index (1+ index)))
+                     (setq state 'next))
 
-                     ((EQ (CHARACTER '\p) CMD)
-                      (INFO-SAVE FCOM)
-                      (WHEN (< 0 INDEX)
-                        (SETQ INDEX (1- INDEX)))
-                      (SETQ STATE 'NEXT))
+                    ((eq (character '\p) cmd)
+                     (info-save fcom)
+                     (when (< 0 index)
+                       (setq index (1- index)))
+                     (setq state 'next))
 
-                     ((EQ (CHARACTER '\q) CMD)
-                      (INFO-SAVE FCOM)
-                      (SETQ STATE 'DONE))
+                    ((eq (character '\q) cmd)
+                     (info-save fcom)
+                     (setq state 'done))
 
-                     ((EQ (CHARACTER '\l) CMD)
-                      (SETQ
-                       ARTIST         LAST_ARTIST
-                       ALBUM          LAST_ALBUM
-                       TITLE          LAST_TITLE
-                       VERSION        LAST_VERSION
-                       TRACKNUMBER    LAST_TRACKNUMBER
-                       ORGANIZATION   LAST_ORGANIZATION
-                       GENRE          LAST_GENRE
-                       DESCRIPTION    LAST_DESCRIPTION
-                       DATE           LAST_DATE
-                       LOCATION       LAST_LOCATION
-                       COPYRIGHT      LAST_COPYRIGHT)
-                      )
+                    ((eq (character '\l) cmd)
+                     (setq
+                      artist         last_artist
+                      album          last_album
+                      title          last_title
+                      version        last_version
+                      tracknumber    last_tracknumber
+                      organization   last_organization
+                      genre          last_genre
+                      description    last_description
+                      date           last_date
+                      location       last_location
+                      copyright      last_copyright)
+                     )
 
-                     ((EQ (CHARACTER '\S) CMD)
-                      (INFO-SAVE FCOM)
-                      (FORMAT T "Search for: ")
-                      (LET ((PATTERN (READ-LINE)))
-                        (SETQ INDEX
-                              (LOOP
-                               FOR SINDEX = (MOD (+ 1 INDEX) (LENGTH FLIST))
-                               THEN (MOD (+ 1 SINDEX) (LENGTH FLIST))
-                               FOR FOGG = (NTH SINDEX FLIST)
-                               FOR FCOM = (STRING-REPLACE FOGG ".ogg" COMEXT)
-                               WHILE (/= SINDEX INDEX)
-                               UNTIL (SEARCH PATTERN
-                                             (CONCATENATE 'STRING
-                                                 FOGG         "**"
-                                                 ARTIST       "**"
-                                                 ALBUM        "**"
-                                                 TITLE        "**"
-                                                 VERSION      "**"
-                                                 TRACKNUMBER  "**"
-                                                 ORGANIZATION "**"
-                                                 GENRE        "**"
-                                                 DESCRIPTION  "**"
-                                                 DATE         "**"
-                                                 LOCATION     "**"
-                                                 COPYRIGHT    "**"))
-                               DO (INFO-LOAD FCOM)
-                               FINALLY RETURN SINDEX))
-                        );;let
-                       (SETQ STATE 'NEXT)
-                       )
+                    ((eq (character '\S) cmd)
+                     (info-save fcom)
+                     (format t "Search for: ")
+                     (let ((pattern (read-line)))
+                       (setq index
+                             (loop
+                                for sindex = (mod (+ 1 index) (length flist))
+                                then (mod (+ 1 sindex) (length flist))
+                                for fogg = (nth sindex flist)
+                                for fcom = (string-replace fogg ".ogg" comext)
+                                while (/= sindex index)
+                                until (search pattern
+                                              (concatenate 'string
+                                                fogg         "**"
+                                                artist       "**"
+                                                album        "**"
+                                                title        "**"
+                                                version      "**"
+                                                tracknumber  "**"
+                                                organization "**"
+                                                genre        "**"
+                                                description  "**"
+                                                date         "**"
+                                                location     "**"
+                                                copyright    "**"))
+                                do (info-load fcom)
+                                finally (return sindex)))
+                       );;let
+                     (setq state 'next)
+                     )
 
-                     ((EQ (CHARACTER '\s) CMD)
-                 
-                      (MAPC (LAMBDA (SYM)
-                             (FORMAT T "~a=" SYM)
-                             (SET SYM (READ-LINE)))
-                           FIELDS)
-                      )
+                    ((eq (character '\s) cmd)
+                     
+                     (mapc (lambda (sym)
+                             (format t "~a=" sym)
+                             (set sym (read-line)))
+                           fields)
+                     )
 
-                     ((EQ (CHARACTER '\1) CMD) 
-                      (FORMAT T "~a=" 'ARTIST) 
-                      (SETQ ARTIST (READ-LINE)))
+                    ((eq (character '\1) cmd) 
+                     (format t "~a=" 'artist) 
+                     (setq artist (read-line)))
 
-                     ((EQ (CHARACTER '\2) CMD)
-                      (FORMAT T "~a=" 'ALBUM)
-                      (SETQ ALBUM (READ-LINE)))
+                    ((eq (character '\2) cmd)
+                     (format t "~a=" 'album)
+                     (setq album (read-line)))
 
-                     ((EQ (CHARACTER '\3) CMD)
-                      (FORMAT T "~a=" 'TITLE)
-                      (SETQ TITLE (READ-LINE)))
+                    ((eq (character '\3) cmd)
+                     (format t "~a=" 'title)
+                     (setq title (read-line)))
 
-                     ((EQ (CHARACTER '\4) CMD)
-                      (FORMAT T "~a=" 'VERSION)
-                      (SETQ VERSION (READ-LINE)))
+                    ((eq (character '\4) cmd)
+                     (format t "~a=" 'version)
+                     (setq version (read-line)))
 
-                     ((EQ (CHARACTER '\5) CMD)
-                      (FORMAT T "~a=" 'TRACKNUMBER)
-                      (SETQ TRACKNUMBER (READ-LINE)))
+                    ((eq (character '\5) cmd)
+                     (format t "~a=" 'tracknumber)
+                     (setq tracknumber (read-line)))
 
-                     ((EQ (CHARACTER '\6) CMD)
-                      (FORMAT T "~a=" 'ORGANIZATION)
-                      (SETQ ORGANIZATION (READ-LINE)))
+                    ((eq (character '\6) cmd)
+                     (format t "~a=" 'organization)
+                     (setq organization (read-line)))
 
-                     ((EQ (CHARACTER '\7) CMD)
-                      (FORMAT T "~a=" 'GENRE)
-                      (SETQ GENRE (READ-LINE)))
+                    ((eq (character '\7) cmd)
+                     (format t "~a=" 'genre)
+                     (setq genre (read-line)))
 
-                     ((EQ (CHARACTER '\8) CMD)
-                      (FORMAT T "~a=" 'DESCRIPTION)
-                      (SETQ DESCRIPTION (READ-LINE)))
+                    ((eq (character '\8) cmd)
+                     (format t "~a=" 'description)
+                     (setq description (read-line)))
 
-                     ((EQ (CHARACTER '\9) CMD)
-                      (FORMAT T "~a=" 'DATE)
-                      (SETQ DATE (READ-LINE)))
+                    ((eq (character '\9) cmd)
+                     (format t "~a=" 'date)
+                     (setq date (read-line)))
 
-                     ((EQ (CHARACTER '\a) CMD)
-                      (FORMAT T "~a=" 'LOCATION)
-                      (SETQ LOCATION (READ-LINE)))
+                    ((eq (character '\a) cmd)
+                     (format t "~a=" 'location)
+                     (setq location (read-line)))
 
-                     ((EQ (CHARACTER '\b) CMD)
-                      (FORMAT T "~a=" 'COPYRIGHT)
-                      (SETQ COPYRIGHT (READ-LINE)))
-           
-                     )))
-            ))));;EDIT
-
-
+                    ((eq (character '\b) cmd)
+                     (format t "~a=" 'copyright)
+                     (setq copyright (read-line)))
+                    
+                    )))
+           ))));;EDIT
 
 
-(DEFUN COMMIT-COMMENTS (FILES)
-  (DOLIST (FOGG (STREAM-TO-STRING-LIST
-                 (EXT:RUN-PROGRAM 
+
+
+(defun commit-comments (files)
+  (dolist (fogg (stream-to-string-list
+                 (ext:run-program 
                   "/usr/bin/find" 
-                  :ARGUMENTS (APPEND FILES '("-name" "*.ogg" "-print"))
-                  :INPUT     NIL
-                  :OUTPUT    :STREAM)))
-    (LET ((FCOM (STRING-REPLACE FOGG ".ogg" COMEXT)))
-      (IF (PROBE-FILE FCOM)
-          (PROGN
-            (FORMAT T "~a: Writting comments to '~a'...~%" PNAME FOGG)
-            (COPY-STREAM (EXT:RUN-PROGRAM 
+                  :arguments (append files '("-name" "*.ogg" "-print"))
+                  :input     nil
+                  :output    :stream)))
+    (let ((fcom (string-replace fogg ".ogg" comext)))
+      (if (probe-file fcom)
+          (progn
+            (format t "~a: Writting comments to '~a'...~%" pname fogg)
+            (copy-stream (ext:run-program 
                           "/usr/local/bin/vorbiscomment"
-                          :ARGUMENTS (LIST "-w" FOGG "-c" FCOM)
-                          :INPUT  NIL
-                          :OUTPUT :STREAM)
-                         *STANDARD-OUTPUT*)
+                          :arguments (list "-w" fogg "-c" fcom)
+                          :input  nil
+                          :output :stream)
+                         *standard-output*)
             )
-        (FORMAT T "~a: Missing '~a'.~%" PNAME FCOM))))
+          (format t "~a: Missing '~a'.~%" pname fcom))))
   );;COMMIT-COMMENTS
 
 
-(DEFUN MAIN (ARGUMENTS)
+(defun main (arguments)
 
-  (LET ((FILES '())
-        (DO_EDIT NIL)
-        (DO_WRITE NIL))
+  (let ((files '())
+        (do_edit nil)
+        (do_write nil))
 
-    (DOLIST (ARG ARGUMENTS)
-      (COND
+    (dolist (arg arguments)
+      (cond
 
-       ((OR (STRING= "-h" ARG) (STRING= "--help" ARG))
-        (USAGE)
-        (EXT:EXIT EX-OK)
-        )
+        ((or (string= "-h" arg) (string= "--help" arg))
+         (usage)
+         (ext:exit ex-ok)
+         )
 
-       ((OR (STRING= "-e" ARG) (STRING= "--edit" ARG))
-        (SETQ DO_EDIT T)
-        )
+        ((or (string= "-e" arg) (string= "--edit" arg))
+         (setq do_edit t)
+         )
 
-       ((OR (STRING= "-w" ARG) (STRING= "--write" ARG))
-        (SETQ DO_WRITE T)
-        )
+        ((or (string= "-w" arg) (string= "--write" arg))
+         (setq do_write t)
+         )
 
-       ((STRING= (AREF ARG 0) (CHARACTER '\-))
-        (FORMAT *ERROR-OUTPUT* "~a: invalid argument '~a'.~%" PNAME ARG)
-        (USAGE)
-        (EXT:EXIT EX-USAGE)
-        )
+        ((string= (aref arg 0) (character '\-))
+         (format *error-output* "~a: invalid argument '~a'.~%" pname arg)
+         (usage)
+         (ext:exit ex-usage)
+         )
 
-       (T
-        (PUSH ARG FILES))
-       );;cond
+        (t
+         (push arg files))
+        );;cond
       );;dolist
 
 
-    (WHEN (AND (NOT DO_EDIT) (NOT DO_WRITE))
-      (FORMAT *ERROR-OUTPUT* 
-              "~a: Nothing to do. Please specify -e or -w. Aborting.~%" PNAME)
-      (USAGE)
-      (EXT:EXIT EX-USAGE)
+    (when (and (not do_edit) (not do_write))
+      (format *error-output* 
+              "~a: Nothing to do. Please specify -e or -w. Aborting.~%" pname)
+      (usage)
+      (ext:exit ex-usage)
       );;when
 
-    (WHEN (= 0 (LENGTH FILES))
-      (FORMAT *ERROR-OUTPUT*
-              "~a: No directory, no file to work on. Aborting.~%" PNAME)
-      (USAGE)
-      (EXT:EXIT EX-USAGE)
+    (when (= 0 (length files))
+      (format *error-output*
+              "~a: No directory, no file to work on. Aborting.~%" pname)
+      (usage)
+      (ext:exit ex-usage)
       );;when
 
 
-    (WHEN DO_EDIT
-      (EDIT FILES))
+    (when do_edit
+      (edit files))
 
-    (WHEN DO_WRITE
-      (COMMIT-COMMENTS FILES))
+    (when do_write
+      (commit-comments files))
 
-    ));;MAIN
+    ))
 
 
-#-TESTING-SCRIPT
+#-testing-script
 (progn
-  (MAIN  EXT:*ARGS*)
-  (EXT:EXIT EX-OK))
+  (main  ext:*args*)
+  (ext:exit ex-ok))
 
 
-(DEFUN L () (LOAD "/home/pascal/bin/edit-comments-of-ogg.lisp"))
-(DEFUN M () (MAIN '("-e" ".")))
+(defun l () (load "/home/pascal/bin/edit-comments-of-ogg.lisp"))
+(defun m () (main '("-e" ".")))
 ;;;; THE END ;;;;

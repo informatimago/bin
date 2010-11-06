@@ -89,7 +89,7 @@
 
 (process-options ext:*argv*)
 
-
+#|
 if [ "$start" != '' ] ; then
     case "$start" in
     *[^0-9]*)
@@ -107,6 +107,7 @@ else
     cpcd "${dir}"
 fi
 
+|#
 
 ;; #-testing-script
 (ext:exit (main ext:*args*))
