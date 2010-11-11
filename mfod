@@ -148,11 +148,33 @@
                index (length *emacsen*)))))
 
 
+
+(defun xor (a b) (or (and a (not b)) (and (not a) b)))
+
+(defun make-frame (socket-name &key on-display on-terminal)
+  (assert (xor on-display on-terminal))
+  (ext:run-program "emacsclient"
+                   :arguments  (cond
+                                 (on-display
+                                  (list
+                                   (format nil "--socket-name=~A" socket-name)
+                                   "--no-wait"
+                                   ;; "--eval" (format nil "(make-frame-on-display \"~A\")"
+                                   ;;                  )
+                                   "--create-frame"
+                                   "--display" on-display))
+                                 (on-terminal
+                                  (list
+                                   (format nil "--socket-name=~A" socket-name)
+                                   "--tty")))))
+
+
 (define-option ("open" "-o" "--open") (index)
   "Make a new frame from the server at the given index (from 1 up) on the current DISPLAY."
-  (let* ((index (parse-integer index))
-         (uid    (getuid))
-         (server (ignore-errors (nth (1- index) *emacsen*)))(display (ext:getenv "DISPLAY")))
+  (let* ((index   (parse-integer index))
+         (uid     (getuid))
+         (server  (ignore-errors (nth (1- index) *emacsen*)))
+         (display (ext:getenv "DISPLAY")))
     (cond
       ((null server)
        (error "~A is not a server index. Please give an index between 1 and ~A"
@@ -160,12 +182,20 @@
       ((null display)
        (error "There is no DISPLAY environment variable."))
       (t
-       (ext:run-program "emacsclient"
-                        :arguments (list (format nil "--socket-name=~A" (first server))
-                                         "--no-wait"
-                                         "--eval" (format nil "(make-frame-on-display \"~A\")"
-                                                          display)))))))
+       (make-frame (first server) :on-display display)))))
 
+
+(define-option ("terminal" "-t" "--open-on-terminal") (index)
+  "Make a new frame from the server at the given index (from 1 up) in the terminal."
+  (let* ((index (parse-integer index))
+         (uid    (getuid))
+         (server (ignore-errors (nth (1- index) *emacsen*))))
+    (cond
+      ((null server)
+       (error "~A is not a server index. Please give an index between 1 and ~A"
+              index (length *emacsen*)))
+      (t
+       (make-frame (first server) :on-terminal t)))))
 
 
 
