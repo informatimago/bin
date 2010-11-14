@@ -1,0 +1,133 @@
+#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1
+;;;; -*- mode:lisp;coding:iso-8859-1 -*-
+;;;;**************************************************************************
+;;;;FILE:               one-of
+;;;;LANGUAGE:           Common-Lisp
+;;;;SYSTEM:             Common-Lisp
+;;;;USER-INTERFACE:     NONE
+;;;;DESCRIPTION
+;;;;    
+;;;;    Choose an argument randomly.
+;;;;
+;;;;    With a given probability, will choose several of them with the
+;;;;    given probability.
+;;;;    
+;;;;AUTHORS
+;;;;    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
+;;;;MODIFICATIONS
+;;;;    2010-11-14 <PJB> Translated from bash.
+;;;;BUGS
+;;;;LEGAL
+;;;;    GPL
+;;;;    
+;;;;    Copyright Pascal J. Bourguignon 2010 - 2010
+;;;;    
+;;;;    This program is free software; you can redistribute it and/or
+;;;;    modify it under the terms of the GNU General Public License
+;;;;    as published by the Free Software Foundation; either version
+;;;;    2 of the License, or (at your option) any later version.
+;;;;    
+;;;;    This program is distributed in the hope that it will be
+;;;;    useful, but WITHOUT ANY WARRANTY; without even the implied
+;;;;    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+;;;;    PURPOSE.  See the GNU General Public License for more details.
+;;;;    
+;;;;    You should have received a copy of the GNU General Public
+;;;;    License along with this program; if not, write to the Free
+;;;;    Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;;    Boston, MA 02111-1307 USA
+;;;;**************************************************************************
+(in-package "COMMON-LISP-USER")
+
+;; Clean the packages imported into COMMON-LISP-USER:
+(MAPC (LAMBDA (package) (UNUSE-PACKAGE package "COMMON-LISP-USER"))
+      (set-difference
+       (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))
+       (delete nil (list ;; A list of all the "CL" packages possible:
+                    (FIND-PACKAGE "COMMON-LISP")
+                    (FIND-PACKAGE "IMAGE-BASED-COMMON-LISP")))))
+
+(load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common
+                     :defaults *load-pathname*))
+
+(defpackage "COM.INFORMATIMAGO.RANDOM"
+  (:use "COMMON-LISP" "SCRIPT")
+  (:documentation "
+Choose an argument randomly.
+"))
+(in-package "COM.INFORMATIMAGO.RANDOM")
+
+
+(setf *program-name* (pname))
+(defparameter *program-version* "0.1.0")
+(setf *debug* t)
+(setf *random-state* (make-random-state t))
+
+(define-option ("version" "-V" "--version") ()
+  "Report the version of this script."
+  (format t "~A ~A~%" *program-name* *program-version*))
+
+
+(defvar *probability* nil)
+(defvar *arguments*  '())
+
+(define-option ("--probability") (probability)
+  "
+PROBABILITY is a number between 0.0 and 1.0.
+
+Prints a random selection of the remaining arguments, each having 
+probability PROBABILITY of being selected (which means that a mean
+of PROBABILITY*{nb of arguments} arguments are printed).
+"
+  (setf *probability*
+        (with-standard-io-syntax
+          (let ((*read-eval* nil)
+                (argument  probability))
+            (let ((probability (read-from-string probability)))
+              (assert (realp probability)
+                      (probability)
+                      "The probability must be a real number, not ~S" argument)
+              (assert (<= 0.0 probability 1.0)
+                      (probability)
+                      "The probability must be a real number between 0.0 and 1.0,  ~A is too ~:[big~;small~]."
+                      probability (< probability 0.0))
+              probability)))))
+
+
+(parse-options ext:*args*
+               (lambda () (call-option-function "help" '()))
+               (lambda (name arguments)
+                 (push name *arguments*)
+                 arguments))
+
+(defun one-of (sequence)
+  (elt sequence (random (length sequence))))
+
+(unless *arguments*
+  (setf *arguments*
+        (mapcar (function namestring)
+                (remove-if ; remove backup files and dot-files.
+                 (lambda (path)
+                   (let ((name (file-namestring path)))
+                     (or (char= #\. (aref name 0))
+                         (char= #\~ (aref name (1- (length name))))
+                         (and (char= #\# (aref name 0))
+                              (char= #\# (aref name (1- (length name))))))))
+                 (remove-duplicates (append (directory "*") (directory "*.*"))
+                                    :test (function equalp))))))
+
+(when *arguments*
+  (if *probability*
+      (loop
+         :for arg :in *arguments*
+         :when (<= (random 1.0) *probability*)
+         :do (write-line arg) (finish-output))
+      (progn
+        (write-line (one-of *arguments*))
+        (finish-output))))
+
+;; #-testing-script
+;; (ext:exit (main ext:*args*))
+
+(ext:exit 0)
+;;;; THE END ;;;;

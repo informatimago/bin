@@ -1,7 +1,7 @@
-#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1 -on-error debug
-;;;; -*- mode:lisp;coding:utf-8 -*-
+#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1
+;;;; -*- mode:lisp;coding:iso-8859-1 -*-
 ;;;;**************************************************************************
-;;;;FILE:               radio.lisp
+;;;;FILE:               radio
 ;;;;LANGUAGE:           Common-Lisp
 ;;;;SYSTEM:             Common-Lisp
 ;;;;USER-INTERFACE:     NONE
