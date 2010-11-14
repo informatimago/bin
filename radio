@@ -1,157 +1,329 @@
-#!/bin/bash
-pname="$(echo "$0"|sed -e 's/./ /g')"
-OPTIONS=( -nojoystick -ontop )
-DATE=$(date +%Y%m%dT%H%M%S) # 20100324T084801
-NAME=radio
-do_record=0
+#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1 -on-error debug
+;;;; -*- mode:lisp;coding:utf-8 -*-
+;;;;**************************************************************************
+;;;;FILE:               radio.lisp
+;;;;LANGUAGE:           Common-Lisp
+;;;;SYSTEM:             Common-Lisp
+;;;;USER-INTERFACE:     NONE
+;;;;DESCRIPTION
+;;;;    
+;;;;    Script to listen to various radio stations.
+;;;;    
+;;;;AUTHORS
+;;;;    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
+;;;;MODIFICATIONS
+;;;;    2010-11-14 <PJB> Translated from bash.
+;;;;BUGS
+;;;;LEGAL
+;;;;    GPL
+;;;;    
+;;;;    Copyright Pascal J. Bourguignon 2010 - 2010
+;;;;    
+;;;;    This program is free software; you can redistribute it and/or
+;;;;    modify it under the terms of the GNU General Public License
+;;;;    as published by the Free Software Foundation; either version
+;;;;    2 of the License, or (at your option) any later version.
+;;;;    
+;;;;    This program is distributed in the hope that it will be
+;;;;    useful, but WITHOUT ANY WARRANTY; without even the implied
+;;;;    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+;;;;    PURPOSE.  See the GNU General Public License for more details.
+;;;;    
+;;;;    You should have received a copy of the GNU General Public
+;;;;    License along with this program; if not, write to the Free
+;;;;    Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;;    Boston, MA 02111-1307 USA
+;;;;**************************************************************************
 
-RADIOS=(
-    tv-bfm
-    nasatv
-    esradio
-    cadena-100
-    cadena-cope
-    cope
-    reinfo
-    courtoisie
-    deutchlandfunk
-    ie
-    news98
-    rne3
-    treffpunkt
-)
+(in-package "COMMON-LISP-USER")
 
-function usage(){
-    printf '%s options... [station] \n\n' "$pname"
-    printf 'Options are:\n\n'
-    printf '    -r|--record          record the stream to a file /tmp/${RADIO_NAME}-${DATE}.wav\n'
-    printf '    --bash-completions   prints the list of the defined radio stations.\'
-    printf '\n'
-}
+;; Clean the packages imported into COMMON-LISP-USER:
+(MAPC (LAMBDA (package) (UNUSE-PACKAGE package "COMMON-LISP-USER"))
+      (set-difference
+       (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))
+       (delete nil (list ;; A list of all the "CL" packages possible:
+                    (FIND-PACKAGE "COMMON-LISP")
+                    (FIND-PACKAGE "IMAGE-BASED-COMMON-LISP")))))
 
-if [ $# -eq 0 ] ; then
-    usage
-    exit 1
-fi
+(load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common
+                     :defaults *load-pathname*))
 
-function show(){
-    for arg ; do
-        printf '%20s = %s\n' "$arg" "$(eval "echo \$$arg")"
-    done
-}
-
-function completion_all_stations(){
-    for station in ${RADIOS[@]} ; do printf '%s\n' "$station" ; done
-}
-
-function completion_station_prefix(){
-    local prefix="$1"
-    for station in ${RADIOS[@]} ; do printf '%s\n' "$station" ; done | grep -e "^$prefix"
-}
-
-function find_previous_space(){
-    local string="$1"
-    local pos="$2"
-    while [ $pos -ge 0 -a "${string:$pos:1}" != " " ] ; do
-        pos=$(( $pos - 1 ))
-    done
-    echo $(( $pos + 1 ))
-}
-
-NAME="$arg"
-for arg ; do
-    case "$arg" in
-    --bash-completion-function)
-        echo 'function completion_radio(){ COMPREPLY=( $(radio --bash-completions "$COMP_CWORD" "${COMP_WORDS[@]}") ) ; } ; complete -F completion_radio  radio'
-        exit 0
-        ;;
-    --bash-completions)
-        shift
-        index="$1"
-        shift
-        words=( "$@" )
-        # show index '{words[@]}' '{words[$index]}' COMP_KEY COMP_LINE COMP_POINT COMP_TYPE COMP_WORDBREAKS 
-        if [ "$COMP_KEY" = 9 ] ; then
-            # TAB completion
-            # inside COMP_LINE "$COMP_POINT"
-            completion_all_stations
-        elif [ -n "$index" ] ; then 
-            # inside a word of ${COMP_WORD[@]}
-            completion_station_prefix "${words[$index]}"
-        else
-            completion_all_stations
-        fi
-        exit 0
-        ;;
-    -r|--record)
-        do_record=1
-        ;;
-    tv-bfm)
-        URL="mms://vipmms9.yacast.net/bfm_bfmtv"
-        ;;
-    nasatv)
-        asx(){
-            tr '<>\015' '\012\012\012'< "$1" \
-                | sed -n -e 's/.*[Rr][Ee][Ff]  *[Hh][Rr][Ee][Ff] *= *"\([^"]*\)".*/\1/p' \
-                | head -1
-        }
-        trap 'rm -f /tmp/*-$$.nasatv' 0
-        url='http://www.nasa.gov/55644main_NASATV_Windows.asx'
-        wget "$url" -O "/tmp/1-$$.nasatv" > /dev/null 2>&1
-        url2="$(asx /tmp/1-$$.nasatv)"
-        wget "$url2" -O "/tmp/2-$$.nasatv" > /dev/null 2>&1
-        URL="$(asx /tmp/2-$$.nasatv)"
-        # OPTIONS=( "${OPTIONS[@]}" -vo gl:nomanyfmts )
-        ;;
-    esradio)
-        URL='mms://streaming.esradio.fm/EsRadio'
-        ;;
-    cadena-100)
-        URL="http://www.cadena100.es/directo/directo.asx"
-        ;;
-    cadena-cope)
-        URL="http://www.cope.es/cadena/directo.asx"
-        ;;
-    cope)
-        URL="http://copefm.cope.stream.flumotion.com/cope/copefm.mp3.m3u"
-        ;;
-    reinfo)
-        URL="http://www.radiocourtoisie.net/tempo/public/reinfo/reinfo.mp3"
-        ;;
-    courtoisie)
-    # URL="http://mp3.live.tv-radio.com/courtoisie/all/courtoisie.mp3"
-        URL="http://www.tv-radio.com/station/courtoisie/courtoisie.m3u"
-        ;;
-    deutchlandfunk)
-        URL="http://dradio-live.mp3.t-bn.de/dlf_live"
-        ;;
-    ie)
-        URL="mms://screamer.tippnet.ie/tmw"
-        ;;
-    news98)
-        URL="http://himusic.aboutmedia.com.tw/ufo/ms-news98/asx/news98.asx"
-        ;;
-    rne3)
-        URL="mms://a1830.l830120550.c8301.e.lm.akamaistream.net/D/1830/8301/v0001/reflector:20550"
-        ;;
-    treffpunkt)
-        URL="http://www.cibersoft.com.ar/radio/radio.m3u"
-        ;;
-    *)
-        usage
-        exit 1
-        ;;
-    esac
-done
+(defpackage "COM.INFORMATIMAGO.RADIO"
+  (:use "COMMON-LISP" "SCRIPT")
+  (:documentation "
+Listen to the radio.
+"))
+(in-package "COM.INFORMATIMAGO.RADIO")
 
 
-if [ $do_record -ne 0 ] ; then
-    OPTIONS=( "${OPTIONS[@]}" -ao "pcm:file=/tmp/${NAME}-${DATE}.wav" )
-fi
+(setf *program-name* (pname))
+(defparameter *program-version* "0.1.0")
+(setf *debug* t)
 
-exec mplayer "${OPTIONS[@]}" "$URL"
+;;;---------------------------------------------------------------------
 
-# POSITION=+512-0
-# export WRITE_ASF=1
-# exec aviplay  -geometry $POSITION  $URL  /dev/null > /tmp/aviplay.log 2>&1
+(defparameter *radio-urls*
+  '(("tv-bfm" "mms://vipmms9.yacast.net/bfm_bfmtv")
+    ;; ("nasatv"
+    ;;         asx(){
+    ;;             tr '<>\015' '\012\012\012'< "$1" \
+    ;;                 |
+    ;; sed -n -e 's/.*[Rr][Ee][Ff]  *[Hh][Rr][Ee][Ff] *= *"\([^"]*\)".*/\1/p' \
+    ;;                 | head -1
+    ;;         }
+    ;;         trap 'rm -f /tmp/*-$$.nasatv' 0
+    ;;         url='http://www.nasa.gov/55644main_NASATV_Windows.asx'
+    ;;         wget "$url" -O "/tmp/1-$$.nasatv" > /dev/null 2>&1
+    ;;         url2="$(asx /tmp/1-$$.nasatv)"
+    ;;         wget "$url2" -O "/tmp/2-$$.nasatv" > /dev/null 2>&1
+    ;;         URL="$(asx /tmp/2-$$.nasatv)"
+    ;; # OPTIONS=( "${OPTIONS[@]}" -vo gl:nomanyfmts )
+    ;; )
+    ("esradio" "mms://streaming.esradio.fm/EsRadio")
+    ("cadena-100" "http://www.cadena100.es/directo/directo.asx")
+    ("cadena-cope" "http://www.cope.es/cadena/directo.asx")
+    ("cope" "http://copefm.cope.stream.flumotion.com/cope/copefm.mp3.m3u")
+    ("reinfo" "http://www.radiocourtoisie.net/tempo/public/reinfo/reinfo.mp3")
+    ("courtoisie"
+     ;; "http://mp3.live.tv-radio.com/courtoisie/all/courtoisie.mp3"
+     "http://www.tv-radio.com/station/courtoisie/courtoisie.m3u")
+    ("deutchlandfunk" "http://dradio-live.mp3.t-bn.de/dlf_live")
+    ("ie" "mms://screamer.tippnet.ie/tmw")
+    ("news98" "http://himusic.aboutmedia.com.tw/ufo/ms-news98/asx/news98.asx")
+    ("rne3" "mms://a1830.l830120550.c8301.e.lm.akamaistream.net/D/1830/8301/v0001/reflector:20550")
+    ("treffpunkt" "http://www.cibersoft.com.ar/radio/radio.m3u")))
 
+
+;;;------------------------------------------------------------------------
+
+(defvar *verbose* nil
+  "Whether the underlying commands run should be written to stdout.")
+
+(defun print-command (command)
+  (when *verbose*
+   (format t "~A~%" command)) (finish-output)
+  command)
+
+
+(defun shell-quote-argument (argument)
+  "Quote ARGUMENT for passing as argument to an inferior shell."
+  #+(or MSWINDOWS WIN32)
+  ;; Quote using double quotes, but escape any existing quotes in
+  ;; the argument with backslashes.
+  (let ((result "")
+        (start 0)
+        (end)
+        (match-beginning)
+        (match-end))
+    (when (or (null (setf match-end (position #\" argument)))
+              (< match-end (length argument)))
+      (loop
+         :while (setf match-beginning (position #\" argument :start start))
+         :do (setf end (1+ match-beginning)
+                   result (concatenate 'string result (subseq argument start end)
+                                       "\\" (subseq argument end (1+ end)))
+                   start (1+ end))))
+    (concatenate 'string "\"" result (subseq argument start) "\""))
+  #-(or MSWINDOWS WIN32)
+  (if (equal argument "")
+      "''"
+      ;; Quote everything except POSIX filename characters.
+      ;; This should be safe enough even for really weird shells.
+      (let ((result "")
+            (start 0)
+            (end)
+            (match-beginning)
+            (match-end))
+        (loop
+           :while (setf match-end (position-if-not (lambda (ch) (or (alphanumericp ch) (position ch "-_./")))
+                                                   argument :start start))
+           :do (setf end match-end
+                     result (concatenate 'string result (subseq argument start end)
+                                         "\\" (subseq argument end (1+ end)))
+                     start (1+ end)))
+        (concatenate 'string result (subseq argument start)))))
+
+
+(define-condition command-exit-status (error)
+  ((command :initform "" :initarg :command :accessor command-exit-status-command)
+   (status  :initform 0  :initarg :status  :accessor command-exit-status-status))
+  (:report  (lambda (condition stream)
+              (format stream "Command ~S exited with status ~D"
+                      (command-exit-status-command condition)
+                      (command-exit-status-status  condition)))))
+
+(define-condition command-aborted-on-signal (error)
+  ((command :initform "" :initarg :command :accessor command-aborted-on-signal-command)
+   (signal  :initform 0  :initarg :signal  :accessor command-aborted-on-signal-signal))
+  (:report  (lambda (condition stream)
+              (format stream "Command ~S was killed by signal ~D"
+                      (command-aborted-on-signal-command condition)
+                      (command-aborted-on-signal-signal  condition)))))
+
+(defvar *run-output* :terminal)
+                                   
+(defun run (control-string &rest arguments)
+  "Runs the specified shell commands.
+Signals an error if they exit with an error status or are killed by a signal."
+  (let* ((command (print-command (format nil "{ ~? ; } 2>&1" control-string arguments)))
+         (status  (ext:run-program "/bin/bash"
+                                    :arguments (list "-c" command)
+                                    :output *run-output*
+                                    :if-output-exists :append
+                                    :wait t)
+           
+          ;; (let ((pid (linux:|fork|)))
+          ;;   (case pid
+          ;;     ((-1) (linux:perror "fork") EX-UNAVAILABLE)
+          ;;     ((0) (unwind-protect
+          ;;               (nth-value 1 (linux:|waitpid| pid 0))
+          ;;            (linux:|kill| pid)))
+          ;;     (otherwise
+          ;;      (ext:run-program "/bin/bash"
+          ;;                       :arguments (list "-c" command)
+          ;;                       :output *run-output*
+          ;;                       :if-output-exists :append
+          ;;                       :wait t)
+          ;;      (ext:exit 0))))
+           
+          ))
+    (cond
+      ((null   status)
+       #|normal exit|#)
+      ((not (integerp status))
+       (error "Command ~S exited with strange status ~S" command status))
+      ((zerop  status)
+       #|normal exit|#)
+      ((plusp  status)
+       (error 'command-exit-status :command command :status status))
+      (t
+       (error 'command-aborted-on-signal :command command :signal (abs status))))))
+
+
+;;;---------------------------------------------------------------------
+
+
+(defun s (command &rest arguments)
+  (let ((arguments  (mapcar (lambda (arg) (shell-quote-argument (princ-to-string arg)))
+                            arguments)))
+   (apply (function run) (format nil "~A~~@{ ~~A~~}" command) arguments)))
+
+
+(defun e (&rest args)
+  (with-output-to-string (out)
+    (with-open-stream (in (ext:run-shell-command (format nil "~{~A ~}" args)
+                                                 :output :stream :wait nil))
+      (loop
+         :for line = (read-line in nil nil)
+         :while line :do (write-line line out)))))
+
+
+;;;------------------------------------------------------------
+
+(defun compose-sexp (functions var)
+  (if (null functions)
+      var
+      (list (car functions) (compose-sexp (cdr functions) var))))
+
+(defmacro COMPOSE (&rest functions)
+  `(lambda (x) ,(compose-sexp functions 'x)))
+
+(defun ensure-list (x) (if (listp x) x (list x)))
+
+(defun prefixp (prefix string)
+  (and (<= (length prefix) (length string))
+       (string= prefix string :end2 (length prefix))))
+
+(defun suffixp (suffix string)
+  (and (<= (length suffix) (length string))
+       (string= suffix string :start2 (- (length string) (length suffix)))))
+
+;;;------------------------------------------------------------
+
+;;;------------------------------------------------------------
+
+(defvar *do-record*             nil)
+(defvar *stations-to-listen-to* '())
+
+(defun get-radio-station (name)
+  (assoc  name *radio-urls* :test (function string-equal)))
+
+(defun get-radio-station-names ()
+   (mapcar (function first) *radio-urls*))
+
+
+(defvar *radio-list-format* "~:{~20A ~S~%~}")
+
+(define-option ("version" "-V" "--version") ()
+  "Report the version of this script."
+  (format t "~A ~A~%" *program-name* *program-version*))
+
+(define-option ("verbose" "-v" "--verbose") ()
+  "Report writes the underlying commands that are run."
+  (setf *verbose* t))
+
+(define-option ("url" "-U" "-url" "--url") (radio-station)
+  "Prints the URL of the radio station and exit."
+  (let ((radio (get-radio-station radio-station)))
+    (if radio
+        (format t "~A" (second radio))
+        (error "There is no radio station named ~S" radio-station)))
+  (ext:exit 0))
+
+(define-option ("record" "-r" "--record") ()
+  "Records the stream while listening."
+  (setf *do-record* t))
+
+(define-option ("list-stations" "list"  "-l" "-ls" "--list" "--list-stations") ()
+  "Prints the list of radio stations and exit."
+  (format t *radio-list-format* *radio-urls*)
+  (ext:exit 0))
+
+
+
+
+(defun completion-station-prefix (prefix)
+  (format t "~(~{~A~%~}~)"  (remove-if-not (lambda (key)
+                                             (and (<= (length prefix) (length key))
+                                                  (string= prefix key :end2 (length prefix))))
+                                           (get-radio-station-names)))
+  (finish-output))
+
+(defun completion-all-stations ()
+  (format t "~(~{~A~%~}~)" (get-radio-station-names))
+  (finish-output))
+
+(setf *bash-completion-hook*
+      (lambda (index words)
+        (if index
+            (completion-station-prefix (elt words index))
+            (completion-all-stations))
+        nil))
+
+(parse-options ext:*args*
+               (lambda () (call-option-function "help" '()))
+               (lambda (name arguments)
+                 (let* ((radio (get-radio-station name)))
+                   (if radio
+                       (progn
+                         (setf *stations-to-listen-to* (append *stations-to-listen-to* (list radio)))
+                         arguments)
+                       (error "Unknown radio station: ~S" name)))))
+
+
+(let ((base-options '( "-nojoystick" "-ontop" )))
+  (loop
+     :for (name url) :in  *stations-to-listen-to*
+     :for options = (when *do-record*
+                      (let ((date  (multiple-value-bind (se mi ho da mo ye)
+                                       (decode-universal-time (get-universal-time))
+                                     (format nil "~4,'0D~2,0D~2,0DT~2,0D~2,0D~2,0D"
+                                             ye mo da ho mi se))))
+                        (setf options (list "-ao" (format nil "pcm:file=/tmp/~A-~A.wav" name date)))))
+     :do (apply (function s) "mplayer" (append base-options options (list url)))))
+
+;; #-testing-script
+;; (ext:exit (main ext:*args*))
+
+(ext:exit 0)
+;;;; THE END ;;;;

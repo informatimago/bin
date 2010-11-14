@@ -100,6 +100,7 @@
            "REDIRECTING-STDOUT-TO-STDERR"
            "DEFINE-OPTION" "CALL-OPTION-FUNCTION"  "MAIN"
            "SET-DOCUMENTATION-TEXT"
+           "*BASH-COMPLETION-HOOK*"
            ;; Utilities:
            "FIND-DIRECTORIES"
            "CONCAT" "MAPCONCAT"
@@ -466,13 +467,15 @@ BUG: when the optionals or keys have a present indicator,
 
 
 
-(defgeneric call-option-function (option arguments)
-  (:method ((key string) arguments)
+(defgeneric call-option-function (option arguments &optional undefined-argument)
+  (:method ((key string) arguments &optional undefined-argument)
     (let* ((funopt  (gethash key *options*)))
-      (if funopt
-          (call-option-function funopt arguments)
-          (error "Unknown option ~A ; try: ~A help" key (pname)))))
-  (:method ((option option) arguments)
+      (cond
+        (funopt             (call-option-function funopt arguments undefined-argument))
+        (undefined-argument (funcall undefined-argument key arguments))
+        (t                  (error "Unknown option ~A ; try: ~A help" key (pname))))))
+  (:method ((option option) arguments &optional undefined-argument)
+    (declare (ignore undefined-argument))
     (funcall (option-function option) arguments)))
 
 
@@ -566,6 +569,9 @@ RETURN:     The lisp-name of the option (this is a symbol
     (format t "~A~%" key))
   (finish-output))
 
+(defvar *bash-completion-hook* nil
+  "A function (lambda (index words) ...)
+that will print the completion and return true, or do nothing and return nil.")
 
 (define-option ("--bash-completions") (index &rest words)
   "Implement the auto-completion of arguments.
@@ -574,9 +580,11 @@ the '--bash-completion-function' option.  There should be no need to
 use directly.
 "
   (let ((index (parse-integer index :junk-allowed t)))
-    (if index
-        (completion-option-prefix (elt words index))
-        (completion-all-options)))
+    (unless (and *bash-completion-hook*
+                 (funcall *bash-completion-hook* index words))
+      (if index
+          (completion-option-prefix (elt words index))
+          (completion-all-options))))
   (ext:exit 0))
 
 
@@ -598,13 +606,13 @@ complete -F completion_~:*~A ~:*~A~%"
 
 
 
-(defun parse-options (arguments &optional default)
+(defun parse-options (arguments &optional default undefined-argument)
   (flet ((process-arguments ()
            (cond
              (arguments
               (loop
                  :while arguments
-                 :do (setf arguments (call-option-function  (pop arguments) arguments))))
+                 :do (setf arguments (call-option-function (pop arguments) arguments undefined-argument))))
              (default
               (funcall default)))))
     (if *debug*
