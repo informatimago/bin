@@ -1,3 +1,13 @@
 #!/bin/bash
-file ~/bin/*[A-Za-z0-9] | sed -n -e 's/^\([^:]*[^~]\): *//p' \
+files="/tmp/tally-bin.$$.out"
+trap "rm -f $files" 0
+
+cd ~/bin/
+file *[A-Za-z0-9] > "$files"
+
+cat "$files" | sed -n -e 's/^\([^:]*[^~]\): *//p' \
 | sort | uniq -c | sort -rn | egrep -i 'shell|cmu|lisp|perl|mz|awk' 
+
+wc -l $(grep 'Bourne-Again shell script text executable' "$files" | sed -e 's/:.*//') | sort -n > bourne-scripts.txt
+wc -l $(grep 'POSIX shell script text executable'        "$files" | sed -e 's/:.*//') | sort -n > posix-scripts.txt 
+wc -l $(grep 'C shell script text executable'            "$files" | sed -e 's/:.*//') | sort -n > c-scripts.txt

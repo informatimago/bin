@@ -1,6 +1,8 @@
-           ;; "SPLIT-STRING"
-           ;; "STRING-MATCH" "MATCH-STRING" "MATCH-BEGINNING" "MATCH-END"
-           ;; "REGEXP-MATCh-ANY" "REGEXP-COMPILE" "REGEXP-QUOTE-EXTENDED"
+;;;; -*- mode:lisp;coding:utf-8 -*-
+
+;; "SPLIT-STRING"
+;; "STRING-MATCH" "MATCH-STRING" "MATCH-BEGINNING" "MATCH-END"
+;; "REGEXP-MATCh-ANY" "REGEXP-COMPILE" "REGEXP-QUOTE-EXTENDED"
 
 
 (defun split-string (string regexp)

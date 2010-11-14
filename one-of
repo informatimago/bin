@@ -95,7 +95,7 @@ of PROBABILITY*{nb of arguments} arguments are printed).
 
 
 (parse-options ext:*args*
-               (lambda () (call-option-function "help" '()))
+               nil ; (lambda () (call-option-function "help" '()))
                (lambda (name arguments)
                  (push name *arguments*)
                  arguments))
