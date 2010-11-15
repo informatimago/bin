@@ -71,7 +71,7 @@ Choose an argument randomly.
 (defvar *probability* nil)
 (defvar *arguments*  '())
 
-(define-option ("--probability") (probability)
+(define-option ("-p" "--probability") (probability)
   "
 PROBABILITY is a number between 0.0 and 1.0.
 
