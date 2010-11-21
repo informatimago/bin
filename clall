@@ -62,7 +62,7 @@ clall_lisp='
 #+gcl (defmacro ignore-errors (&body body) `(progn ,@body))
 
 (defvar *double-line* "========================================================================")
-(defvar *sinple-line* "------------------------------------------------------------------------")
+(defvar *simple-line* "------------------------------------------------------------------------")
 
 (defun read-eval (input)
   "Read and evaluate the input.
@@ -196,14 +196,14 @@ echo "#+sbcl  (sb-ext:quit)"               >> $script
 
 
 printf '\n'
-type -p abcl  >/dev/null && abcl         --eval '(setq *load-verbose* nil)'  --load  $script        > /tmp/clall-abcl.out  2>&1 && cat "$output"
-type -p alisp >/dev/null && alisp -batch -q                                   -L     $script -kill  > /tmp/clall-alisp.out 2>&1 && cat "$output"
-type -p ccl   >/dev/null && ccl  --batch --no-init                           --load  $script        > /tmp/clall-ccl.out   2>&1 && cat "$output"
-type -p clisp >/dev/null && clisp -ansi  -q  -norc                                   $script        > /tmp/clall-clisp.out 2>&1 && cat "$output"
-type -p lisp  >/dev/null && lisp  -noinit -eval '(setq *load-verbose* nil)'   -load  $script        > /tmp/clall-cmucl.out 2>&1 && cat "$output"
-type -p ecl   >/dev/null && ecl              -norc                            -load  $script        > /tmp/clall-ecl.out   2>&1 && cat "$output"
-type -p gcl   >/dev/null && gcl   -batch                                      -load  $script        > /tmp/clall-gcl.out   2>&1 && cat "$output"
-type -p sbcl  >/dev/null && sbcl --noinform --no-userinit                    --load  $script        > /tmp/clall-sbcl.out  2>&1 && cat "$output"
+type -p abcl  >/dev/null && abcl --batch --noinform --noinit --eval '(setq *load-verbose* nil)'  --load  $script        > /tmp/clall-abcl.out  2>&1 && cat "$output"
+type -p alisp >/dev/null && alisp -batch -q                                                       -L     $script -kill  > /tmp/clall-alisp.out 2>&1 && cat "$output"
+type -p ccl   >/dev/null && ccl  --batch --no-init                                               --load  $script        > /tmp/clall-ccl.out   2>&1 && cat "$output"
+type -p clisp >/dev/null && clisp -ansi  -q  -norc                                                       $script        > /tmp/clall-clisp.out 2>&1 && cat "$output"
+type -p lisp  >/dev/null && lisp  -noinit          -eval '(setq *load-verbose* nil)'              -load  $script        > /tmp/clall-cmucl.out 2>&1 && cat "$output"
+type -p ecl   >/dev/null && ecl              -norc                                                -load  $script        > /tmp/clall-ecl.out   2>&1 && cat "$output"
+type -p gcl   >/dev/null && gcl   -batch                                                          -load  $script        > /tmp/clall-gcl.out   2>&1 && cat "$output"
+type -p sbcl  >/dev/null && sbcl --noinform --no-userinit                                        --load  $script        > /tmp/clall-sbcl.out  2>&1 && cat "$output"
 printf '\n'
 printf '========================================================================\n'
 printf '\n'
@@ -212,3 +212,11 @@ exit 0
 # clall \
 # '(let ((*read-suppress* nil)) (read-from-string "#.(values) 42"))' \
 # '(let ((*read-suppress* t  )) (read-from-string "#.(values) 42"))'
+
+# abcl options:
+# --noinit
+# --nosystem
+# --noinform
+# --batch
+# --eval $EXPRESSION
+# --load | --load-system-file $FILE
