@@ -1,12 +1,14 @@
 #!/usr/bin/clisp -ansi -q -Kfull -E utf-8
 ;; -*- mode:lisp; coding:utf-8 -*-
 
+;; emerge all the packages specified in /home/pjb/portage-packages.txt, in batch(1).
+
 (defparameter *rt* (copy-readatable nil))
 (setf (readtable-case *rt*)  :preserve)
 (with-open-file (f "/home/pjb/portage-packages.txt")
- (let ((*read-table* *rt*))
-  (loop 
-   :for p = (read f nil nil)
-   :while p
-   :do (with-open-stream (b (ext:run-program "batch" :input :stream))
-	(format b "emerge ~A~%" p)))))
+  (let ((*read-table* *rt*))
+    (loop 
+       :for p = (read f nil nil)
+       :while p
+       :do (with-open-stream (b (ext:run-program "batch" :input :stream))
+             (format b "emerge ~A~%" p)))))
