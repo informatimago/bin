@@ -16,11 +16,12 @@
 ;;;;    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
 ;;;;MODIFICATIONS
 ;;;;    2010-11-14 <PJB> Translated from bash.
+;;;;    2011-03-20 <PJB> Added -c option.
 ;;;;BUGS
 ;;;;LEGAL
 ;;;;    GPL
 ;;;;    
-;;;;    Copyright Pascal J. Bourguignon 2010 - 2010
+;;;;    Copyright Pascal J. Bourguignon 2010 - 2011
 ;;;;    
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU General Public License
@@ -69,7 +70,9 @@ Choose an argument randomly.
 
 
 (defvar *probability* nil)
+(defvar *count*       nil)
 (defvar *arguments*  '())
+
 
 (define-option ("-p" "--probability") (probability)
   "
@@ -94,6 +97,31 @@ of PROBABILITY*{nb of arguments} arguments are printed).
               probability)))))
 
 
+(define-option ("-c" "--count") (count)
+  "
+COUNT is an integer.
+
+Prints COUNT items selected at random from the remaining arguments.
+
+Each item is taken only once, if COUNT is greater than the number of
+remaining arguments, then they're all printed in random order.
+"
+  (setf *count*
+        (with-standard-io-syntax
+          (let ((*read-eval* nil)
+                (argument count))
+            (let ((count (read-from-string count)))
+              (assert (integerp count)
+                      (count)
+                      "The COUNT must be an integer, not ~S" argument)
+              (assert (< 0 COUNT)
+                      (count)
+                      "The COUNT must be a strictly-positive number,  ~A is too ~:[big~;small~]."
+                      count (<= count 0))
+              count)))))
+
+
+
 (parse-options ext:*args*
                nil ; (lambda () (call-option-function "help" '()))
                (lambda (name arguments)
@@ -102,6 +130,21 @@ of PROBABILITY*{nb of arguments} arguments are printed).
 
 (defun one-of (sequence)
   (elt sequence (random (length sequence))))
+
+(defun shuffle (sequence)
+  (let ((result (coerce sequence 'vector)))
+    (loop
+       :for i :from (length result) :downto 1
+       :do (rotatef (aref result (1- i)) (aref result (random i))))
+    result))
+
+(defun shuffle-list (list)
+  (do* ((list (copy-list list) list)
+        (length  (length list) (1- length))
+        (current list (cdr list)))
+       ((< 2 length) list)
+   (rotatef (first current) (elt current (random length)))))
+
 
 (unless *arguments*
   (setf *arguments*
@@ -117,14 +160,22 @@ of PROBABILITY*{nb of arguments} arguments are printed).
                                     :test (function equalp))))))
 
 (when *arguments*
-  (if *probability*
-      (loop
-         :for arg :in *arguments*
-         :when (<= (random 1.0) *probability*)
-         :do (write-line arg) (finish-output))
-      (progn
-        (write-line (one-of *arguments*))
-        (finish-output))))
+  (cond
+    ((and *probability* *count*)
+     (error "Specifying a probability and a count are mutually exclusive."))
+    (*probability*
+     (loop
+        :for arg :in *arguments*
+        :when (<= (random 1.0) *probability*)
+        :do (write-line arg) (finish-output)))
+    (*count*
+     (loop
+        :for arg :across (subseq (shuffle *arguments*) 0 (min *count* (length *arguments*)))
+        :do (write-line arg) (finish-output)))
+    (t ; a single one
+     (write-line (one-of *arguments*))
+     (finish-output))))
+
 
 ;; #-testing-script
 ;; (ext:exit (main ext:*args*))
