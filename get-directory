@@ -79,7 +79,7 @@ selected by KEY, and the given SUBPATH.
 
 (ext:exit
  (handler-case
-     (destructuring-bind (key &optional subpath) ext:*args*
+     (destructuring-bind (key &optional (subpath "")) ext:*args*
        (princ (get-directory (intern (substitute #\- #\_ key) "KEYWORD") subpath))
        (terpri)
        (finish-output)
