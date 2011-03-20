@@ -44,6 +44,155 @@
 
 (pushnew "--test" ext:*args*)
 
+
+(defparameter |2001 A Space Odyssey|
+  '((
+"
+
+
+                         ZERO GRAVITY TOILET
+
+                      PASSENGERS ARE ADVISED TO
+
+                     READ INSTRUCTIONS BEFORE USE
+                                   
+
+
+   1. The toilet is of the standard zero-gravity type. Depending on
+      requirements, System A and/or System B can be used, details of
+      which are clearly marked in the toilet compartment. When
+      operating System A, depress lever and a plastic dalkron
+      eliminator will be dispensed through the slot immediately
+      underneath. When you have fastened the adhesive lip, attach
+      connection marked by the large \"X\" outlet hose. Twist the silver
+      coloured ring one inch below the connection point until you feel
+      it lock.
+
+   2. The toilet is now ready for use. The Sonovac cleanser is
+      activated by the small switch on the lip. When securing, twist
+      the ring back to its initial-condition, so that the two orange
+      line meet. Disconnect. Place the dalkron eliminator in the
+      vacuum receptacle to the rear. Activate by pressing the blue
+      button.
+
+   3. The controls for System B are located on the opposite wall. The
+      red release switch places the uroliminator into position; it can
+      be adjusted manually up or down by pressing the blue manual
+      release button. The opening is self adjusting. To secure after
+      use, press the green button which simultaneously activates the
+      evaporator and returns the uroliminator to its storage position.
+
+   4. You may leave the lavatory if the green exit light is on over
+      the door. If the red light is illuminated, one of the lavatory
+      facilities is not properly secured. Press the \"Stewardess\" call
+      button on the right of the door. She will secure all facilities
+      from her control panel outside. When gren exit light goes on
+      you may open the door and leave. Please close the door behind
+      you.
+
+   5. To use the Sonoshower, first undress and place all your clothes
+      in the clothes rack. Put on the velcro slippers located in the
+      cabinet immediately below. Enter the shower. On the control
+      panel to your upper right upon entering you will see a \"Shower
+      seal\" button. Press to activate. A green light will then be
+      illuminated immediately below. On the intensity knob select the
+      desired setting. Now depress the Sonovac activation lever. Bathe
+      normally.
+
+   6. The Sonovac will automatically go off after three minutes unless
+      you activate the \"Manual off\" over-ride switch by flipping it
+      up. When you are ready to leave, press the blue \"Shower seal\"
+      release button. The door will open and you may leave. Please
+      remove the velcro slippers and place them in their container.
+
+   7. If the red light above this panel is on, the toilet is in
+      use. When the green light is illuminated you may enter. However,
+      you must carefully follow all instructions when using the
+      facilities duting coasting (Zero G) flight. Inside there are
+      three facilities: (1) the Sonowasher, (2) the Sonoshower, (3)
+      the toilet. All three are designed to be used under weightless
+      conditions. Please observe the sequence of operations for each
+      individual facility.
+
+   8. Two modes for Sonowashing your face and hands are available, the
+      \"moist-towel\" mode and the \"Sonovac\" ultrasonic cleaner
+      mode. You may select either mode by moving the appropriate lever
+      to the \"Activate\" position.
+
+      If you choose the \"moist-towel\" mode, depress the indicated
+      yellow button and withdraw item. When you have finished, discard
+      the towel in the vacuum dispenser, holding the indicated lever
+      in the \"active\" position until the green light goes on...showing
+      that the rollers have passed the towel completely into the
+      dispenser. If you desire an additional towel, press the yellow
+      button and repeat the cycle.
+
+   9. If you prefer the \"Sonovac\" ultrasonic cleaning mode, press the
+      indicated blue button. When the twin panels open, pull forward
+      by rings A & B. For cleaning the hands, use in this
+      position. Set the timer to positions 10, 20, 30 or
+      40...indicative of the number of seconds required. The knob to
+      the left, just below the blue light, has three settings, low,
+      medium or high. For normal use, the medium setting is suggested.
+
+  10. After these settings have been made, you can activate the device
+      by switching to the \"ON\" position the clearly marked red
+      switch. If during the washing operation, you wish to change the
+      settings, place the \"manual off\" over-ride switch in the \"OFF\"
+      position. you may now make the change and repeat the cycle.
+
+
+
+                2001: Zero Gravity Toilet Instructions
+               Last modified: Mon May 21 15:34:24 2007
+")))
+
+
+(defparameter |The Six Million Dollar Man|
+  '(("
+BIONIC VISUAL CORTEX TERMINAL
+CATALOG #075/KFB
+33MM O.D. F/0.95
+ZOOM RATIO: 20.2 TO 1
+2134 LINE 60 HZ
+EXTENDED CHROMATIC RESPONSE
+CLASS JC
+CLASSIFIED
+"
+     "
+BIONIC NEURO-LINK FOREARM/
+UPPER ARM ASSEMBLY (RIGHT)
+CATALOG #2821/WLY
+AND
+BIONIC NEURO-LINK HAND (RIGHT)
+CATALOG #2822/PJI
+NEURO FEEDBACK TERMINATED
+POWER SUPPLY
+ATOMIC TYPE AED-4
+CATALOG #2821 AED-4
+1550 WATT CONTINUOUS DUTY
+NOMINAL DOUBLE GAIN
+OVERLOAD FOLLOWER
+CLASS MZ
+CLASSIFIED
+"
+     "
+BIONIC NEUR-LINK
+BIPEDAL ASSEMBLY
+CATALOG #914 PAH
+NEURO FEEDBACK TERMINATED
+POWERSUPPLY:
+ATOMIC TYPE AED-9A
+4920 WATT CONTINUOUS DUTY
+NOMINAL DOUBLE GAIN
+OVERLOAD FOLLOWER
+2100 WATT RESERVE
+INTERMITTENT DUTY
+CLASS CC
+CLASSIFIED
+")))
+
+
 (defparameter |What is it?|
 '((:green-screen "
 ADDRESS          VALUE       TYPE     TS  BA  OV
