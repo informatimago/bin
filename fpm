@@ -809,6 +809,10 @@ or an expression such as (= <package>)  (<= <package>) etc."))
 
 
 (defparameter *package-management-system*
+  ;; Notice that we don't signal an error just because we don't have a
+  ;; package management system class, since the script may be loaded
+  ;; without a need for it (eg. for bash completion).  The error is
+  ;; deferred to the UNIMPLEMENTED-PMS class if it receives a message.
   (let ((pms (distribution-default-package-management-system (uname) (distribution))))
     (cond
       ((ignore-errors (find-class pms))
