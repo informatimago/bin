@@ -702,6 +702,72 @@ or an expression such as (= <package>)  (<= <package>) etc."))
 
 
 
+;;;---------------------------------------------------------------------
+
+(defclass unimplemented-pms (package)
+  ((pms :initarg :package-management-system
+        :reader unimplemented-package-management-system)))
+
+(defmethod unimplemented-pms ((self unimplemented-pms))
+  (error "~:(~A~) has no implementation for the ~A package management system used in the ~A distribution of the ~A system."
+         'fpm
+         (unimplemented-package-management-system self)
+         (distribution)
+         (uname)))
+
+(defmethod pm-package-designator ((self unimplemented-pms) package-designator)
+  (declare (ignore package-designator))
+  (unimplemented-pms self))
+
+
+(defmethod pm-version ((self unimplemented-pms))
+  (declare (ignore package-designator))
+  (unimplemented-pms self))
+
+(defmethod pm-install ((self unimplemented-pms) package-designator)
+  (declare (ignore package-designator))
+  (unimplemented-pms self))
+
+(defmethod pm-update  ((self unimplemented-pms) package-designator)
+  (declare (ignore package-designator))
+  (unimplemented-pms self))
+
+(defmethod pm-remove  ((self unimplemented-pms) package-designator)
+  (declare (ignore package-designator))
+  (unimplemented-pms self))
+
+(defmethod pm-info    ((self unimplemented-pms) package-designator)
+  (declare (ignore package-designator))
+  (unimplemented-pms self))
+
+
+(defmethod pm-list-packages ((self unimplemented-pms)
+                             &key installed all available not-installed
+                             packages pattern)
+  (declare (ignore installed all available not-installed packages pattern))
+  (unimplemented-pms self))
+
+(defmethod pm-list-files                    ((self unimplemented-pms) package-designator)
+  (declare (ignore package-designator))
+  (unimplemented-pms self))
+
+(defmethod pm-find-package-containing-file  ((self unimplemented-pms) file-path)
+  (declare (ignore file-path))
+  (unimplemented-pms self))
+
+(defmethod pm-find-package-with-info        ((self unimplemented-pms) pattern)
+  (declare (ignore pattern))
+  (unimplemented-pms self))
+
+(defmethod pm-dependencies                  ((self unimplemented-pms) package-designator)
+  (declare (ignore package-designator))
+  (unimplemented-pms self))
+
+(defmethod pm-dependants                    ((self unimplemented-pms) package-designator)
+  (declare (ignore package-designator))
+  (unimplemented-pms self))
+
+
 
 ;;;------------------------------------------------------------
 
@@ -743,8 +809,12 @@ or an expression such as (= <package>)  (<= <package>) etc."))
 
 
 (defparameter *package-management-system*
-  (make-instance
-      (distribution-default-package-management-system  (uname) (distribution))))
+  (let ((pms (distribution-default-package-management-system (uname) (distribution))))
+    (cond
+      ((find-class pms)
+         (make-instance pms))
+      (t
+       (make-instance 'unimplemented-pms :package-management-system pms)))))
 
 
 (defun fpm-operate (key &rest arguments)
