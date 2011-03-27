@@ -572,7 +572,7 @@ if(($smsaddress =~ /\+33603.*/)
 
 
 }else{
-    printf "I don't know how to send a SMS to this number : '%s'.\n",
+    printf "$0 doesn't know how to send a SMS to this number : '%s'.\n",
            $smsaddress;
     printf $operatorDescription;
 	exit 1

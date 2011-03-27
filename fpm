@@ -733,11 +733,11 @@ or an expression such as (= <package>)  (<= <package>) etc."))
        ((:gentoo)                 'portage)
        ((:debian)                 'apt)
        (otherwise
-        (error "I don't know the package management system used in the ~A distribution of the ~A system."
-               distribution sysname))))
+        (error "~:(~A~) doesn't know the package management system used in the ~A distribution of the ~A system."
+               'fpm distribution sysname))))
     (otherwise
-     (error "I don't know the package management system used on the ~A system."
-            sysname))))
+     (error "~:(~A~) doesn't know the package management system used on the ~A system."
+            'fpm sysname))))
 
 
 (defparameter *package-management-system*

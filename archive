@@ -202,7 +202,7 @@ if ( $error == 0 ) then
 					end
 				endif
 				if ( $abort ) then
-					echo "I don't know how to $action the file '$arch'."
+					echo "$0 doesn't know how to $action the file '$arch'."
 					continue   # foreach.
 				endif
 				breaksw
