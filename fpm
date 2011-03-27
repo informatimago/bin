@@ -811,8 +811,8 @@ or an expression such as (= <package>)  (<= <package>) etc."))
 (defparameter *package-management-system*
   (let ((pms (distribution-default-package-management-system (uname) (distribution))))
     (cond
-      ((find-class pms)
-         (make-instance pms))
+      ((ignore-errors (find-class pms))
+       (make-instance pms))
       (t
        (make-instance 'unimplemented-pms :package-management-system pms)))))
 
