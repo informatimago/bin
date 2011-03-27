@@ -735,6 +735,8 @@ or an expression such as (= <package>)  (<= <package>) etc."))
        (otherwise
         (error "~:(~A~) doesn't know the package management system used in the ~A distribution of the ~A system."
                'fpm distribution sysname))))
+    ((:cygwin_nt-5.1)
+     'cygwin)
     (otherwise
      (error "~:(~A~) doesn't know the package management system used on the ~A system."
             'fpm sysname))))
