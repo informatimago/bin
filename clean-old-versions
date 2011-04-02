@@ -5,13 +5,18 @@ for arg ; do
     case "$arg" in
     -n) do=echo ;;
     -*) echo "Usage:"
-        echo "   $(basename $0) [-n] directory ..."
+        echo "   $(basename $0) [-n] [directory ...]"
         echo "Remove all backup files that don't have a head."
+        echo "If no directory is specified, then clean the current directory." 
+        echo "-n only shows what would be done."
         exit 1
         ;;
     *)  dirs[${#dirs}]="$arg" ;;
     esac
 done
+if [ ${#dirs[@]} -eq 0 ] ; then
+    dirs=(.)
+fi
 for dir in "${dirs[@]}" ; do 
     find "$dir" -maxdepth 1 \( -name \*~ -o -name .\?\*~ \) -print  \
     |while read file ; do 
