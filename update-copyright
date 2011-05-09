@@ -1,4 +1,6 @@
 #!/bin/csh -f 
+echo 'See emacs M-x pjb-update-copyright'
+exit 0
 
 set year=`date |sed -e 's/.* \([0-9][0-9][0-9][0-9]\)$/\1/'`
 foreach f ( ${*:q} )

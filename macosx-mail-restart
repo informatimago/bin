@@ -1,0 +1,6 @@
+#!/bin/bash
+sudo serveradmin stop mail
+sleep 5
+sudo serveradmin start mail
+sleep 2 
+tail -20 /var/log/mail.log
