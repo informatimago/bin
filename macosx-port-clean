@@ -7,8 +7,8 @@ EOF
 read -p "Are you ready? (y/n)" rep
 case "$rep" in
 y)
-    sudo port uninstall inactive      # remove the inactive ports.
-    sudo port clean --all uninstalled # remove the non-installed distfiles
+    sudo port uninstall inactive         # remove the inactive ports.
+    sudo port clean --all -f uninstalled # remove the non-installed distfiles
     ;; 
 *)
     printf "Aborted\n"
