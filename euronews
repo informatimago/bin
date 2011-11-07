@@ -1,5 +1,5 @@
-#!/usr/local/bin/clisp -ansi -q -K full
-;; -*- mode: lisp -*-
+#!/usr/bin/clisp -ansi -q -Kfull -E utf-8
+;; -*- mode: lisp; coding:utf-8 -*-
 ;;******************************************************************************
 ;;FILE:              eurnews
 ;;LANGUAGE:          Common-Lisp

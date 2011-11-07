@@ -6,7 +6,9 @@ options=""
 for arg ; do
     if [ -f "$arg" ] ; then
         base="$(basename $arg)"
-        sed -e 's/[ ][ ]*/ /g' -e 's/^ *//' -e 's/ *$//' < "$arg" \
+        sed -e 's/[ 
+][ 
+]*/ /g' -e 's/^ *//' -e 's/ *$//' < "$arg" \
             | tr ' ' '\012' > "$tmp/$base"
     else
         options="$options $arg"

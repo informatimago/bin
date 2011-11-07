@@ -1,5 +1,5 @@
-#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1
-;;;; -*- mode:lisp; coding:iso-8859-1 -*-
+#!/usr/bin/clisp -ansi -q -Kfull -E utf-8
+;;;; -*- mode:lisp; coding:utf-8 -*-
 
 ;; Clean the packages imported into COMMON-LISP-USER:
 (MAPC (LAMBDA (USED) (UNUSE-PACKAGE USED "COMMON-LISP-USER"))

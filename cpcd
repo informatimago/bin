@@ -37,7 +37,7 @@ Darwin)
         done
     }
     ;;
-linux)
+Linux|linux)
     function eject(){
         command eject
     }

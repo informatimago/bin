@@ -72,7 +72,8 @@ function CPR () {
 }
 function CR () {
     # CARRIAGE RETURN
-    echo -n ""
+    echo -n "
+"
 }
 function CSI () {
     # CONTROL SEQUENCE INTRODUCER

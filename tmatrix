@@ -23,7 +23,8 @@ done
 
 CLEAR="c"
 HOME="[H"
-CR=""
+CR="
+"
 NL="\
 "
 BS=""

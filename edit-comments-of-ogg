@@ -1,5 +1,5 @@
-#!/usr/bin/clisp -ansi -q -Kfull -e iso-8859-1
-;;;; -*- mode:lisp; coding:iso-8859-1 -*-
+#!/usr/bin/clisp -ansi -q -Kfull -E utf-8
+;;;; -*- mode:lisp; coding:utf-8 -*-
 ;;;;*****************************************************************************
 ;;;;FILE:              edit-comments-of-ogg.lisp
 ;;;;LANGUAGE:          common lisp (clisp)
@@ -207,7 +207,7 @@ RETURN:  a cons with two substrings of string such as:
   (format t
           (concatenate
               'string
-            "c~%"
+            "~Cc~%"
             "    INDEX        = ~a/~a~%"
             "    FILE         = ~a~%"
             ""
@@ -223,6 +223,7 @@ RETURN:  a cons with two substrings of string such as:
             "a)  LOCATION     = ~a~%"
             "b)  COPYRIGHT    = ~a~%"
             )
+          (code-char 27)
           index max
           file artist album title version tracknumber organization genre
           description date location copyright)

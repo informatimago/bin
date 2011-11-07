@@ -1,10 +1,13 @@
-#!/usr/bin/clisp -ansi -q -Kfull -E iso-8859-1
-;;;; -*- mode:lisp; coding:iso-8859-1 -*-
+#!/usr/bin/clisp -ansi -q -Kfull -E utf-8
+;;;; -*- mode:lisp; coding:utf-8 -*-
+
 
 (in-package "COMMON-LISP-USER")
 (load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common
                      :defaults *load-pathname*))
-(use-package "SCRIPT")
+(defpackage "CPCD"
+  (:use "CL" "SCRIPT"))
+(in-package "CPCD")
 (setf *program-name* (pname))
 
 
@@ -87,7 +90,7 @@
 
 
 
-(process-options ext:*argv*)
+(parse-options ext:*args*)
 
 #|
 if [ "$start" != '' ] ; then
