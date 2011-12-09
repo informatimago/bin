@@ -89,7 +89,8 @@ Listen to the radio.
     ("ie"             "mms://screamer.tippnet.ie/tmw")
     ("news98"         "http://himusic.aboutmedia.com.tw/ufo/ms-news98/asx/news98.asx")
     ("rne3"           "mms://a1830.l830120550.c8301.e.lm.akamaistream.net/D/1830/8301/v0001/reflector:20550")
-    ("treffpunkt"     "http://www.cibersoft.com.ar/radio/radio.m3u")))
+    ("treffpunkt"     "http://www.cibersoft.com.ar/radio/radio.m3u")
+    ("esperance"       "http://www.streamakaci.com/radios/esperance.asx")))
 
 
 ;;;------------------------------------------------------------------------
