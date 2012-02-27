@@ -1,4 +1,4 @@
-#!/usr/bin/clisp -ansi -q -Kfull -E utf-8
+#!/usr/bin/clisp -ansi -q -E utf-8
 ;;;; -*- mode:lisp; coding:utf-8 -*-
 ;;;;******************************************************************************
 ;;;;FILE:              shell
