@@ -1,0 +1,55 @@
+#!/bin/sh
+voice_options=( -v lancashire -s 180 -g 3 )
+oufile="/tmp/speakd.out.wav"
+fifo="/tmp/speakd"
+
+if [ "$#" -gt 0 ] ; then
+    case "$1" in
+    end)
+        echo end > "$fifo"
+        exit 0
+        ;;
+    voice)
+        shift
+        printf "voice\n%s\n" "$*" > "$fifo"
+        exit 0
+        ;;
+    # what-voice)
+    #     echo what-voice > "$fifo"
+    #     exit 0
+    *)
+        pname="$(basename "$0")"
+        printf "%s usage:\n"  "$pname"
+        printf "\t%s &                       # to start the daemon\n"  "$pname"
+        printf "\t%s voice -v \$v -s \$s \$g \$g # to change the voice\n"  "$pname"
+        printf "\t%s end                     # to stop  the daemon\n"  "$pname"
+        exit 1
+        ;;
+    esac
+fi
+
+rm -f "$fifo"
+mknod "$fifo" p 
+
+(
+    trap "rm -f $fifo $oufile" 0
+
+    while read infile < $fifo ; do
+        case "$infile" in
+        end)
+            exit 0
+            ;;
+        voice)
+            read nvo < $fifo
+            voice_options=($nvo)
+            ;;
+        *)
+            espeak -f "$infile"  -b 1  ${voice_options[@]}  -w "$oufile" \
+                && mplayer -slave -nojoystick "$oufile" < /dev/null > /dev/null 2>&1
+            rm -f "$infile"
+            ;; 
+        esac
+    done 
+) & disown
+
+exit 0

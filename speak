@@ -1,0 +1,9 @@
+#!/bin/sh
+voice_options=( -v lancashire -s 180 -g 3 )
+infile="/tmp/speak-$$.txt"
+fifo="/tmp/speakd"
+cat > "$infile"
+echo "$infile" >> "$fifo"
+exit 0
+
+
