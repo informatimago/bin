@@ -2,7 +2,11 @@
 voice_options=( -v lancashire -s 180 -g 3 )
 infile="/tmp/speak-$$.txt"
 fifo="/tmp/speakd"
-cat > "$infile"
+if [ $# -ge 1 ] ; then
+    echo "$@" > "$infile"
+else
+    cat > "$infile"
+fi
 echo "$infile" >> "$fifo"
 exit 0
 
