@@ -40,23 +40,37 @@
 
 script=/tmp/clall-$$.lisp
 output=/tmp/clall-$$.output
-trap 'rm $script $output' 0
 
 command=show
 
 usage(){
     pname="$(basename $0)"
     printf "%s usage:\n\n  %s [-f|--full | -r|--result] expression...\n\n" "$pname" "$pname"
-    printf "      -f|--full   which is the default, shows detailed results.\n"
-    printf "      -r|--result  shows only the results, on a single line, for each implementation.\n"
+    printf "      -f|--full        which is the default, shows detailed results.\n"
+    printf "      -r|--result      shows only the results, on a single line, for each implementation.\n"
+    printf "      -d|--debug       keep the script and output for debugging.\n"
+    printf "      -- userargs...   passes further user arguments.\n"
     printf "\n\n"
 }
 
-case "$1" in
--f|--full)    command=show   ; shift ;;
--r|--result)  command=result ; shift ;;
--*)  printf "%s error: Unknown option: %s\n" "$0" "$1"  ; usage ; exit 1 ;;
-esac
+keepscript=0
+user_args=()
+sexps=()
+while [ $# -ge 1 ] ; do
+    case "$1" in
+    -f|--full)    command=show   ; shift ;;
+    -r|--result)  command=result ; shift ;;
+    -d|--debug)   keepscript=1   ; shift ;;
+    --)           shift ; user_args=(-- "$@") ; shift "$#" ;;
+    -*)           printf "%s error: Unknown option: %s\n" "$0" "$1"  ; usage ; exit 1 ;;
+    *)            sexps[${#sexps}]="$1" ; shift ;;
+    esac
+done
+
+if [ $keepscript -eq 0 ] ; then
+    trap 'rm $script $output' 0
+fi
+
 
 clall_lisp='
 #+gcl (defmacro ignore-errors (&body body) `(progn ,@body))
@@ -182,7 +196,7 @@ quote(){
 
 ( echo "$clall_lisp"
   echo "($command $(quote "$output")" 
-  for arg ; do echo "$(quote "$arg")" ; done 
+  for sexp in "${sexps[@]}" ; do echo "$(quote "$sexp")" ; done 
   echo ")" ) >> $script
 
 echo "#+abcl  (extensions:quit)"           >> $script
@@ -196,17 +210,21 @@ echo "#+sbcl  (sb-ext:quit)"               >> $script
 
 
 printf '\n'
-type -p abcl  >/dev/null && abcl --batch --noinform --noinit --eval '(setq *load-verbose* nil)'  --load  $script        > /tmp/clall-abcl.out  2>&1 && cat "$output"
-type -p alisp >/dev/null && alisp -batch -q                                                       -L     $script -kill  > /tmp/clall-alisp.out 2>&1 && cat "$output"
-type -p ccl   >/dev/null && ccl  --batch --no-init                                               --load  $script        > /tmp/clall-ccl.out   2>&1 && cat "$output"
-type -p clisp >/dev/null && clisp -ansi  -q  -norc                                                       $script        > /tmp/clall-clisp.out 2>&1 && cat "$output"
-type -p lisp  >/dev/null && lisp  -noinit          -eval '(setq *load-verbose* nil)'              -load  $script        > /tmp/clall-cmucl.out 2>&1 && cat "$output"
-type -p ecl   >/dev/null && ecl              -norc                                                -load  $script        > /tmp/clall-ecl.out   2>&1 && cat "$output"
-type -p gcl   >/dev/null && gcl   -batch                                                          -load  $script        > /tmp/clall-gcl.out   2>&1 && cat "$output"
-type -p sbcl  >/dev/null && sbcl --noinform --no-userinit                                        --load  $script        > /tmp/clall-sbcl.out  2>&1 && cat "$output"
+type -p abcl  >/dev/null && abcl --batch --noinform --noinit --eval '(setq *load-verbose* nil)'  --load  $script        "${user_args[@]}" > /tmp/clall-abcl.out  2>&1 && cat "$output"
+type -p alisp >/dev/null && alisp -batch -q                                                       -L     $script -kill  "${user_args[@]}" > /tmp/clall-alisp.out 2>&1 && cat "$output"
+type -p ccl   >/dev/null && ccl  --batch --no-init                                               --load  $script        "${user_args[@]}" > /tmp/clall-ccl.out   2>&1 && cat "$output"
+type -p clisp >/dev/null && clisp -ansi  -q  -norc                                                       $script        "${user_args[@]}" > /tmp/clall-clisp.out 2>&1 && cat "$output"
+type -p lisp  >/dev/null && lisp  -noinit          -eval '(setq *load-verbose* nil)'              -load  $script        "${user_args[@]}" > /tmp/clall-cmucl.out 2>&1 && cat "$output"
+type -p ecl   >/dev/null && ecl              -norc                                                -load  $script        "${user_args[@]}" > /tmp/clall-ecl.out   2>&1 && cat "$output"
+type -p gcl   >/dev/null && gcl   -batch                                                          -load  $script        "${user_args[@]}" > /tmp/clall-gcl.out   2>&1 && cat "$output"
+type -p sbcl  >/dev/null && sbcl --noinform --no-userinit                                        --load  $script        "${user_args[@]}" > /tmp/clall-sbcl.out  2>&1 && cat "$output"
 printf '\n'
 printf '========================================================================\n'
 printf '\n'
+if [ $keepscript -ne 0 ] ; then
+    printf 'script = %s\n' "$script"
+    printf 'output = %s\n' "$output"
+fi
 exit 0
 
 # clall \

@@ -47,11 +47,13 @@ esac
 
 
 
-AHOSTS=
-for h in $HOSTS ; do 
-    ping -q -c 1 -w 4 $h >/dev/null 2>&1 \
-        && AHOSTS="$AHOSTS $h"
-done
+# AHOSTS=
+# for h in $HOSTS ; do 
+#     ping -q -c 1 -w 4 $h >/dev/null 2>&1 \
+#         && AHOSTS="$AHOSTS $h"
+# done
+
+AHOSTS="$HOSTS"
 
 quote(){
     for arg ; do

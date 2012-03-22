@@ -46,7 +46,7 @@ mknod "$fifo" p
         *)
             espeak -f "$infile"  -b 1  ${voice_options[@]}  -w "$oufile" \
                 && mplayer -slave -nojoystick "$oufile" < /dev/null > /dev/null 2>&1
-            rm -f "$infile"
+            rm -f "$infile" "$oufile"
             ;; 
         esac
     done 
