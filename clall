@@ -41,11 +41,11 @@
 script=/tmp/clall-$$.lisp
 output=/tmp/clall-$$.output
 
-command=show
 
 usage(){
     pname="$(basename $0)"
     printf "%s usage:\n\n  %s [-f|--full | -r|--result] expression...\n\n" "$pname" "$pname"
+    printf "      -w|--which       shows the pathnames of the available implementations. \n"
     printf "      -f|--full        which is the default, shows detailed results.\n"
     printf "      -r|--result      shows only the results, on a single line, for each implementation.\n"
     printf "      -d|--debug       keep the script and output for debugging.\n"
@@ -53,11 +53,14 @@ usage(){
     printf "\n\n"
 }
 
+command=show
+which=0
 keepscript=0
 user_args=()
 sexps=()
 while [ $# -ge 1 ] ; do
     case "$1" in
+    -w|--which)   which=1        ; shift ;;
     -f|--full)    command=show   ; shift ;;
     -r|--result)  command=result ; shift ;;
     -d|--debug)   keepscript=1   ; shift ;;
@@ -208,19 +211,34 @@ echo "#+ecl   (si:quit)"                   >> $script
 echo "#+gcl   (lisp:quit)"                 >> $script
 echo "#+sbcl  (sb-ext:quit)"               >> $script
 
+
+function runcl(){
+    local implementation=$1 ; shift
+    if type -p "$implementation" >/dev/null ; then
+        if [ $which -ne 0 ] ; then
+            type -p "$implementation"
+        fi
+        "$implementation" "$@" "${user_args[@]}" > "/tmp/clall-${implementation}.out" 2>&1 && cat "$output"
+    fi
+}
+
+printf '\n'
+
 # debian calls cmucl cmucl instead of lisp.
-printf '\n'
-type -p abcl  >/dev/null && abcl --batch --noinform --noinit --eval '(setq *load-verbose* nil)'  --load  $script        "${user_args[@]}" > /tmp/clall-abcl.out  2>&1 && cat "$output"
-type -p alisp >/dev/null && alisp -batch -q                                                       -L     $script -kill  "${user_args[@]}" > /tmp/clall-alisp.out 2>&1 && cat "$output"
-type -p ccl   >/dev/null && ccl  --batch --no-init                                               --load  $script        "${user_args[@]}" > /tmp/clall-ccl.out   2>&1 && cat "$output"
-type -p clisp >/dev/null && clisp -ansi  -q  -norc                                                       $script        "${user_args[@]}" > /tmp/clall-clisp.out 2>&1 && cat "$output"
-type -p lisp  >/dev/null && lisp  -noinit          -eval '(setq *load-verbose* nil)'              -load  $script        "${user_args[@]}" > /tmp/clall-cmucl.out 2>&1 && cat "$output"
-type -p cmucl >/dev/null && lisp  -noinit          -eval '(setq *load-verbose* nil)'              -load  $script        "${user_args[@]}" > /tmp/clall-cmucl.out 2>&1 && cat "$output"
-type -p ecl   >/dev/null && ecl              -norc                                                -load  $script        "${user_args[@]}" > /tmp/clall-ecl.out   2>&1 && cat "$output"
-type -p gcl   >/dev/null && gcl   -batch                                                          -load  $script        "${user_args[@]}" > /tmp/clall-gcl.out   2>&1 && cat "$output"
-type -p sbcl  >/dev/null && sbcl --noinform --no-userinit                                        --load  $script        "${user_args[@]}" > /tmp/clall-sbcl.out  2>&1 && cat "$output"
-printf '\n'
-printf '========================================================================\n'
+runcl abcl --batch --noinform --noinit --eval '(setq *load-verbose* nil)'  --load  $script
+runcl alisp -batch -q                                                       -L     $script -kill
+runcl ccl  --batch --no-init                                               --load  $script      
+runcl clisp -ansi  -q  -norc                                                       $script      
+runcl lisp  -noinit          -eval '(setq *load-verbose* nil)'              -load  $script      
+runcl cmucl -noinit          -eval '(setq *load-verbose* nil)'              -load  $script      
+runcl ecl              -norc                                                -load  $script      
+runcl gcl   -batch                                                          -load  $script      
+runcl sbcl --noinform --no-userinit                                        --load  $script      
+
+if [ "$command" = "show" -a ${#sexps[@]} -gt 0 ] ; then
+    printf '\n'
+    printf '========================================================================\n'
+fi
 printf '\n'
 if [ $keepscript -ne 0 ] ; then
     printf 'script = %s\n' "$script"
