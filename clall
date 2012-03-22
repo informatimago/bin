@@ -208,13 +208,14 @@ echo "#+ecl   (si:quit)"                   >> $script
 echo "#+gcl   (lisp:quit)"                 >> $script
 echo "#+sbcl  (sb-ext:quit)"               >> $script
 
-
+# debian calls cmucl cmucl instead of lisp.
 printf '\n'
 type -p abcl  >/dev/null && abcl --batch --noinform --noinit --eval '(setq *load-verbose* nil)'  --load  $script        "${user_args[@]}" > /tmp/clall-abcl.out  2>&1 && cat "$output"
 type -p alisp >/dev/null && alisp -batch -q                                                       -L     $script -kill  "${user_args[@]}" > /tmp/clall-alisp.out 2>&1 && cat "$output"
 type -p ccl   >/dev/null && ccl  --batch --no-init                                               --load  $script        "${user_args[@]}" > /tmp/clall-ccl.out   2>&1 && cat "$output"
 type -p clisp >/dev/null && clisp -ansi  -q  -norc                                                       $script        "${user_args[@]}" > /tmp/clall-clisp.out 2>&1 && cat "$output"
 type -p lisp  >/dev/null && lisp  -noinit          -eval '(setq *load-verbose* nil)'              -load  $script        "${user_args[@]}" > /tmp/clall-cmucl.out 2>&1 && cat "$output"
+type -p cmucl >/dev/null && lisp  -noinit          -eval '(setq *load-verbose* nil)'              -load  $script        "${user_args[@]}" > /tmp/clall-cmucl.out 2>&1 && cat "$output"
 type -p ecl   >/dev/null && ecl              -norc                                                -load  $script        "${user_args[@]}" > /tmp/clall-ecl.out   2>&1 && cat "$output"
 type -p gcl   >/dev/null && gcl   -batch                                                          -load  $script        "${user_args[@]}" > /tmp/clall-gcl.out   2>&1 && cat "$output"
 type -p sbcl  >/dev/null && sbcl --noinform --no-userinit                                        --load  $script        "${user_args[@]}" > /tmp/clall-sbcl.out  2>&1 && cat "$output"
