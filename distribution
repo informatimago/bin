@@ -47,7 +47,7 @@ function distribution () {
     local systeme=
     local distrib="unknown"
     local release="unknown"
-    systeme=$(uname) || systeme="unknown"
+    systeme=$(uname -o) || systeme=$(uname) || systeme="unknown"
 
 
     case "$systeme" in
@@ -134,6 +134,7 @@ function distribution () {
         ;;
 
     *)
+        release=$(uname  -r)
         ;;
     esac
 
