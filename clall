@@ -2,12 +2,19 @@
 # -*- coding:utf-8 -*-
 #*****************************************************************************
 #FILE:               clall
-#LANGUAGE:           sh
+#LANGUAGE:           bash
 #SYSTEM:             POSIX
 #USER-INTERFACE:     NONE
 #DESCRIPTION
 #    
 #    Executes a form in various Common Lisp implementations.
+#
+#    Note: we can run in cygwin, calling cygwin CL implementations
+#    (ie. clisp), or calling MS-Windows CL  implementations.  But for
+#    MS-Windows CL implementations, we need to convert the unix paths
+#    into MS-Windows path.  For convenience, MS-Windows CL
+#    implementations are called thru scripts in /usr/local/bin whose
+#    name starts with "win".
 #    
 #AUTHORS
 #    <PJB> Pascal Bourguignon <pjb@informatimago.com>
@@ -38,9 +45,11 @@
 #    Boston, MA 02111-1307 USA
 #*****************************************************************************
 
+epilog=/tmp/clall-$$.epilog
 script=/tmp/clall-$$.lisp
 output=/tmp/clall-$$.output
-
+winscript=/tmp/clall-$$-win.lisp
+errors=()
 
 usage(){
     pname="$(basename $0)"
@@ -52,6 +61,9 @@ usage(){
     printf "      -- userargs...   passes further user arguments.\n"
     printf "\n\n"
 }
+
+
+cygwin="C:\\\\cygwin" # the root of cygwin, where it is installed.
 
 command=show
 which=0
@@ -71,7 +83,7 @@ while [ $# -ge 1 ] ; do
 done
 
 if [ $keepscript -eq 0 ] ; then
-    trap 'rm $script $output' 0
+    trap 'rm "$epilog" "$script" "$winscript" "$output" "${errors[@]}"' 0
 fi
 
 
@@ -107,7 +119,7 @@ Return:  input
 
 
 (defun report-only-result (report input read-error expression eval-error vals output error)
-  (declare (ignore output error))
+  (declare (ignore input expression output error))
   (cond
     (read-error
      (format report "~30A ~A~%"             (lisp-implementation-type)
@@ -179,6 +191,8 @@ Return:  input
 
 '
 
+
+# quote is used to quote unix pathnames and sexps.
 quote(){
     for arg ; do
         local slash=${arg//\\/\\\\}
@@ -188,52 +202,82 @@ quote(){
     printf "\n"
 }
 
-# quote(){
-#     for arg ; do
-#         local slash=${arg//\\/\\\\}
-#         local quote=\'${slash//\'/\'\\\'\'}\' # no "${...}" here! It would break the \'
-#         printf "%s " ${quote}
-#     done
-#     printf "\n"
-# }
+# winquote is used to transform unix pathnames into MS-Windows pathnames on cygwin.
+winquote(){
+    local slash
+    local quote
+    for arg ; do
+        case "$arg" in
+        /*) 
+            slash="${arg//\//\\\\}"
+            ;;
+        *) 
+            arg="$(pwd)/$arg"
+            slash="${arg//\//\\\\}"
+            ;;
+        esac
+        quote=${cygwin}${slash//\"/\\\"}
+        printf  "%s " "${quote}"
+    done
+    printf "\n"
+}
+
 
 ( echo "$clall_lisp"
-  echo "($command $(quote "$output")" 
-  for sexp in "${sexps[@]}" ; do echo "$(quote "$sexp")" ; done 
-  echo ")" ) >> $script
+    if [ ${#sexps[@]} -gt 0 ] ; then
+        echo "($command $(quote "$output")" 
+        for sexp in "${sexps[@]}" ; do echo "$(quote "$sexp")" ; done 
+        echo ")" 
+    fi ) >> "$script"
 
-echo "#+abcl  (extensions:quit)"           >> $script
+( echo "$clall_lisp"
+    if [ ${#sexps[@]} -gt 0 ] ; then
+        echo "($command \"$(winquote "$output")\"" 
+        for sexp in "${sexps[@]}" ; do echo "$(quote "$sexp")" ; done 
+        echo ")" 
+    fi ) >> "$winscript"
+
+echo > "$epilog"
+echo "#+abcl  (extensions:quit)"           >> "$epilog"
 # #+allegro (excl:exit) ;; This dumps an "; Exiting" message...
-echo "#+ccl   (ccl:quit)"                  >> $script
-echo "#+clisp (ext:quit)"                  >> $script
-echo "#+cmu   (ext:quit)"                  >> $script
-echo "#+ecl   (si:quit)"                   >> $script
-echo "#+gcl   (lisp:quit)"                 >> $script
-echo "#+sbcl  (sb-ext:quit)"               >> $script
+echo "#+ccl   (ccl:quit)"                  >> "$epilog"
+echo "#+clisp (ext:quit)"                  >> "$epilog"
+echo "#+cmu   (ext:quit)"                  >> "$epilog"
+echo "#+ecl   (si:quit)"                   >> "$epilog"
+echo "#+gcl   (lisp:quit)"                 >> "$epilog"
+echo "#+sbcl  (sb-ext:quit)"               >> "$epilog"
 
+cat "$epilog" >> "$script"
+cat "$epilog" >> "$winscript"
 
 function runcl(){
-    local implementation=$1 ; shift
+    local implementation="$1" ; shift
+    local error="/tmp/clall-$$-${implementation}.error"
     if type -p "$implementation" >/dev/null ; then
         if [ $which -ne 0 ] ; then
             type -p "$implementation"
         fi
-        "$implementation" "$@" "${user_args[@]}" > "/tmp/clall-${implementation}.out" 2>&1 && cat "$output"
+        touch "$output"
+        errors[${#errors[@]}]="$error"
+        "$implementation" "$@" "${user_args[@]}" > "$error" 2>&1 && cat "$output"
     fi
 }
 
 printf '\n'
 
 # debian calls cmucl cmucl instead of lisp.
-runcl abcl --batch --noinform --noinit --eval '(setq *load-verbose* nil)'  --load  $script
-runcl alisp -batch -q                                                       -L     $script -kill
-runcl ccl  --batch --no-init                                               --load  $script      
-runcl clisp -ansi  -q  -norc                                                       $script      
-runcl lisp  -noinit          -eval '(setq *load-verbose* nil)'              -load  $script      
-runcl cmucl -noinit          -eval '(setq *load-verbose* nil)'              -load  $script      
-runcl ecl              -norc                                                -load  $script      
-runcl gcl   -batch                                                          -load  $script      
-runcl sbcl --noinform --no-userinit                                        --load  $script      
+runcl abcl     --batch --noinform --noinit --eval '(setq *load-verbose* nil)'  --load  "$script"
+runcl alisp     -batch -q                                                       -L     "$script" -kill
+runcl ccl      --batch --no-init                                               --load  "$script"      
+runcl clisp     -ansi  -q  -norc                                                       "$script"      
+runcl lisp      -noinit          -eval '(setq *load-verbose* nil)'              -load  "$script"      
+runcl cmucl     -noinit          -eval '(setq *load-verbose* nil)'              -load  "$script"      
+runcl ecl                  -norc                                                -load  "$script"      
+runcl gcl       -batch                                                          -load  "$script"      
+runcl sbcl     --noinform --no-userinit                                        --load  "$script"      
+
+runcl winccl   --batch --no-init                                               --load  $(winquote $winscript)
+runcl winsbcl  --noinform --no-userinit                                        --load  $(winquote $winscript)
 
 if [ "$command" = "show" -a ${#sexps[@]} -gt 0 ] ; then
     printf '\n'
@@ -241,8 +285,9 @@ if [ "$command" = "show" -a ${#sexps[@]} -gt 0 ] ; then
 fi
 printf '\n'
 if [ $keepscript -ne 0 ] ; then
-    printf 'script = %s\n' "$script"
-    printf 'output = %s\n' "$output"
+    printf 'script    = %s\n' "$script"
+    printf 'winscript = %s\n' "$winscript"
+    printf 'output    = %s\n' "$output"
 fi
 exit 0
 
