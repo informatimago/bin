@@ -78,7 +78,7 @@ while [ $# -ge 1 ] ; do
     -d|--debug)   keepscript=1   ; shift ;;
     --)           shift ; user_args=(-- "$@") ; shift "$#" ;;
     -*)           printf "%s error: Unknown option: %s\n" "$0" "$1"  ; usage ; exit 1 ;;
-    *)            sexps[${#sexps}]="$1" ; shift ;;
+    *)            sexps[${#sexps[@]}]="$1" ; shift ;;
     esac
 done
 
