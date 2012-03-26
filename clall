@@ -90,6 +90,8 @@ fi
 clall_lisp='
 #+gcl (defmacro ignore-errors (&body body) `(progn ,@body))
 
+(setf *print-readably* nil)
+
 (defvar *double-line* "========================================================================")
 (defvar *simple-line* "------------------------------------------------------------------------")
 
