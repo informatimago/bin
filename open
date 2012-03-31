@@ -39,24 +39,24 @@ if [ ${#html}  -ne 0 ] ; then
     done
 fi
 if [ ${#image} -ne 0 ] ; then
-     ( xv "${image[@]}" || echo "Do not know how to open $f" ) &
+     ( xv "${image[@]}" 2>/dev/null || xview "${image[@]}" 2>/dev/null || gimp "${image[@]}" 2>/dev/null || echo "Do not know how to open $f" ) &
 fi
 if [ ${#sound} -ne 0 ] ; then
-     ( xmms -p "${sound[@]}" || mplayer "${sound[@]}" || echo "Do not know how to open $f" ) &
+     ( xmms -p "${sound[@]}" 2>/dev/null  || mplayer "${sound[@]}" 2>/dev/null  || echo "Do not know how to open $f" ) &
 fi
 if [ ${#video} -ne 0 ] ; then
     for f in "${video[@]}" ; do 
-        mplayer "$f" || aviplay "$f" || echo "Do not know how to open $f" 
+        mplayer "$f" 2>/dev/null || aviplay "$f" 2>/dev/null || echo "Do not know how to open $f" 
     done & 
 fi
 if [ ${#pdf}   -ne 0 ] ; then
      for f in "${pdf[@]}" ; do
-         ( acroread "$f" || xpdf "$f" || echo "Do not know how to open $f" ) & 
+         ( acroread "$f" 2>/dev/null || xpdf "$f" 2>/dev/null || echo "Do not know how to open $f" ) & 
      done 
 fi
 if [ ${#ps}    -ne 0 ] ; then
      for f in "${ps[@]}" ; do
-         ( gv "$f" || gsview "$f" || echo "Do not know how to open $f" ) & 
+         ( gv "$f" 2>/dev/null || gsview "$f" 2>/dev/null  || echo "Do not know how to open $f" ) & 
      done
 fi
 exit 0
