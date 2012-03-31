@@ -13,7 +13,7 @@ for file ; do
     type="$(file "$file")"
     case "$type" in
     *HTML*)                    html[${#html}]="$file" ;; # must be before text.
-    *Postscript*)              ps[${#ps}]="$file" ;;
+    *Postscript*|*PostScript*) ps[${#ps}]="$file" ;;
     *PDF*)                     pdf[${#pdf}]="$file" ;;
     *text*)                    text[${#text}]="$file" ;;
     *image*)                   image[${#image}]="$file" ;;
