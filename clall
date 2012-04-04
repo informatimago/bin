@@ -55,7 +55,9 @@ usage(){
     pname="$(basename $0)"
     printf "%s usage:\n\n  %s [-f|--full | -r|--result] expression...\n\n" "$pname" "$pname"
     printf "      -w|--which       shows the pathnames of the available implementations. \n"
-    printf "      -f|--full        which is the default, shows detailed results.\n"
+    printf "      -f|--full        shows detailed results.\n"
+    printf "      -s|--short       which is the default, shows output and results \n"
+    printf "                       if no error is detected, or full if there's an error.\n"
     printf "      -r|--result      shows only the results, on a single line, for each implementation.\n"
     printf "      -d|--debug       keep the script and output for debugging.\n"
     printf "      -- userargs...   passes further user arguments.\n"
@@ -65,7 +67,7 @@ usage(){
 
 cygwin="C:\\\\cygwin" # the root of cygwin, where it is installed.
 
-command=show
+command=short
 which=0
 keepscript=0
 user_args=()
@@ -73,7 +75,8 @@ sexps=()
 while [ $# -ge 1 ] ; do
     case "$1" in
     -w|--which)   which=1        ; shift ;;
-    -f|--full)    command=show   ; shift ;;
+    -f|--full)    command=full   ; shift ;;
+    -s|--short)   command=short  ; shift ;;
     -r|--result)  command=result ; shift ;;
     -d|--debug)   keepscript=1   ; shift ;;
     --)           shift ; user_args=(-- "$@") ; shift "$#" ;;
@@ -88,9 +91,15 @@ fi
 
 
 clall_lisp='
-#+gcl (defmacro ignore-errors (&body body) `(progn ,@body))
+;; CMU uses ALIEN in CL-USER, and there is a locked ALIEN:SHORT.
+(defpackage "COM.INFORMATIMAGO.CLALL"
+  (:use "COMMON-LISP")
+  (:nicknames "CLALL"))
+(in-package "COM.INFORMATIMAGO.CLALL")
 
 (setf *print-readably* nil)
+
+#+gcl (defmacro ignore-errors (&body body) `(progn ,@body))
 
 (defvar *double-line* "========================================================================")
 (defvar *simple-line* "------------------------------------------------------------------------")
@@ -167,7 +176,15 @@ Return:  input
       (format report "returned no value~%")
       (format report "returned the following value~P:~%--> ~{~S~^ ;~%    ~}~2%"  (length vals) vals)))
 
-
+(defun report-short-result (report input read-error expression eval-error vals output error)
+  (format report "~2%~A:" (lisp-implementation-type))
+  (if (or read-error eval-error)
+      (report-full-result report input read-error expression eval-error vals output error)
+      (progn
+        (unless (or (null output) (string= "" output))
+          (format report "~A" output))
+        (when vals
+          (format report "~&--> ~{~S~^, ~}~%" vals)))))
 
 (defmacro result (output &body expressions)
   `(with-open-file (report ,output
@@ -179,8 +196,7 @@ Return:  input
                expressions)
      (values)))
 
-
-(defmacro show (output &body expressions)
+(defmacro full (output &body expressions)
   `(with-open-file (report ,output
                            :direction :output
                            :if-does-not-exist :create
@@ -190,6 +206,15 @@ Return:  input
                expressions)
      (values)))
 
+(defmacro short (output &body expressions)
+  `(with-open-file (report ,output
+                           :direction :output
+                           :if-does-not-exist :create
+                           :if-exists :supersede)
+     ,@(mapcar (lambda (input) 
+                 `(multiple-value-call (function report-short-result) report (read-eval ,input)))
+               expressions)
+     (values)))
 
 '
 
@@ -281,7 +306,7 @@ runcl sbcl     --noinform --no-userinit                                        -
 runcl winccl   --batch --no-init                                               --load  $(winquote $winscript)
 runcl winsbcl  --noinform --no-userinit                                        --load  $(winquote $winscript)
 
-if [ "$command" = "show" -a ${#sexps[@]} -gt 0 ] ; then
+if [ "$command" != "result" -a ${#sexps[@]} -gt 0 ] ; then
     printf '\n'
     printf '========================================================================\n'
 fi
