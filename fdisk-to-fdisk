@@ -3,7 +3,17 @@
 # prints out fdisk commands to build the same partition table
 # example: fdisk-to-fdisk /dev/hdx | fdisk /dev/hdy
 
-sed -e '1,/Device Boot/d' -e 's/[+*]//g'\
+echo 'It should be debugged and finished.
+exit 1
+
+if [ $# -ne 1 ] ; then
+    echo 'Usage: '
+    echo "  $0 /dev/sdx"
+    exit 1
+fi
+
+fdisk -l "$1" \
+|sed -e '1,/Device Boot/d' -e 's/[+*]//g'\
 |awk '
 BEGIN { 
     np=0; 
