@@ -1,0 +1,4 @@
+#!/bin/bash
+system_profiler SPSoftwareDataType
+sw_vers
+
