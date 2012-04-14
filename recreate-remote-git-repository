@@ -1,0 +1,60 @@
+#!/bin/bash
+pname="$(basename "$0")"
+
+function usage(){
+   printf "%s usage:\n" "$pname"
+   printf "   %s \n\n" "$pname"
+   printf "Finds the parameters directly in git config.\n\n"
+}
+
+
+if [ $# -gt 0 ] ; then
+    usage
+    exit 1
+fi
+
+
+if [ -d .git ] ; then
+    true 
+else
+    printf "The current working directory must be a local git repository.\n" 
+    printf "There is no .git subdirectory in '%s'.\n"  "$(pwd)"
+    exit 3
+    
+fi
+
+remote=origin
+remote_origin_url="$(git config --list|sed -n -e "s/remote.${remote}.url=//p")"
+uhost="$(echo "$remote_origin_url"|sed -e 's-.*://--' -e 's-/.*--')"
+repository="$(echo "$remote_origin_url"|sed -e 's-.*://[^/]*/-/-')"
+old_repository="${repository}-old"
+
+
+intr="$(stty -a|tr ';' '\012'|awk '/intr/{print $3}')"
+# intr="C-c"
+
+printf "Will REcreate the remote repository on ssh://%s%s\n" "$uhost" "$repository"
+printf "and push there the current local git repository %s\n" "$(pwd)"
+printf "%-20s = %s\n" remote "$remote"
+printf "%-20s = %s\n" remote_origin_url "$remote_origin_url"
+printf "%-20s = %s\n" uhost "$uhost"
+printf "%-20s = %s\n" repository "$repository"
+printf "%-20s = %s\n" old_repository "$old_repository"
+printf "Please confirm (RET/%s): " "$intr"
+read line
+
+function remote(){
+    local temp=$(echo /tmp/recreate-remote-git-repository--$(hostname -f)--$$.sh | sed -e 's/ /-/g')
+    printf "$@" | ssh "$uhost" bash -c "cat > $temp ; source $temp ; rm $temp"
+}
+
+# set -x 
+remote "mv \"%s\"  \"%s\" && mkdir -p \"%s\" && cd \"%s\" && git --bare init" \
+    "$repository" "$old_repository" "$repository" "$repository" \
+&& git push "$remote" master \
+&& remote "cd \"%s\" && git update-server-info" "$repository"
+
+# && git remote add "$remote" "ssh://$uhost$repository" \
+
+exit 0
+
