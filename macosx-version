@@ -1,4 +1,11 @@
 #!/bin/bash
+echo '# system_profiler SPSoftwareDataType'
 system_profiler SPSoftwareDataType
+echo '# sw_vers'
 sw_vers
+echo '# xcodebuild -version'
+xcodebuild -version || echo 'No xcodebuild.'
+
+
+
 
