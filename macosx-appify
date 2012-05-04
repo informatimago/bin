@@ -1,15 +1,36 @@
 #!/bin/bash
+pname="$(basename "$0")"
+version=1.0.0
 
-APPNAME=${2:-$(basename "$1" ".sh")}
-DIR="$APPNAME.app/Contents/MacOS"
+function usage(){
+    printf "%s usage:\n" "${pname}"
+    printf "    %s -h|--help|-v|--version\n" "${pname}"
+    printf "    %s script.sh app-name\n" "${pname}"
+}
 
-if [ -a "$APPNAME.app" ]; then
-  echo "$PWD/$APPNAME.app already exists :("
-  exit 1
+if [ $# -eq 0 -o $# -gt 2 ] ; then
+    usage
+    exit 1
 fi
 
-mkdir -p "$DIR"
-cp "$1" "$DIR/$APPNAME"
-chmod +x "$DIR/$APPNAME"
+case "$1" in
+-h|--help|-help|help) usage ; exit 0 ;;
+-v|--version)         printf "%s version %s\n" "${pname}" "${version}" ; exit 0 ;;
+*) true ;; 
+esac
 
-echo "$PWD/$APPNAME.app"
+SCRIPTNAME="$1"
+APPNAME="${2:-$(basename "$1" ".sh")}"
+DIR="$APPNAME.app/Contents/MacOS"
+PWD="$(pwd)"
+
+if [ -a "${APPNAME}.app" ]; then
+    echo "${PWD}/${APPNAME}.app already exists."
+    exit 1
+fi
+
+mkdir -p "${DIR}"
+cp "${SCRIPTNAME}" "$DIR/$APPNAME"
+chmod +x "${DIR}/${APPNAME}"
+echo "${PWD}/${APPNAME}.app"
+exit 0
