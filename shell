@@ -969,7 +969,7 @@ GENERAL PURPOSE LOGIC
 SENSE LINES             CONTROL LINES
 0001234567  0101234567  0001234567  0101234567
 
-INPUNT TRUNK            INTERRUPTS    TIMER
+INPNT TRUNK             INTERRUPTS    TIMER
 0001234567              0001234567     012
 
 "
@@ -1273,6 +1273,8 @@ CIRCULATORY
                                          
 
 ")
+
+
 (defparameter *daryl*
   "
 PROJECT D.A.R.Y.L.
@@ -2390,6 +2392,52 @@ in perfect health with zero defect guaranteed with Repet.
     "We're going to have to image your machine."
     "Have you tried turning it off and on again?"
     "No, there's no Internet today."))
+
+(defparameter *batoru-rowaiaru*
+  ;; comes from a version of gnome-apps/nmap
+  ;; http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/gnome-apps/nmap/files/nmap.h?hideattic=0&revision=1.2&view=markup
+  ;; ~line 120
+  '("
+
+          fatal(\"Bad arguments to f!\");
+        }          StartWinsock();
+
+/* print usage information and exit */
+void printusage(char *name, int rc);
+/* print interactive usage information */
+void printinteractiveusage();
+
+/* our scanning functions */
+void super_scan(structu hoststruct *target, unsigned short *portarray,
+     stype scantype);
+void pos_scan(struct hoststruct *target, unsigned short *portarray,
+       stype scantype);
+void bounce_scan(struct hoststruct *target, unsigned short *portarray,
+         struct ftpinfo *ftp);
+
+/* Scan helper functions */
+unigned long calculate_sleep(struct in_addr target);
+int check_ident_port(struct in_addr target);
+
+      char *owner);
+int parse_bounce(struct ftpinfo *ftp, char *url);
+int ftp_anon_connect(struct ftpinfo *ftp);
+/* Does the appropriate stuff when the port we are looking at is found
+  to be open trynum is the try number that was successful */
+void postportupdate(struct hoststruct *target, struct portinfo *current
+       int trynum, struct portinfo *scan,
+       struct scanstats *ss ,stype scantype, int newstate,
+       struct portinfolist *pil, struct connectsockinfo *csi);
+void get_syn_results(struct hoststruct *target, struct portinfo *scan
+       struct scanstats *ss, struct portinfolist *pil,
+       int *portlookup, pcap_t *pd, unsigned long *sequences, s
+int get_connect_results(struct hoststruct *target, struct portinfo *s
+       struct scanstats *ss, struct portinfolist *pil,
+       int *portlookup, pcap_t *pd, unsigned long *sequences,
+       struct connectsockinfo *csi);
+inline void adjust_timeouts(struct timeval sent, struct timeout_info
+/* port manipulators */
+"))
 
 ;;;---------------------------------------------------------------------
 ;;; Run it
