@@ -39,49 +39,53 @@
 ;;;;****************************************************************************
 
 
+(defvar *width* (or (nth-value 1 (screen:with-window (screen:window-size screen:*window*)))
+                    (and (ext:getenv "COLUMNS") (parse-integer (ext:getenv "COLUMNS")))
+                    (block :found
+                      (dolist (path (list (format nil "/proc/~D/fd/1" (posix:process-id))
+                                          "/dev/tty") nil)
+                        (with-open-stream (stty (ext:run-shell-command (format nil "bash -c 'stty -a < ~S' 2>/dev/null" path)
+                                                                       :input :terminal
+                                                                       :output :stream))
+                          (loop
+                            :for line = (read-line stty nil nil)
+                            :while line
+                            :do (let* ((tag " columns ")
+                                       (pos (search tag line)))
+                                  (when pos
+                                    (return-from :found
+                                      (parse-integer line :start (+ pos (length tag))
+                                                     :junk-allowed t))))))))
+                    80))
 
-(defparameter *width*
-  (or (when (ext:getenv "COLUMNS")
-        (parse-integer (ext:getenv "COLUMNS")))
-      (with-open-stream (stty (ext:run-shell-command (format nil "stty -a < /proc/~D/fd/1" (posix:process-id))
-                                                     :input :terminal
-                                                     :output :stream))
-        (loop
-           :named :columns
-           :for line = (read-line stty nil nil)
-           :while line
-           :do (let* ((tag " columns ")
-                      (pos (search tag line)))
-                 (when pos
-                   (return-from :columns
-                     (parse-integer line :start (+ pos (length tag))
-                                    :junk-allowed t))))))
-      80))
 
-
-(defun main ()
-  (let* ((lines  (loop
-                    :for line = (read-line *standard-input* nil nil)
-                    :while line :collect line))
-         (colwid (1+ (or (loop :for line :in lines :maximize (length line)) 0)))
-         (ncols  (truncate *width* colwid)))
+(defun columnify (lines width)
+  (let* ((colwid (1+ (or (loop :for line :in lines :maximize (length line)) 0)))
+         (ncols  (truncate width colwid)))
     (if (<= ncols 1)
         (loop :for line :in lines :do (princ line) (terpri))
         ;; columnify:
-        (let* ((nrows  (ceiling (length lines) ncols))
-               (cols (make-array (list ncols nrows) :initial-element ""))
-               (longcols (mod (length lines) ncols))
+        (let* ((nrows     (ceiling (length lines) ncols))
+               (cols      (make-array (list ncols nrows) :initial-element ""))
+               (longcols  (mod (length lines) ncols))
                (next-line lines))
           (loop
-             :for col :from 0 :below ncols
-             :do (loop
-                    :for row :from 0 :below (- nrows (if (< col longcols) 0 1))
-                    :do (setf (aref cols col row) (pop next-line))))
+            :for col :from 0 :below ncols
+            :do (loop
+                  :for row :from 0 :below (- nrows (if (< col longcols) 0 1))
+                  :do (setf (aref cols col row) (pop next-line))))
           (loop :for row :from 0 :below nrows
-             :do (loop
-                    :for col :from 0 :below ncols
-                    :do (format t "~VA" colwid (aref cols col row))
-                    :finally (format t "~%")))))))
+            :do (loop
+                  :for col :from 0 :below ncols
+                  :do (format t "~VA" colwid (aref cols col row))
+                  :finally (format t "~%")))))))
+
+
+(defun main ()
+  (columnify (loop
+               :for line = (read-line *standard-input* nil nil)
+               :while line :collect line)
+             *width*))
 
 
 (when (BOUNDP 'EXT:*ARGS*)
