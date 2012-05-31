@@ -89,7 +89,7 @@ xterm=$cmd_xterm
 options=( \
     -ie \
     +ah -aw -rw -cn \
-    -tn xterm-color \
+    -tn xterm-256color \
     -bc -bcf 200 -bcn 500 \
     -bdc \
     +cm +dc \
