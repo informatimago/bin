@@ -40,6 +40,9 @@
 
 
 
+(print (ext:getenv "COLUMNS")) (terpri) (finish-output)
+(print (parse-integer (ext:getenv "COLUMNS"))) (terpri) (finish-output)
+
 (defparameter *width*
   (or (when (ext:getenv "COLUMNS")
         (parse-integer (ext:getenv "COLUMNS")))
@@ -47,15 +50,15 @@
                                                      :input :terminal
                                                      :output :stream))
         (loop
-           :named :columns
-           :for line = (read-line stty nil nil)
-           :while line
-           :do (let* ((tag " columns ")
-                      (pos (search tag line)))
-                 (when pos
-                   (return-from :columns
-                     (parse-integer line :start (+ pos (length tag))
-                                    :junk-allowed t))))))
+          :named :columns
+          :for line = (read-line stty nil nil)
+          :while line
+          :do (let* ((tag " columns ")
+                     (pos (search tag line)))
+                (when pos
+                  (return-from :columns
+                    (parse-integer line :start (+ pos (length tag))
+                                   :junk-allowed t))))))
       80))
 
 
