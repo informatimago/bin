@@ -1,0 +1,2 @@
+#!/bin/sh
+exec '/Applications/LispWorks Personal 6.0/LispWorks Personal.app/Contents/MacOS/lispworks-personal-6-0-1-macos-universal' "$@"
