@@ -1,0 +1,13 @@
+#!/bin/bash
+echo not yet
+exit 0
+dscl . -create /Users/ar 
+dscl . -create /Users/ar UserShell /bin/bash
+dscl . -create /Users/ar RealName "Andre Reinald"
+dscl . -create /Users/ar UniqueID "515"
+dscl . -create /Users/ar PrimaryGroupID 20
+dscl . -create /Users/ar NFSHomeDirectory /Users/ar
+dscl . -passwd /Users/ar xxxxxxxxx
+
+dscl . append /Groups/com.apple.access_ssh user ar
+dscl . append /Groups/com.apple.access_ssh groupmembers `dscl . read /Users/ar GeneratedUID | cut -d " " -f 2`
