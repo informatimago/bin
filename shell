@@ -969,7 +969,7 @@ GENERAL PURPOSE LOGIC
 SENSE LINES             CONTROL LINES
 0001234567  0101234567  0001234567  0101234567
 
-INPUNT TRUNK            INTERRUPTS    TIMER
+INPNT TRUNK             INTERRUPTS    TIMER
 0001234567              0001234567     012
 
 "
@@ -1273,6 +1273,8 @@ CIRCULATORY
                                          
 
 ")
+
+
 (defparameter *daryl*
   "
 PROJECT D.A.R.Y.L.
@@ -1680,7 +1682,29 @@ CREW EXPENDABLE.
 ----------------------------------------
 " "Aliens")
 
-(defparameter alien-3 "
+(defparameter alien-3 '(
+                        
+"
+FURY 161 CLASS C PRISON UNITIRIS - 12037154
+REPORT EEV UNIT 2650 CRASH
+ONE SURVIVOR - LT.RIPLEY - B5156170
+DEAD CPL HICKS L55321
+DEAD UNIDENTIFIED FEMALE APRX. 10 YRS OLD
+REQUEST EMERG. EVAC SOONEST POSSIBLE-
+AWAIT RESPONSE - SUPT.ADREWS M51021
+"
+                        "
+
+TO: FURY 161 - CLASS C - PRISON
+UNIT - 12037154 - FROM NETWORK
+COMCON 01500 - WEYLAND YUTANI
+ESSAGE RECEIVED
+"
+
+                        
+
+                        
+                        "
 ----------------------------------------
 FIORINA 161
 CLASS C PRISON UNIT
@@ -1761,7 +1785,7 @@ END OF TRANSMISSION.
 
 ----------------------------------------
 
-" "Alien^3")
+") "Alien^3")
 
 
 (defparameter wargame "
@@ -2391,6 +2415,109 @@ in perfect health with zero defect guaranteed with Repet.
     "Have you tried turning it off and on again?"
     "No, there's no Internet today."))
 
+(defparameter *batoru-rowaiaru*
+  ;; comes from a version of gnome-apps/nmap
+  ;; http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/gnome-apps/nmap/files/nmap.h?hideattic=0&revision=1.2&view=markup
+  ;; ~line 120
+  '("
+
+          fatal(\"Bad arguments to f!\");
+        }          StartWinsock();
+
+/* print usage information and exit */
+void printusage(char *name, int rc);
+/* print interactive usage information */
+void printinteractiveusage();
+
+/* our scanning functions */
+void super_scan(structu hoststruct *target, unsigned short *portarray,
+     stype scantype);
+void pos_scan(struct hoststruct *target, unsigned short *portarray,
+       stype scantype);
+void bounce_scan(struct hoststruct *target, unsigned short *portarray,
+         struct ftpinfo *ftp);
+
+/* Scan helper functions */
+unigned long calculate_sleep(struct in_addr target);
+int check_ident_port(struct in_addr target);
+
+      char *owner);
+int parse_bounce(struct ftpinfo *ftp, char *url);
+int ftp_anon_connect(struct ftpinfo *ftp);
+/* Does the appropriate stuff when the port we are looking at is found
+  to be open trynum is the try number that was successful */
+void postportupdate(struct hoststruct *target, struct portinfo *current
+       int trynum, struct portinfo *scan,
+       struct scanstats *ss ,stype scantype, int newstate,
+       struct portinfolist *pil, struct connectsockinfo *csi);
+void get_syn_results(struct hoststruct *target, struct portinfo *scan
+       struct scanstats *ss, struct portinfolist *pil,
+       int *portlookup, pcap_t *pd, unsigned long *sequences, s
+int get_connect_results(struct hoststruct *target, struct portinfo *s
+       struct scanstats *ss, struct portinfolist *pil,
+       int *portlookup, pcap_t *pd, unsigned long *sequences,
+       struct connectsockinfo *csi);
+inline void adjust_timeouts(struct timeval sent, struct timeout_info
+/* port manipulators */
+"))
+
+(defparameter *colossus-the-forbin-project*
+  '(
+"
+  WARN
+THERE IS ANOTHER SYSTEM
+
+attention
+  YES
+program
+  OLD PROGRAM NAME
+ec13
+  EC13-1351
+run
+  SYSTEM PERFORMING
+  100 PERCENT
+  RAN 6:45 CPU SECONDS
+
+  ATTENTION
+SET-UP COMMUNICATION
+FROM COLOSSUS
+TO ANDOVER
+TO MOSCOW
+TO GUARDIAN
+
+attention
+  YES
+message acknowledged
+  WHEN WILL
+  FACILITIES
+  BE READY
+facilities will not be made available at this time
+don't repeat your request
+end of message
+
+attention
+  YES
+where is the other system
+  BOLSHOI OLYANIA
+
+attention
+  YES
+communications are being arranged as requested
+end of message
+
+  COLOSSUS TO GUARDIAN
+
+2x1=2
+3x1=3
+4x1=4
+5x1=5
+6x1=6
+1x2=2
+2x2=4
+3x2=6
+4x2=8
+"))
+
 ;;;---------------------------------------------------------------------
 ;;; Run it
 ;;;---------------------------------------------------------------------
@@ -2398,4 +2525,4 @@ in perfect health with zero defect guaranteed with Repet.
 (parse-options ext:*args*)
 (ext:exit 0)
 
-;;;; shell                            --                     --          ;;;;
+;;;; THE END ;;;;
