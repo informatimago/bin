@@ -787,6 +787,14 @@ or an expression such as (= <package>)  (<= <package>) etc."))
     ((ignore-errors (probe-file "/etc/mandrake-release"))   :mandrake)
     ((ignore-errors (probe-file "/etc/redhat-release"))     :redhat)
     ((ignore-errors (probe-file "/etc/debian_version"))     :debian)
+    ((with-open-file (release "/etc/lsb-release" :if-does-not-exist nil)
+       (when release
+         (loop
+           :with distrib-id = "DISTRIB_ID="
+           :for line = (read-line release nil)
+           :while line
+           :when (string= distrib-id line :end2 (length distrib-id))
+           :do (return (intern (string-upcase (read-from-string line t nil :start (length distrib-id))) "KEYWORD"))))))
     (t                                                      :unknown)))
 
 
