@@ -1,4 +1,8 @@
 #!/bin/sh 
+echo "Not anymore."
+echo "Either re-implement it in clisp, or delete it."
+exit 69
+
 source="$1"
 result=0
 
@@ -7,7 +11,15 @@ mkdir $tmp
 cd $tmp
 
 case "$source" in
+*)
+    echo "$0: Unknown source"
+    echo "$0 usage:"
+    echo "    $0 "
+    result=1
+    ;;
 yahoo)
+    echo "Doesn't work anymore."
+    exit 1
     wget -q http://finance.yahoo.com/m3?u
     mv 'm3?u' input
 
@@ -45,6 +57,8 @@ function htmlchar(s) {
     ;;
 
 boursorama)
+    echo "Doesn't work anymore."
+    exit 1
     wget -q http://www.boursorama.com/devises/devises.phtml
     html-get-tables devises.phtml \
     | sed -e '1,/Devises|FRF/d' \
@@ -78,12 +92,6 @@ function htmlchar(s,  LOCALS, res) {
     } 
 } 
 '
-    ;;
-*)
-    echo "$0: Unknown source"
-    echo "$0 usage:"
-    echo "    $0 [yahoo|boursorama]"
-    result=1
     ;;
 esac
 
