@@ -1,28 +1,70 @@
 #!/bin/bash
-case "$#" in
-    0)
-        interface=en1
-        ;;
-    1)
+
+lan_interface=en0
+wan_interface=en1
+
+
+if [ $# -eq 0 ] ; then
+    "$0" start
+else
+    while [ $# -gt 0 ] ; do
         case "$1" in
-            -*) 
-                
-                "$0" help help
-                ;;
-            *)
-                interface=$1 
-                ;;
+
+        status)
+
+            echo lan_interface $lan_interface
+            echo wan_interface $wan_interface
+
+            ps ax | grep -e 'nat[d]'
+            ipfw list
+            sysctl net.inet.ip.forwarding
+            sysctl net.inet.ip.fw.enable
+
+            ;;
+
+        start)
+
+            ifconfig ${lan_interface} down
+            ifconfig ${lan_interface} 192.168.7.4 netmask 255.255.255.0 up
+
+            sysctl -w net.inet.ip.forwarding=1
+
+            killall natd
+            natd -interface ${wan_interface} -dynamic
+
+            ipfw -f flush
+            ipfw add divert natd all from any to any via ${wan_interface}
+            ipfw add pass all from any to any
+            ipfw list
+
+            sysctl -w net.inet.ip.fw.enable=1
+            
+            ;;
+
+        wan-interface|interface)
+
+            shift
+            wan_interface="$1"
+
+            ;;
+
+        lan-interface)
+
+            shift
+            lan_interface="$1"
+
+            ;;
+
+        *)
+
+            printf "%s usage:\n\n" "$(basename "$0")"
+            printf "    %s [interface $if] [start] [status] \n\n" "$(basename "$0")"
+            exit 64
+
+            ;;
+
         esac
-        ;;
-    *)
-        printf "%s usage:\n\n" "$(basename "$0")"
-        printf "    %s [interface]\n\n" "$(basename "$0")"
-        exit 64
-        ;;
-esac
-
-sysctl -w net.inet.ip.forwarding=1
-natd -interface ${interface} -dynamic
-ipfw add divert natd all from any to any via ${interface}
-
+        shift
+    done
+fi
 exit 0
