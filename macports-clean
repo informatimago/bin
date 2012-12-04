@@ -1,0 +1,7 @@
+#!/bin/bash
+ls -1 /opt/local/var/macports/distfiles \
+| awk '{
+   if ($1 !~ /^./) {
+      system("port clean --all " $1)
+   }
+}'
