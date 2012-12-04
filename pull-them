@@ -4,7 +4,7 @@ for dir in bin rc src/public/emacs src/public/lisp
 do
     (
         cd "$HOME/$dir"
-        echo "// $(pwd)"
+        echo "cd $(pwd)"
         git pull
     )
 done
