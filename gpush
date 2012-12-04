@@ -1,0 +1,9 @@
+#!/bin/bash
+. "$(dirname "$0")/gdirs"
+for dir in "${gdirs[@]}" ; do
+    (
+        cd "$HOME/$dir"
+        echo "cd $(pwd)"
+        git push
+    )
+done
