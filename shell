@@ -1655,7 +1655,20 @@ CREW EXPENDABLE.
 
 " "Alien")
 
-(defparameter alien-2 "
+
+
+(defparameter alien-2
+  '(
+    ((:big :red :blink "PROXIMITY ALERT")
+     (:yellow "
+STATUS     CO-ORD     FIXIT      PROFIL
+CCF-225    BBK-245    XXT-003    KAA-887
+LCF-663    MXC-111    XTT-200    POP-001
+FSE-110    AAT-552    XYT-663    PSS-601
+FTT-222    BTT-010    OOO-663    011-601
+"))
+    
+    ("
 ----------------------------------------
       ic High School (Detroit, Mich.)Grad.  
                                 8/06-6/09
@@ -1665,7 +1678,7 @@ CREW EXPENDABLE.
         slightly  unhealthy  mixture   of
       to  authority  and  environmentally
       .    Subjects   counts   did    not
-     xxhout upon of employment,  with  an
+     xxhout span of employment,  with  an
     xx I.Q.  count due to oral  inception
      gr  Drxxxx-222.   Early   mechanical
     limited education in FTL aand sub-FTL
@@ -1680,7 +1693,14 @@ CREW EXPENDABLE.
 <big>STATUS: CLOSED</big>
 
 ----------------------------------------
-" "Aliens")
+")
+    ("
+
+
+
+"))
+  "Aliens")
+
 
 (defparameter alien-3 '(
                         
@@ -2517,6 +2537,95 @@ end of message
 3x2=6
 4x2=8
 "))
+
+(defparameter *star-crystal*
+  '((
+     :green "
+                     ENGINE SHUT DOWN HAS OCCURRED..
+
+                     TRACING CAUSE---STAND BY
+
+         SHORT IN ELECTRICAL SYSTEM CELL 13....TBA21 DECTECTED.......
+
+ALERT!                          ALERT!                           ALERT!
+
+"
+     :red "
+
+
+                       *ADVISE ACTION TO BE TAKEN* 
+"
+     
+     )
+    (
+     :green "
+
+AIR SUPPLY HAS BEEN TURNED OFF!
+
+AIR SUPPLY HAS BEEN TURNED OFF!
+
+AIR SUPPLY HAS BEEN TURNED OFF!
+
+AIR SUPPLY HAS BEEN TURNED OFF!
+
+AIR SUPPLY HAS BEEN TURNED OFF!
+
+")
+    (:white "
+                   L-5 DOCKING SECURITY
+
+
+     Name:
+
+             Colonel William Hamilton
+
+     Code #
+
+             OL 477-258-97B
+
+     Nature Of Business:
+
+         Emergency council meeting
+         regarding malfunction of
+         neutron reactors ...also
+         death of crew on shuttlecraft
+         SC37....
+
+")
+    (:white "
+
+             INTERCONNECT TUBES
+
+                        ON     OFF
+    AIR SUPPLY         [ ]     [ ]
+
+")))
+
+
+(defparameter *007-for-your-eyes-only--1981*
+  '(("
+L O C Q U E  - EMILE LEOPOLD  (4) CONT…
+-----------
+RPT.FILE NO......SX10/45907812F/DGB
+
+BIBLIOGRAPHY:
+1.ENFORCER, BRUSSELS UNDERWORLD
+2.CONVICTIONS, SEVERAL MURDERS (BRUTAL)
+3.IMPRISONMENT (LIFE) : NAMUR 31/1/75
+4.ESCAPED NAMUR. METHOD - PSYCHIATRIST
+  DEAD IN STRANGLING...
+5.SUB/ENT INV/MENTS: DRUG SYNDICATES,
+  MARSEILLES, HONG-KONG.
+6.POSS.GREEK SMUGGLING CHARGES, LAST RPT
+7.SERV.SEC.ROME-BELIEVE-SIGHTING CORTINA
+
+              --------- END BIBIOGRAPHY.
+****************************************
+
+THIS MACHINE THANKS YOU
+FOR YOUR ATTENTION.        G O O D B Y E
+")))
+
 
 ;;;---------------------------------------------------------------------
 ;;; Run it
