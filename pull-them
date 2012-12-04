@@ -1,0 +1,15 @@
+#!/bin/bash
+
+cd ~/bin
+git pull
+
+cd ~/rc
+git pull
+
+cd ~/src/public/emacs
+git pull
+
+cd ~/src/public/lisp
+git pull
+
+
