@@ -3,7 +3,7 @@
 for dir in "${gdirs[@]}" ; do
     (
         cd "$HOME/$dir"
-        echo "cd $(pwd)"
+        printf "\ncd %s\n" "$(pwd)"
         git status
     )
 done
