@@ -265,15 +265,15 @@ winquote(){
     fi ) >> "$winscript"
 
 echo > "$epilog"
-echo "#+abcl  (extensions:quit)"           >> "$epilog"
+echo "#+abcl      (extensions:quit)"           >> "$epilog"
 # #+allegro (excl:exit) ;; This dumps an "; Exiting" message...
-echo "#+ccl   (ccl:quit)"                  >> "$epilog"
-echo "#+clisp (ext:quit)"                  >> "$epilog"
-echo "#+cmu   (ext:quit)"                  >> "$epilog"
-echo "#+ecl   (si:quit)"                   >> "$epilog"
-echo "#+gcl   (lisp:quit)"                 >> "$epilog"
-echo "#+sbcl  (sb-ext:quit)"               >> "$epilog"
-
+echo "#+ccl       (ccl:quit)"                  >> "$epilog"
+echo "#+clisp     (ext:quit)"                  >> "$epilog"
+echo "#+cmu       (ext:quit)"                  >> "$epilog"
+echo "#+ecl       (si:quit)"                   >> "$epilog"
+echo "#+gcl       (lisp:quit)"                 >> "$epilog"
+echo "#+sbcl      (sb-ext:quit)"               >> "$epilog"
+echo "#+lispworks (ext:quit)"                  >> "$epilog"
 cat "$epilog" >> "$script"
 cat "$epilog" >> "$winscript"
 
@@ -292,6 +292,7 @@ function runcl(){
 
 printf '\n'
 
+
 # debian calls cmucl cmucl instead of lisp.
 runcl abcl     --batch --noinform --noinit --eval '(setq *load-verbose* nil)'  --load  "$script"
 runcl alisp     -batch -qq                                                      -L     "$script" -kill
@@ -305,6 +306,8 @@ runcl sbcl     --noinform --no-userinit                                        -
 
 runcl winccl   --batch --no-init                                               --load  $(winquote $winscript)
 runcl winsbcl  --noinform --no-userinit                                        --load  $(winquote $winscript)
+
+# runcl maclispw -tty -init - -eval '(setq *load-verbose* nil)' -load "$script"
 
 if [ "$command" != "result" -a ${#sexps[@]} -gt 0 ] ; then
     printf '\n'

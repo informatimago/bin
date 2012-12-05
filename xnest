@@ -1,11 +1,12 @@
 #!/bin/bash
-geometry=640x480
+geometry=1680x1050
 display=:3
 serverdisplay=:0
 MCOOKIE=$(mcookie)
 xauth add $(hostname)/unix$display . $MCOOKIE
 xauth add   localhost/unix$display . $MCOOKIE
-/usr/X11R6/bin/Xnest $display -geometry $geometry -display $serverdisplay
+( /usr/bin/Xnest $display -geometry $geometry -display $serverdisplay  ; xauth remove $(hostname)/unix$display localhost/unix$display ) &
+sleep 2
+wmaker -display $display & 
 # startx /usr/bin/startkde -- /usr/X11R6/bin/Xnest $display
-xauth remove $(hostname)/unix$display localhost/unix$display
 exit 0

@@ -50,8 +50,9 @@
                    :for i :from 0 :below pos
                    :for code = (aref inbuffer i)
                    :do (cond
-                         ((= code 10) (setf (aref outbuffer j) code) (incf j))
-                         ((< code 32) (incf j))
+                         ((= code 10)   (setf (aref outbuffer j) code) (incf j))
+                         ((< code 32))
+                         ((<= 127 code))
                          (t  (setf (aref outbuffer j) code) (incf j)))
                    :finally (setf (fill-pointer outbuffer) j))
                 (write-sequence outbuffer *standard-output*))))
