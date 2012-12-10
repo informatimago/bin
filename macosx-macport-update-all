@@ -1,0 +1,11 @@
+#!/bin/bash
+if [ $UID -eq 0 ] ; then
+    port selfupdate \
+        && port upgrade outdated \
+        && port uninstall inactive \
+        && port clean --all uninstalled
+else
+    echo "We must run as root."
+    echo "sudo $0"
+    sudo "$0"
+fi
