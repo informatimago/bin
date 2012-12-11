@@ -1,0 +1,14 @@
+#!/bin/bash
+
+alias rmerge='rsync -HSWacvxz --progress -e ssh '
+alias rsynch='rsync -HSWacvxz --progress -e ssh --force --delete --delete-after'
+
+backup_directory=/Volumes/100-USERS/pbourguignon/backups
+mkdir -p "$backup_directory"/{lion,data}
+
+if [ -w $backup_directory ] ; then
+    rsynch ~/ "$backup_directory/lion"
+    rsynch /Volumes/data/pbourguignon/{bin,directories,emacs,quicklisp,rc,src/{emacs,lisp,ocmock-informatimago,ocmock-1.77*,winids,Makefile,notes.txt,load-cucumber.rb,OpticsProMac-shadow}}  "$backup_directory/data/"
+else
+    echo "Please mount 100-USERS."
+fi
