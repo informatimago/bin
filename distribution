@@ -52,7 +52,7 @@ function distribution () {
 
     case "$systeme" in
 
-    Linux)
+    GNU/Linux|Linux)
         if [ -e /etc/mandrake-release ] ; then
             distrib=mandrake
             release=$(awk '{print $4}' < /etc/mandrake-release)
