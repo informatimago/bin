@@ -15,12 +15,13 @@
 ;;;;AUTHORS
 ;;;;    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
 ;;;;MODIFICATIONS
+;;;;    2012-12-24 <PJB> Updated for cesarum.
 ;;;;    2010-11-22 <PJB> Added this header.
 ;;;;BUGS
 ;;;;LEGAL
 ;;;;    GPL
 ;;;;    
-;;;;    Copyright Pascal J. Bourguignon 2010 - 2010
+;;;;    Copyright Pascal J. Bourguignon 2010 - 2012
 ;;;;    
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU General Public License
@@ -38,7 +39,32 @@
 ;;;;    Boston, MA 02111-1307 USA
 ;;;;**************************************************************************
 (in-package :common-lisp-user)
-(require "linux")
+
+;; Clean the packages imported into COMMON-LISP-USER:
+(MAPC (LAMBDA (package) (UNUSE-PACKAGE package "COMMON-LISP-USER"))
+      (set-difference
+       (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))
+       (delete nil (list ;; A list of all the "CL" packages possible:
+                    (FIND-PACKAGE "COMMON-LISP")
+                    (FIND-PACKAGE "IMAGE-BASED-COMMON-LISP")))))
+
+(load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common
+                     :defaults *load-pathname*))
+
+(use-package :script)
+(setf *program-name* (pname))
+(defparameter *program-version* "1.0.1")
+
+(define-option ("version" "-V" "--version") ()
+  "Report the version of this script."
+  (format t "~A ~A~%" *program-name* *program-version*))
+
+
+(catch 'go-on
+  (parse-options ext:*args* (lambda () (throw 'go-on t)))
+  (ext:exit 0))
+
+
 
 (defun report-the-error (err string-stream)
   (let ((log-path (format nil "/tmp/ansi-test.~D.errors"
@@ -69,31 +95,30 @@
              ,@body)
          (error (err) (report-the-error err net))))))
 
+
 (format t "~CcLoading...~%" (code-char 27))
-
 (without-output                      
-  (load (make-pathname :name ".clisprc" :type "lisp"
-                       :defaults (user-homedir-pathname))))
+    (load (make-pathname :name ".clisprc" :type "lisp"
+                         :defaults (user-homedir-pathname))))
 
-(without-output
-  (package:load-package "COM.INFORMATIMAGO.COMMON-LISP.UTILITY")
-  (shadow '(handling-errors ed))
-  (use-package          "COM.INFORMATIMAGO.COMMON-LISP.UTILITY")
-  (package:load-package "COM.INFORMATIMAGO.COMMON-LISP.ECMA048"))
 
 (defpackage "E48" (:use))
-(in-package "E48")
+(let ((*package* (find-package "E48")))
+  (without-output
+      (funcall (or (find-symbol "GENERATE-ALL-FUNCTIONS"
+                                "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.ECMA048")
+                   (lambda (&rest args)
+                     (declare (ignore args))
+                     (error "Cannot generate the ECMA048 functions")))
+               :verbose common-lisp:nil
+               :compile common-lisp:t
+               :export  common-lisp:t
+               :8-bit   common-lisp:nil
+               :print   common-lisp:t
+               :result-type 'common-lisp:string)))
 
-(common-lisp-user::without-output
-  (COM.INFORMATIMAGO.COMMON-LISP.ECMA048:generate-all-functions
-   :verbose common-lisp:nil
-   :compile common-lisp:t
-   :export  common-lisp:t
-   :8-bit   common-lisp:nil
-   :print   common-lisp:t
-   :result-type 'common-lisp:string))
 
-(common-lisp:in-package "COMMON-LISP-USER")
+(use-package  "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.UTILITY")
 
 (defenum sgr-codes 
   "
@@ -184,64 +209,68 @@
   reserved-3 default-background reserved-4 framed encircled overlined
   not-framed not-verlined reserved-5 reserved-6 reserved-7 reserved-8
   ideogram-underline ideogram-double-underline ideogram-overline
-  ideogram-double-overline ideogram-stress ideogram-cancel )
+  ideogram-double-overline ideogram-stress ideogram-cancel)
+
 (defconstant blink slow-blink)
 
 
-(e48:ris)
+(defun ansi-test ()
+  (e48:ris)
 
-(let ((y 0)
-      (x 0)
-      bb ff)
-  (flet ((label (col)
-                (format nil "~8a"
-                        (subseq (string (sgr-codes-label col)) 0
-                                (position (character "-") 
-                                          (string (sgr-codes-label col)))))))
-    (dolist (b (list WHITE-background 
-                     CYAN-background MAGENTA-background YELLOW-background 
-                     BLUE-background GREEN-background RED-background 
-                     BLACK-background))
-      (setf bb (label b))
-      (dolist (f (list WHITE-foreground 
-                       CYAN-foreground MAGENTA-foreground YELLOW-foreground 
-                       BLUE-foreground GREEN-foreground RED-foreground 
-                       BLACK-foreground))
-        (setf ff (label f))
-        (e48:cup y x)
-        (incf y)
-        (when (= y 16) (setf y 0 x (+ x 20)))
-        (e48:sgr b)
-        (e48:sgr f)
-        (format t "~A on ~A " ff bb)
-        (e48:sgr normal)))))
+  (let ((y 0)
+        (x 0)
+        bb ff)
+    (flet ((label (col)
+                  (format nil "~8a"
+                          (subseq (string (sgr-codes-label col)) 0
+                                  (position (character "-") 
+                                            (string (sgr-codes-label col)))))))
+      (dolist (b (list WHITE-background 
+                       CYAN-background MAGENTA-background YELLOW-background 
+                       BLUE-background GREEN-background RED-background 
+                       BLACK-background))
+        (setf bb (label b))
+        (dolist (f (list WHITE-foreground 
+                         CYAN-foreground MAGENTA-foreground YELLOW-foreground 
+                         BLUE-foreground GREEN-foreground RED-foreground 
+                         BLACK-foreground))
+          (setf ff (label f))
+          (e48:cup y x)
+          (incf y)
+          (when (= y 16) (setf y 0 x (+ x 20)))
+          (e48:sgr b)
+          (e48:sgr f)
+          (format t "~A on ~A " ff bb)
+          (e48:sgr normal)))))
 
-(let ((y 16)
-      (x 0)
-      jin jbl jun jbo)
-  (flet ((label (mode)
-                (format nil "~8a"
-                        (subseq (string (sgr-codes-label mode)) 0
-                                (min (length (string (sgr-codes-label mode))) 
-                                     8)))))
-    (dolist (in (list no-invert invert))
-      (setf jin (label in))
-      (dolist (bl (list no-blink blink))
-        (setf jbl (label bl))
-        (dolist (un (list no-underline underline))
-          (setf jun (label un))
-          (dolist (bo (list no-bold bold))
-            (setf jbo (label bo))
-            (e48:cup y x)
-            (incf y)
-            (e48:sgr in)
-            (e48:sgr bl)
-            (e48:sgr un)
-            (e48:sgr bo)
-            (format t "  ~A ~A ~A ~A    " jin jbl jun jbo)
-            (e48:sgr normal))))
-      (setf y 16 x 40))))
+  (let ((y 16)
+        (x 0)
+        jin jbl jun jbo)
+    (flet ((label (mode)
+                  (format nil "~8a"
+                          (subseq (string (sgr-codes-label mode)) 0
+                                  (min (length (string (sgr-codes-label mode))) 
+                                       8)))))
+      (dolist (in (list no-invert invert))
+        (setf jin (label in))
+        (dolist (bl (list no-blink blink))
+          (setf jbl (label bl))
+          (dolist (un (list no-underline underline))
+            (setf jun (label un))
+            (dolist (bo (list no-bold bold))
+              (setf jbo (label bo))
+              (e48:cup y x)
+              (incf y)
+              (e48:sgr in)
+              (e48:sgr bl)
+              (e48:sgr un)
+              (e48:sgr bo)
+              (format t "  ~A ~A ~A ~A    " jin jbl jun jbo)
+              (e48:sgr normal))))
+        (setf y 16 x 40))))
 
-(finish-output)
-(ext:quit 0)
+  (finish-output))
+
+(ansi-test)
+
 ;;;; THE END ;;;;
