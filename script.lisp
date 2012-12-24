@@ -18,7 +18,7 @@
 ;;;;LEGAL
 ;;;;    GPL
 ;;;;    
-;;;;    Copyright Pascal J. Bourguignon 2009 - 2009
+;;;;    Copyright Pascal J. Bourguignon 2009 - 2012
 ;;;;    
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU General Public License
@@ -440,43 +440,43 @@ BUG: when the optionals or keys have a present indicator,
        :keys keys
        :arguments option-arguments
        :function (compile (make-symbol (format nil "~:@(~A-WRAPPER~)" (first keys)))
-                          `(lambda (,vargs)
-                             (if (<= ,(length mandatories) (length ,vargs))
-                                 ,(cond
-                                   (rest
-                                    `(destructuring-bind ,option-arguments ,vargs
-                                       (funcall ',option-function ,@(q&d-arguments mandatories
-                                                                                   optionals
-                                                                                   rest
-                                                                                   keys-args))
-                                       nil))
-                                   (keys-args
-                                    (error "An option cannot have &key parameters without a &rest parameter. ~@
-                                            Invalid option parameters: ~S" option-arguments))
-                                   (t
-                                    (let ((vremaining (gensym)))
-                                      `(destructuring-bind (,@option-arguments &rest ,vremaining) ,vargs
+                          `(lambda (option-key ,vargs)
+                             (let ((nargs (length ,vargs)))
+                               (if (<= ,(length mandatories) nargs)
+                                   ,(cond
+                                     (rest
+                                      `(destructuring-bind ,option-arguments ,vargs
                                          (funcall ',option-function ,@(q&d-arguments mandatories
                                                                                      optionals
                                                                                      rest
                                                                                      keys-args))
-                                         ,vremaining))))
-                                 (error "Missing arguments: ~{~A ~}"
-                                        (subseq ',option-arguments (length ,vargs))))))
+                                         nil))
+                                     (keys-args
+                                      (error "An option cannot have &key parameters without a &rest parameter. ~@
+                                              Invalid option parameters: ~S" option-arguments))
+                                     (t
+                                      (let ((vremaining (gensym)))
+                                        `(destructuring-bind (,@option-arguments &rest ,vremaining) ,vargs
+                                           (funcall ',option-function ,@(q&d-arguments mandatories
+                                                                                       optionals
+                                                                                       rest
+                                                                                       keys-args))
+                                           ,vremaining))))
+                                   (let ((missing-count (- ,(length mandatories) nargs))
+                                         (missing-args  (subseq ',mandatories nargs)))
+                                     (error "option ~A is missing ~:[an ~*~;~A ~]argument~:*~p: ~{~A ~}"
+                                            option-key
+                                            (< 1 missing-count) missing-count
+                                            missing-args))))))
        :documentation (split-string docstring (string #\newline))))))
 
 
-
-(defgeneric call-option-function (option arguments &optional undefined-argument)
-  (:method ((key string) arguments &optional undefined-argument)
-    (let* ((funopt  (gethash key *options*)))
-      (cond
-        (funopt             (call-option-function funopt arguments undefined-argument))
-        (undefined-argument (funcall undefined-argument key arguments))
-        (t                  (error "Unknown option ~A ; try: ~A help" key (pname))))))
-  (:method ((option option) arguments &optional undefined-argument)
-    (declare (ignore undefined-argument))
-    (funcall (option-function option) arguments)))
+(defun call-option-function (option-key arguments &optional undefined-argument)
+  (let* ((option (gethash option-key *options*)))
+    (cond
+      (option             (funcall (option-function option) option-key arguments))
+      (undefined-argument (funcall undefined-argument option-key arguments))
+      (t                  (error "Unknown option ~A ; try: ~A help" option-key (pname))))))
 
 
 (defmacro define-option (names parameters &body body)

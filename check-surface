@@ -1,4 +1,4 @@
-#!/usr/bin/clisp -ansi -q -E utf-8
+#!/usr/bin/clisp -ansi -q -E utf-8 
 ;;;; -*- mode:lisp; coding:utf-8 -*-
 ;;;;****************************************************************************
 ;;;;FILE:              check-surface
@@ -40,17 +40,17 @@
 ||#
 
 ;; Clean the packages imported into COMMON-LISP-USER:
-(MAPC (LAMBDA (USED) (UNUSE-PACKAGE USED "COMMON-LISP-USER"))
-      (REMOVE (FIND-PACKAGE "COMMON-LISP")
-              (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))))
+(mapc (lambda (used) (unuse-package used "COMMON-LISP-USER"))
+      (remove (find-package "COMMON-LISP")
+              (copy-seq (package-use-list "COMMON-LISP-USER"))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 
-(EVAL-WHEN (:COMPILE-TOPLEVEL :LOAD-TOPLEVEL :EXECUTE)
+(eval-when (:compile-toplevel :load-toplevel :execute)
   (defvar *directories*   '()))
-(EXPORT '(*directories*))
+(export '(*directories*))
 
 (defun get-directory (key &optional (subpath ""))
   (unless (getf *directories* key)
@@ -90,37 +90,37 @@
 ;; arguments are ext:*args* (list of string)
 
 ;; From /usr/include/sysexists.h (Linux)
-(DEFCONSTANT _SYSEXITS_H      1)
-(DEFCONSTANT EX-OK            0)
-(DEFCONSTANT EX--BASE        64)
-(DEFCONSTANT EX-USAGE        64)
-(DEFCONSTANT EX-DATAERR      65)
-(DEFCONSTANT EX-NOINPUT      66)
-(DEFCONSTANT EX-NOUSER       67)
-(DEFCONSTANT EX-NOHOST       68)
-(DEFCONSTANT EX-UNAVAILABLE  69)
-(DEFCONSTANT EX-SOFTWARE     70)
-(DEFCONSTANT EX-OSERR        71)
-(DEFCONSTANT EX-OSFILE       72)
-(DEFCONSTANT EX-CANTCREAT    73)
-(DEFCONSTANT EX-IOERR        74)
-(DEFCONSTANT EX-TEMPFAIL     75)
-(DEFCONSTANT EX-PROTOCOL     76)
-(DEFCONSTANT EX-NOPERM       77)
-(DEFCONSTANT EX-CONFIG       78)
-(DEFCONSTANT EX--MAX         78)
+(defconstant _sysexits_h      1)
+(defconstant ex-ok            0)
+(defconstant ex--base        64)
+(defconstant ex-usage        64)
+(defconstant ex-dataerr      65)
+(defconstant ex-noinput      66)
+(defconstant ex-nouser       67)
+(defconstant ex-nohost       68)
+(defconstant ex-unavailable  69)
+(defconstant ex-software     70)
+(defconstant ex-oserr        71)
+(defconstant ex-osfile       72)
+(defconstant ex-cantcreat    73)
+(defconstant ex-ioerr        74)
+(defconstant ex-tempfail     75)
+(defconstant ex-protocol     76)
+(defconstant ex-noperm       77)
+(defconstant ex-config       78)
+(defconstant ex--max         78)
 
 ;; (format t "~S=~S~%" 'EXT:*ARGS* EXT:*ARGS*)
 ;; (format t "~S=~S~%" '*LOAD-TRUENAME* *LOAD-TRUENAME*)
 
-(defparameter *PNAME* (if *load-pathname*
+(defparameter *pname* (if *load-pathname*
                           (file-namestring *load-pathname*)
                           "check-surface"))
 
-(DEFUN USAGE ()
-  (FORMAT 
-   T (CONCATENATE 
-         'STRING
+(defun usage ()
+  (format 
+   t (concatenate 
+         'string
        "~%"
        "~a usage:~%"
        "~%"
@@ -139,20 +139,20 @@
        "tries to write all the blocks of the device, then if no error is encountered,~%"
        "tries to read the written blocks, and reports a list of bad blocks.~%"
        "~%"
-       "The output bad block list is given in block units.~%"
+       "Output bad block list is given in block units.~%"
        "~%")
-   *PNAME*))
+   *pname*))
 
 
 (defun report-error (message &optional print-usage-p (status nil statusp))
-  (FORMAT *ERROR-OUTPUT* 
+  (format *error-output* 
           "~%~a: ~A~:[~; Aborting.~]~%"
-          *PNAME* message (and statusp (not (zerop status))))
+          *pname* message (and statusp (not (zerop status))))
   (when print-usage-p
-    (USAGE))
+    (usage))
   (when statusp
     #+testing-script (throw 'exit status)
-    #-testing-script (EXT:EXIT status)))
+    #-testing-script (ext:exit status)))
 
 
 (defun geometry (device)
@@ -582,10 +582,10 @@ RESULTS:          The number of failed blocks;
 
 
 
-(DEFUN MAIN (ARGUMENTS)
-  (LET ((files      '())
-        (block-size NIL)
-        (device     NIL)
+(defun main (arguments)
+  (let ((files      '())
+        (block-size nil)
+        (device     nil)
         (start      0)
         (end        nil)
         (phase      :both))
@@ -593,21 +593,22 @@ RESULTS:          The number of failed blocks;
        :with args = arguments
        :for arg = (car args)
        :while args
-       :do (COND ((OR (STRING= "-h" ARG) (STRING= "--help" ARG))
-                  (USAGE))
-                 ((STRING= ARG "-b")
+       :do (cond ((or (string= "-h" arg) (string= "--help" arg))
+                  (usage)
+                  (throw 'exit 0))
+                 ((string= arg "-b")
                   (setf block-size (parse-block-size (cadr args)))
                   (pop args) (pop args))
                  ((string= arg #1="--block-size=")
                   (setf block-size (parse-block-size (subseq arg (length #1#))))
                   (pop args))
-                 ((STRING= ARG "-s")
+                 ((string= arg "-s")
                   (setf start (parse-block-size (cadr args)))
                   (pop args) (pop args))
                  ((string= arg #2="--start=")
                   (setf start (parse-block-size (subseq arg (length #2#))))
                   (pop args))
-                 ((STRING= ARG "-e")
+                 ((string= arg "-e")
                   (setf end (parse-block-size (cadr args)))
                   (pop args) (pop args))
                  ((string= arg #3="--end=")
@@ -622,36 +623,36 @@ RESULTS:          The number of failed blocks;
                  ((string= arg "--read")
                   (error "not implemented yet")
                   (pop args))
-                 (T
-                  (PUSH ARG FILES)
+                 (t
+                  (push arg files)
                   (pop args))))
     (unless files
-      (report-error "Nothing to do. Please specify -h or --help." t EX-USAGE))
-    (case  (LENGTH FILES)
+      (report-error "Nothing to do. Please specify -h or --help." t ex-usage))
+    (case  (length files)
       ((0)
-       (report-error "No device to work on." t EX-usage))
+       (report-error "No device to work on." t ex-usage))
       ((1)
        (setf device (pop files))
        (setf block-size (or block-size (block-size device)))
        (check-surface device block-size start end phase))
       (otherwise
        (report-error "Too many device arguments given, only one expected."
-                     t EX-usage)))))
+                     t ex-usage)))))
 
 
-#-TESTING-SCRIPT
-(COM.INFORMATIMAGO.CLMISC.RESOURCE-UTILIZATION:reporting-sru
+#-testing-script
+(com.informatimago.clmisc.resource-utilization:reporting-sru
     (:job-origin
      (format nil "~A@~A"
              (or (ext:getenv "USER")
                  (first (last (pathname-directory
                                (user-homedir-pathname)))))
              (short-site-name))
-     :stream *standard-input*)
+     :stream *standard-output*)
   (catch 'exit
-    (progn (MAIN EXT:*ARGS*)
-           (EXT:EXIT EX-OK))))
+    (progn (main ext:*args*)
+           (ext:exit ex-ok))))
 
-(DEFUN L () (LOAD (merge-pathnames #P"./bin/check-surface" (user-homedir-pathname))))
-(DEFUN M () (MAIN '("-e" ".")))
+(defun l () (load (merge-pathnames #p"./bin/check-surface" (user-homedir-pathname))))
+(defun m () (main '("-e" ".")))
 ;;;; THE END ;;;;;

@@ -1,64 +1,64 @@
 #!/usr/bin/clisp -ansi -q -E utf-8
-;; -*- mode: lisp; coding:utf-8 -*-
-;;******************************************************************************
-;;FILE:              eurnews
-;;LANGUAGE:          Common-Lisp
-;;SYSTEM:            UNIX
-;;USER-INTERFACE:    UNIX
-;;DESCRIPTION
-;;    Note: we compile on load only to check syntax errors faster.
-;;USAGE
-;;    euronews --help
-;;AUTHORS
-;;    <PJB> Pascal J. Bourguignon
-;;MODIFICATIONS
-;;    2004-03-24 <PJB> Added user selectable language.
-;;    2002-09-30 <PJB> Created.
-;;BUGS
-;;LEGAL
-;;    Copyright Pascal J. Bourguignon 2002 - 2004
-;;
-;;    This script is free software; you can redistribute it and/or
-;;    modify it under the terms of the GNU  General Public
-;;    License as published by the Free Software Foundation; either
-;;    version 2 of the License, or (at your option) any later version.
-;;
-;;    This script is distributed in the hope that it will be useful,
-;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;;    General Public License for more details.
-;;
-;;    You should have received a copy of the GNU General Public
-;;    License along with this library; see the file COPYING.LIB.
-;;    If not, write to the Free Software Foundation,
-;;    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-;;******************************************************************************
+;;;; -*- mode: lisp; coding:utf-8 -*-
+;;;;******************************************************************************
+;;;;FILE:              eurnews
+;;;;LANGUAGE:          Common-Lisp
+;;;;SYSTEM:            UNIX
+;;;;USER-INTERFACE:    UNIX
+;;;;DESCRIPTION
+;;;;    Note: we compile on load only to check syntax errors faster.
+;;;;USAGE
+;;;;    euronews --help
+;;;;AUTHORS
+;;;;    <PJB> Pascal J. Bourguignon
+;;;;MODIFICATIONS
+;;;;    2004-03-24 <PJB> Added user selectable language.
+;;;;    2002-09-30 <PJB> Created.
+;;;;BUGS
+;;;;LEGAL
+;;;;    Copyright Pascal J. Bourguignon 2002 - 2004
+;;;;
+;;;;    This script is free software; you can redistribute it and/or
+;;;;    modify it under the terms of the GNU  General Public
+;;;;    License as published by the Free Software Foundation; either
+;;;;    version 2 of the License, or (at your option) any later version.
+;;;;
+;;;;    This script is distributed in the hope that it will be useful,
+;;;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;;    General Public License for more details.
+;;;;
+;;;;    You should have received a copy of the GNU General Public
+;;;;    License along with this library; see the file COPYING.LIB.
+;;;;    If not, write to the Free Software Foundation,
+;;;;    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+;;;;******************************************************************************
 
 ;; Clean the packages imported into COMMON-LISP-USER:
-(MAPC (LAMBDA (USED) (UNUSE-PACKAGE USED "COMMON-LISP-USER"))
-      (REMOVE (FIND-PACKAGE "COMMON-LISP")
-              (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))))
+(mapc (lambda (used) (unuse-package used "COMMON-LISP-USER"))
+      (remove (find-package "COMMON-LISP")
+              (copy-seq (package-use-list "COMMON-LISP-USER"))))
 
 ;; From /usr/include/sysexists.h (Linux)
-(defconstant _SYSEXITS_H      1)
-(defconstant EX_OK            0)
-(defconstant EX__BASE        64)
-(defconstant EX_USAGE        64)
-(defconstant EX_DATAERR      65)
-(defconstant EX_NOINPUT      66)
-(defconstant EX_NOUSER       67)
-(defconstant EX_NOHOST       68)
-(defconstant EX_UNAVAILABLE  69)
-(defconstant EX_SOFTWARE     70)
-(defconstant EX_OSERR        71)
-(defconstant EX_OSFILE       72)
-(defconstant EX_CANTCREAT    73)
-(defconstant EX_IOERR        74)
-(defconstant EX_TEMPFAIL     75)
-(defconstant EX_PROTOCOL     76)
-(defconstant EX_NOPERM       77)
-(defconstant EX_CONFIG       78)
-(defconstant EX__MAX         78)
+(defconstant _sysexits_h      1)
+(defconstant ex_ok            0)
+(defconstant ex__base        64)
+(defconstant ex_usage        64)
+(defconstant ex_dataerr      65)
+(defconstant ex_noinput      66)
+(defconstant ex_nouser       67)
+(defconstant ex_nohost       68)
+(defconstant ex_unavailable  69)
+(defconstant ex_software     70)
+(defconstant ex_oserr        71)
+(defconstant ex_osfile       72)
+(defconstant ex_cantcreat    73)
+(defconstant ex_ioerr        74)
+(defconstant ex_tempfail     75)
+(defconstant ex_protocol     76)
+(defconstant ex_noperm       77)
+(defconstant ex_config       78)
+(defconstant ex__max         78)
 
 (defvar do-clear    t "Whether clear screen actuall works.")
 (defun clear () (when do-clear (ext:run-program "/usr/bin/clear")))
@@ -88,7 +88,7 @@
   (unless language 
     (format t "~%usage:~%")
     (format t "   euronews  [de|fr|en|it|es|po|ru]~%")
-    (ext:exit EX_USAGE)))
+    (ext:exit ex_usage)))
 
 
 (defun stream-to-string-list (stream)
@@ -96,8 +96,7 @@
         while line
         collect line into result
         do (setq line (read-line stream nil nil))
-        finally return result)
-  );;stream-to-string-list
+        finally (return result)))
 
 
 
@@ -120,13 +119,13 @@
                                                   :output    :stream))
                                  ;;do (format t "new-urls=~S~%" new-urls)
                                  append new-urls into all-urls
-                                 finally return all-urls)
+                                 finally (return all-urls))
                            'string<=)
               ;;do (format t "item=~S~%" item)
               when (and previous (string/= previous item))
               collect item into all-urls
               do (setq previous item)
-              finally return all-urls))
+              finally (return all-urls)))
   (setq length-urls (length urls)) ;;get-urls
   (setq played (make-array (list length-urls) :initial-element nil))
   (setq played-last -1)
@@ -140,7 +139,7 @@
         until slash
         when (char= (char url index) (character '\?)) do (setq question index)
         when (char= (char url index) (character '\/)) do (setq slash index)
-        finally return (subseq url (1+ slash) question)))
+        finally (return (subseq url (1+ slash) question))))
   );;get-file-name
 
 
@@ -168,7 +167,7 @@
                        (played-last-indicator   index)
                        (get-file-name (elt urls index)))
             into menu-items
-            finally return menu-items))
+            finally (return menu-items)))
       (loop for line from 0 to 21
             for menu = line
             do (loop for menu = line then (+ 22 menu)
@@ -210,6 +209,6 @@
       (setq last-index (abs last-index))
       );;loop
 
-(ext:exit EX_OK)
+(ext:exit ex_ok)
 
 ;;;; euronews                         --                     --          ;;;;
