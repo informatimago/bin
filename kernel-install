@@ -3,23 +3,27 @@
 usage () {
     echo "$0 usage:"
     echo ""
-    echo "    cd /usr/src/linux ; $0 [-h|--help|<TAG>]"
+    echo "    cd /usr/src/linux ; $0 [-h|--help| [-v|--verbose] <TAG>]"
     echo ""
     echo "  Copies the following files from the current directory to /boot,"
     echo "  appending -<TAG> to the names."
-    echo "      vmlinux" #arch/i386/boot/bzImage
+    echo "      vmlinux" 
     echo "      System.map"
     echo "      .config"
     echo "      include/linux/autoconf.h"
     echo "      include/linux/version.h"
 }
 
+verbose=0
 
 for arg ; do
     case "$arg" in
     -h|--help)
         usage
         exit 0
+        ;;
+    -v|--verbose)
+        verbose=1
         ;;
     -*)
         echo "$0: Invalid option '$arg'."
@@ -43,12 +47,26 @@ if [ -z "$tag" ] ; then
     exit 1
 fi
 
-cp arch/i386/boot/bzImage         /boot/vmlinuz-${tag}
-cp System.map                     /boot/System.map-${tag}
-tar zcf /boot/config-${tag}.tar.gz \
+if [ $verbose -eq 0 ] ; then
+    cpv=
+    tarv=
+    lnv=
+else
+    cpv=-v
+    tarv=-v
+    lnv=-v
+fi
+
+cp $cpv arch/$(arch)/boot/bzImage             /boot/vmlinuz-${tag}
+cp $cpv System.map                            /boot/vmlinuz-${tag}.System.map
+ln $lnv -sf /boot/vmlinuz-${tag}.System.map   /boot/System.map
+tar $tarv -zcf                                /boot/vmlinuz-${tag}.config.tar.gz \
     .config \
-    include/linux/autoconf.h \
+    $( [ -r include/linux/autoconf.h ] && echo include/linux/autoconf.h ) \
+    $( [ -d include/generated ] && echo include/generated ) \
     include/linux/version.h 
-ln -sf System.map-${tag}           /boot/System.map
+if [ $verbose -ne 0 ] ; then
+    echo "  to /boot/vmlinuz-${tag}.config.tar.gz"
+fi
 
 #END#
