@@ -1,53 +1,9 @@
 #!/usr/bin/clisp -ansi -q -E utf-8
 ;;;; -*- mode:lisp; coding:utf-8 -*-
 
-(in-package :common-lisp-user)
-
-;; If the version of clisp requires -Kfull to have linux, then let's call it with -Kfull…
-(multiple-value-bind (res err) (ignore-errors (require "linux"))
-  (when err
-    (let* ((argv  (ext:argv))
-           (largv (length argv))
-           (args  ext:*args*)
-           (largs (length args))
-           (pname (elt argv (- largv largs 1))))
-      (ext:exit
-       (or (EXT:RUN-PROGRAM "/usr/bin/clisp"
-                            :ARGUMENTS (append '("-ansi" "-q" "-E" "utf-8" "-Kfull")
-                                               (cons pname args))
-                            :wait t
-                            #+linux :MAY-EXEC  #+linux t
-                            #+win32 :INDIRECTP #+win32 nil)
-           0)))))
-
-(defun report-the-error (err string-stream)
-  (let ((log-path (format nil "/tmp/ansi-test.~D.errors"
-                          #+(and clisp linux) (LINUX:|getpid|)
-                          #-(and clisp linux) "nopid")))
-    (with-open-file (log log-path
-                        :direction :output
-                        :if-exists :supersede
-                        :if-does-not-exist :create)
-      (format log "~A GOT AN ERROR: ~A~2%"
-              (or *load-pathname* "ansi-test")
-              err)
-      (princ (GET-OUTPUT-STREAM-STRING string-stream) log))
-    (format *error-output*
-      "~A: ~A~%  See ~A~%"
-      (or *load-pathname* "ansi-test") err log-path)
-    (finish-output *error-output*)
-    (ext:quit 1)))
-
-
-(defmacro without-output (&body body)
-  `(prog1 (values)
-     (with-output-to-string (net)
-       (handler-case
-           (let ((*standard-output* net)
-                 (*error-output*    net)
-                 (*trace-output*    net))
-             ,@body)
-         (error (err) (report-the-error err net))))))
+(in-package "COMMON-LISP-USER")
+(load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common :defaults *load-pathname*))
+(script:relauch-with-kfull-linkset-if-needed (lambda () (require "linux")))
 
 (without-output                      
   (load (make-pathname :name ".clisprc" :type "lisp"
@@ -110,19 +66,18 @@ puts "\n"
 log_user 1
 
 
-  (loop
-     :for line = (read-line in nil nil)
-     :until (COM.INFORMATIMAGO.COMMON-LISP.STRING:SUFFIXP "password: " line))
-  (princ *remote-password* out) (terpri out)
-  (defparameter *io*   io)
-  (defparameter *in*   in)
-  (defparameter *out* out))
-(multiple-value-bind (io)
-    
+(loop
+  :for line = (read-line in nil nil)
+  :until (COM.INFORMATIMAGO.COMMON-LISP.STRING:SUFFIXP "password: " line))
+(princ *remote-password* out) (terpri out)
+(defparameter *io*   io)
+(defparameter *in*   in)
+(defparameter *out* out)
+
 
 (directory (merge-pathnames #P"**/*.*"  *local-intergruas.com* nil))
 
 (finish-output)
 
 
-;;;; ansi-test.lisp                   --                     --          ;;;;
+;;;; THE END ;;;;

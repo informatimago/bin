@@ -1,57 +1,26 @@
 #!/usr/bin/clisp -ansi -q -E utf-8
 ;;;; -*- mode:lisp; coding:utf-8 -*-
 
-;; If the version of clisp requires -Kfull to have linux, then let's call it with -Kfull…
-(multiple-value-bind (res err) (ignore-errors (require "linux"))
-  (when err
-    (let* ((argv  (ext:argv))
-           (largv (length argv))
-           (args  ext:*args*)
-           (largs (length args))
-           (pname (elt argv (- largv largs 1))))
-      (ext:exit
-       (or (EXT:RUN-PROGRAM "/usr/bin/clisp"
-                            :ARGUMENTS (append '("-ansi" "-q" "-E" "utf-8" "-Kfull")
-                                               (cons pname args))
-                            :wait t
-                            #+linux :MAY-EXEC  #+linux t
-                            #+win32 :INDIRECTP #+win32 nil)
-           0)))))
+(in-package "COMMON-LISP-USER")
+(load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common :defaults *load-pathname*))
+(script:relauch-with-kfull-linkset-if-needed (lambda () (require "linux")))
+
+(use-package "SCRIPT")
 
 (format *error-output* "~2%Not implemented yet.~2%")
 (ext:exit 1)
 
-;; From /usr/include/sysexists.h (Linux)
-(DEFCONSTANT _SYSEXITS_H      1)
-(DEFCONSTANT EX-OK            0)
-(DEFCONSTANT EX--BASE        64)
-(DEFCONSTANT EX-USAGE        64)
-(DEFCONSTANT EX-DATAERR      65)
-(DEFCONSTANT EX-NOINPUT      66)
-(DEFCONSTANT EX-NOUSER       67)
-(DEFCONSTANT EX-NOHOST       68)
-(DEFCONSTANT EX-UNAVAILABLE  69)
-(DEFCONSTANT EX-SOFTWARE     70)
-(DEFCONSTANT EX-OSERR        71)
-(DEFCONSTANT EX-OSFILE       72)
-(DEFCONSTANT EX-CANTCREAT    73)
-(DEFCONSTANT EX-IOERR        74)
-(DEFCONSTANT EX-TEMPFAIL     75)
-(DEFCONSTANT EX-PROTOCOL     76)
-(DEFCONSTANT EX-NOPERM       77)
-(DEFCONSTANT EX-CONFIG       78)
-(DEFCONSTANT EX--MAX         78)
 
-
-(DEFUN USAGE ()
-  (FORMAT T "~%~
+(defun usage ()
+  (format t "~%~
              ~A usage:~%~
              ~%~
              ~&    ~:*~A [-h|--help] item... ~%~
              ~%"
-          PNAME))
+          pname))
 
-(defun width () (screen:with-window (screen:window-size screen:*window*)))
+(defun width ()
+  (screen:with-window (screen:window-size screen:*window*)))
 
 (defun main (arguments)
   (let ((items '()))
@@ -75,9 +44,11 @@
 
 
 
-(when (boundp 'ext:*args*)
+
+#-testing-script
+(progn
   (main  ext:*args*)
-  (ext:exit ex-ok));;otherwise, we're not in a script!
+  (ext:exit ex-ok))
 
 
 ;;;; THE END ;;;;

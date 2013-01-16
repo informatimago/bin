@@ -34,48 +34,12 @@
 ;;;;    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 ;;;;******************************************************************************
 
-;; If the version of clisp requires -Kfull to have linux, then let's call it with -Kfull…
-(multiple-value-bind (res err) (ignore-errors (require "linux"))
-  (when err
-    (let* ((argv  (ext:argv))
-           (largv (length argv))
-           (args  ext:*args*)
-           (largs (length args))
-           (pname (elt argv (- largv largs 1))))
-      (ext:exit
-       (or (EXT:RUN-PROGRAM "/usr/bin/clisp"
-                            :ARGUMENTS (append '("-ansi" "-q" "-E" "utf-8" "-Kfull")
-                                               (cons pname args))
-                            :wait t
-                            #+linux :MAY-EXEC  #+linux t
-                            #+win32 :INDIRECTP #+win32 nil)
-           0)))))
+(in-package "COMMON-LISP-USER")
+(load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common :defaults *load-pathname*))
+(script:relauch-with-kfull-linkset-if-needed (lambda () (require "linux")))
 
-;; Clean the packages imported into COMMON-LISP-USER:
-(mapc (lambda (used) (unuse-package used "COMMON-LISP-USER"))
-      (remove (find-package "COMMON-LISP")
-              (copy-seq (package-use-list "COMMON-LISP-USER"))))
+(use-package "SCRIPT")
 
-;; From /usr/include/sysexists.h (Linux)
-(defconstant _sysexits_h      1)
-(defconstant ex_ok            0)
-(defconstant ex__base        64)
-(defconstant ex_usage        64)
-(defconstant ex_dataerr      65)
-(defconstant ex_noinput      66)
-(defconstant ex_nouser       67)
-(defconstant ex_nohost       68)
-(defconstant ex_unavailable  69)
-(defconstant ex_software     70)
-(defconstant ex_oserr        71)
-(defconstant ex_osfile       72)
-(defconstant ex_cantcreat    73)
-(defconstant ex_ioerr        74)
-(defconstant ex_tempfail     75)
-(defconstant ex_protocol     76)
-(defconstant ex_noperm       77)
-(defconstant ex_config       78)
-(defconstant ex__max         78)
 
 (defvar do-clear    t "Whether clear screen actuall works.")
 (defun clear () (when do-clear (ext:run-program "/usr/bin/clear")))
@@ -105,7 +69,7 @@
   (unless language 
     (format t "~%usage:~%")
     (format t "   euronews  [de|fr|en|it|es|po|ru]~%")
-    (ext:exit ex_usage)))
+    (ext:exit ex-usage)))
 
 
 (defun stream-to-string-list (stream)
@@ -226,6 +190,6 @@
       (setq last-index (abs last-index))
       );;loop
 
-(ext:exit ex_ok)
+(ext:exit ex-ok)
 
 ;;;; euronews                         --                     --          ;;;;

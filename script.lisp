@@ -37,6 +37,14 @@
 ;;;;**************************************************************************
 (in-package "COMMON-LISP-USER")
 
+;; Clean the packages imported into COMMON-LISP-USER:
+(mapc (lambda (package) (unuse-package package "COMMON-LISP-USER"))
+      (set-difference
+       (copy-seq (package-use-list "COMMON-LISP-USER"))
+       (delete nil (list ;; A list of all possible "CL" packages:
+                    (find-package "COMMON-LISP")
+                    (find-package "IMAGE-BASED-COMMON-LISP")))))
+
 ;;;---------------------------------------------------------------------------
 ;;;
 
@@ -46,8 +54,7 @@
   (:export
    "CLISP-VERSION"
    "VERSION="    "VERSION<"    "VERSION<="
-   "RT-VERSION=" "RT-VERSION<" "RT-VERSION<="
-   ))
+   "RT-VERSION=" "RT-VERSION<" "RT-VERSION<="))
 (in-package "COM.INFORMATIMAGO.CLISP.VERSION")
 
 
@@ -97,7 +104,10 @@
   (:nicknames "SCRIPT")
   (:use "COMMON-LISP")
   (:export "PNAME" "*PROGRAM-NAME*" "*VERBOSE*" "*DEBUG*"
-           "REDIRECTING-STDOUT-TO-STDERR"
+
+           "REDIRECTING-STDOUT-TO-STDERR" "WITHOUT-OUTPUT"
+           "RELAUCH-WITH-KFULL-LINKSET-IF-NEEDED"
+           
            "DEFINE-OPTION" "CALL-OPTION-FUNCTION"  "MAIN"
            "SET-DOCUMENTATION-TEXT"
            "*BASH-COMPLETION-HOOK*"
@@ -105,16 +115,12 @@
            "FIND-DIRECTORIES"
            "CONCAT" "MAPCONCAT"
            ;; Exit codes:
-           "EX-OK" "EX--BASE" "EX-USAGE" "EX-DATAERR" "EX-NOINPUT"
-           "EX-NOUSER" "EX-NOHOST" "EX-UNAVAILABLE" "EX-SOFTWARE"
-           "EX-OSERR" "EX-OSFILE" "EX-CANTCREAT" "EX-IOERR"
-           "EX-TEMPFAIL" "EX-PROTOCOL" "EX-NOPERM" "EX-CONFIG"
-           "EX--MAX" "EX-OK" "EX--BASE" "EX-USAGE" "EX-DATAERR"
-           "EX-NOINPUT" "EX-NOUSER" "EX-NOHOST" "EX-UNAVAILABLE"
-           "EX-SOFTWARE" "EX-OSERR" "EX-OSFILE" "EX-CANTCREAT"
-           "EX-IOERR" "EX-TEMPFAIL" "EX-PROTOCOL" "EX-NOPERM"
-           "EX-CONFIG" "EX--MAX"
-
+           "EX--BASE" "EX--MAX" "EX-CANTCREAT" "EX-CONFIG"
+           "EX-DATAERR" "EX-IOERR" "EX-NOHOST" "EX-NOINPUT"
+           "EX-NOPERM" "EX-NOUSER" "EX-OK" "EX-OSERR" "EX-OSFILE"
+           "EX-PROTOCOL" "EX-SOFTWARE" "EX-TEMPFAIL" "EX-UNAVAILABLE"
+           "EX-USAGE"
+           
            "SHELL" "RUN-PROGRAM"
            "UNAME" "PARSE-OPTIONS"
            "WITH-PAGER"
@@ -169,7 +175,60 @@ otherwise we fallback to *DEFAULT-PROGRAM-NAME*.")
         (princ ,verror *error-output*)
         (terpri *error-output*)
         (terpri *error-output*)
-        #-testing-script (ext:exit 1)))))
+        #-testing-script (ext:exit EX-SOFTWARE)))))
+
+
+(defun report-the-error (err string-stream)
+  (let ((log-path (format nil "/tmp/~A.~D.errors"
+                          (pathname-name (pname))
+                          (let ((getpid (or (ignore-errors (find-symbol "getpid"     "LINUX"))
+                                            (ignore-errors (find-symbol "PROCESS-ID" "OS"))
+                                            (ignore-errors (find-symbol "PROCESS-ID" "SYSTEM")))))
+                            (if getpid
+                                (funcall getpid)
+                                "nopid")))))
+    (with-open-file (log-stream log-path
+                                :direction :output
+                                :if-exists :supersede
+                                :if-does-not-exist :create)
+      (format log-stream "~A GOT AN ERROR: ~A~%~80,,,'-<~>~%~A~%"
+              (pname) err
+              (GET-OUTPUT-STREAM-STRING string-stream)))
+    (format *error-output* "~A: ~A~%  See ~A~%" (pname) err log-path)
+    (finish-output *error-output*)
+    (ext:exit EX-SOFTWARE)))
+
+
+(defmacro without-output (&body body)
+  `(prog1 (values)
+     (with-output-to-string (net)
+       (handler-case
+           (let ((*standard-output* net)
+                 (*error-output*    net)
+                 (*trace-output*    net))
+             ,@body)
+         (error (err) (report-the-error err net))))))
+
+
+(defun relauch-with-kfull-linkset-if-needed (thunk)
+  ;; If the version of clisp requires -Kfull to have linux, then let's call it with -Kfull…
+  (multiple-value-bind (res err) (ignore-errors (funcall thunk))
+    (when err
+      (let* ((argv  (ext:argv))
+             (largv (length argv))
+             (args  ext:*args*)
+             (largs (length args))
+             (name  (elt argv (- largv largs 1))))
+        (if (find "-Kfull" argv :test (function string=))
+            (error err)
+            (ext:exit
+             (or (ext:run-program "/usr/bin/clisp"
+                                  :arguments (append '("-ansi" "-q" "-E" "utf-8" "-Kfull")
+                                                     (cons name args))
+                                  :wait t
+                                  #+linux :may-exec  #+linux t
+                                  #+win32 :indirectp #+win32 nil)
+                 0)))))))
 
 
 

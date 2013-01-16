@@ -38,53 +38,11 @@
 ;;;;    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 ;;;;*****************************************************************************
 
-;; If the version of clisp requires -Kfull to have linux, then let's call it with -Kfull…
-(multiple-value-bind (res err) (ignore-errors (require "linux"))
-  (when err
-    (let* ((argv  (ext:argv))
-           (largv (length argv))
-           (args  ext:*args*)
-           (largs (length args))
-           (pname (elt argv (- largv largs 1))))
-      (ext:exit
-       (or (EXT:RUN-PROGRAM "/usr/bin/clisp"
-                            :ARGUMENTS (append '("-ansi" "-q" "-E" "utf-8" "-Kfull")
-                                               (cons pname args))
-                            :wait t
-                            #+linux :MAY-EXEC  #+linux t
-                            #+win32 :INDIRECTP #+win32 nil)
-           0)))))
+(in-package "COMMON-LISP-USER")
+(load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common :defaults *load-pathname*))
+(script:relauch-with-kfull-linkset-if-needed (lambda () (require "linux")))
 
-
-;; Clean the packages imported into COMMON-LISP-USER:
-(mapc (lambda (used) (unuse-package used "COMMON-LISP-USER"))
-      (remove (find-package "COMMON-LISP")
-              (copy-seq (package-use-list "COMMON-LISP-USER"))))
-
-
-;; arguments are ext:*args* (list of string)
-
-;; From /usr/include/sysexists.h (Linux)
-(defconstant _sysexits_h      1)
-(defconstant ex-ok            0)
-(defconstant ex--base        64)
-(defconstant ex-usage        64)
-(defconstant ex-dataerr      65)
-(defconstant ex-noinput      66)
-(defconstant ex-nouser       67)
-(defconstant ex-nohost       68)
-(defconstant ex-unavailable  69)
-(defconstant ex-software     70)
-(defconstant ex-oserr        71)
-(defconstant ex-osfile       72)
-(defconstant ex-cantcreat    73)
-(defconstant ex-ioerr        74)
-(defconstant ex-tempfail     75)
-(defconstant ex-protocol     76)
-(defconstant ex-noperm       77)
-(defconstant ex-config       78)
-(defconstant ex--max         78)
-
+(use-package "SCRIPT")
 
 
 (defun stream-to-string-list (stream)
@@ -144,11 +102,8 @@ NOTE:   current implementation only accepts as separators
               );;loop
          (push (subseq string position nextpos) chunks)
          (setq position (1+ nextpos))
-         (setq nextpos  position)
-         );;loop
-    (nreverse chunks)
-    );;let
-  );;SPLIT-STRING
+         (setq nextpos  position))
+    (nreverse chunks)))
 
 
 (defun split-name-value (string)
@@ -165,9 +120,7 @@ RETURN:  a cons with two substrings of string such as:
        do (setq position (1+ position)))
     (if (< position strlen)
         (cons (subseq string 0 position) (subseq string (1+ position) strlen))
-        nil)
-    );;let
-  );;SPLIT-NAME-VALUE
+        nil)))
 
 
 
@@ -192,8 +145,7 @@ RETURN:  a cons with two substrings of string such as:
        "     this means copying the .ogg file to a new version ~%"
        "     per vorbis-comment).~%"
        "~%")
-   pname pname)
-  );;USAGE
+   pname pname))
 
 
 (defvar artist       "")
@@ -244,8 +196,7 @@ RETURN:  a cons with two substrings of string such as:
           (code-char 27)
           index max
           file artist album title version tracknumber organization genre
-          description date location copyright)
-  );;DISPLAY
+          description date location copyright))
 
 
 (defun info-load (txt)
@@ -271,9 +222,7 @@ RETURN:  a cons with two substrings of string such as:
             description  ""
             date         ""
             location     ""
-            copyright    "")
-      )
-  );;INFO-LOAD
+            copyright    "")))
 
 
 (defun info-save (txt)
@@ -305,8 +254,7 @@ RETURN:  a cons with two substrings of string such as:
   (setq last_description      description)
   (setq last_date             date)
   (setq last_location         location)
-  (setq last_copyright        copyright)
-  );;INFO-SAVE
+  (setq last_copyright        copyright))
 
 
 (defun title (file)
@@ -314,10 +262,8 @@ RETURN:  a cons with two substrings of string such as:
     (setq file (subseq file 0 (- (length file) 4))))
   (loop for i from 0 to (1- (length file))
      when (member (aref file i) '( #\- #\_ ) :test 'eq)
-     do   (aset file i 32)
-       );;loop
-  file
-  );;title
+     do   (aset file i 32))
+  file)
 
 
 
@@ -481,8 +427,7 @@ RETURN:  a cons with two substrings of string such as:
                      (format t "~a=" 'copyright)
                      (setq copyright (read-line)))
                     
-                    )))
-           ))));;EDIT
+                    )))))))
 
 
 
@@ -505,8 +450,7 @@ RETURN:  a cons with two substrings of string such as:
                           :output :stream)
                          *standard-output*)
             )
-          (format t "~a: Missing '~a'.~%" pname fcom))))
-  );;COMMIT-COMMENTS
+          (format t "~a: Missing '~a'.~%" pname fcom)))))
 
 
 (defun main (arguments)
