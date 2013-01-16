@@ -46,53 +46,40 @@
 ;;;;*****************************************************************************
 
 (in-package "COMMON-LISP-USER")
-(load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common :defaults *load-pathname*))
+(load (make-pathname :name "SCRIPT" :type "LISP" :version nil :case :common :defaults *load-pathname*))
 (use-package "SCRIPT")
 (defparameter *program-name* (pname))
 (defparameter *program-version* "1.0.2")
 
+(load (merge-pathnames (make-pathname :directory '(:relative "QUICKLISP")
+                                      :name "SETUP" :type "LISP" :version NIL
+                                      :case :common :defaults (user-homedir-pathname))
+                       (user-homedir-pathname) nil))
 (without-output
   (ql:quickload :com.informatimago.common-lisp)
   (ql:quickload :com.informatimago.clisp)
   (ql:quickload :com.informatimago.susv3))
 
-;; (error "This script needs some love.")
+(com.informatimago.common-lisp.cesarum.package:add-nickname "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.PACKAGE" "PACKAGE")
+(package:add-nickname "COM.INFORMATIMAGO.CLISP.SUSV3"  "SUSV3")
+(package:add-nickname "COM.INFORMATIMAGO.SUSV3.DIRENT" "DIRENT")
 
 (defpackage "COM.INFORMATIMAGO.CLISP.CLEAN-PATH"
-  (:NICKNAMES "CLEAN-PATH")
-  (:DOCUMENTATION "
+  (:nicknames "CLEAN-PATH")
+  (:documentation "
 This scripts builds an isomorphe directory hierarchy with the names
 cleaned up (removing most special and non ASCII characters).
 ")
   (:use "COMMON-LISP")
   (:use "EXT" "REGEXP" "LINUX")
   (:use "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.UTILITY"
-        "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.STRING"
-        )
-  (:FROM  :IMPORT :ALL)
-  (:FROM   :IMPORT :ALL)
-  (:USE  COM.INFORMATIMAGO.CLISP.SCRIPT :AS "SCRIPT")
-  (:EXPORT REMOTE ADD-REMOTE MAIN ));;COM.INFORMATIMAGO.CLISP.CLEAN-PATH
-
-(package:load-package "COM.INFORMATIMAGO.COMMON-LISP.SOURCE-FORM")
-(package:load-package "COM.INFORMATIMAGO.COMMON-LISP.UTILITY")
-(package:load-package "COM.INFORMATIMAGO.COMMON-LISP.LIST")
-(package:load-package "COM.INFORMATIMAGO.COMMON-LISP.ECMA048")
-(package:load-package "COM.INFORMATIMAGO.COMMON-LISP.STRING")
-(package:load-package "COM.INFORMATIMAGO.CLISP.SCRIPT")
-(package:add-nickname "COM.INFORMATIMAGO.CLISP.SCRIPT" "SCRIPT")
-(package:load-package "COM.INFORMATIMAGO.CLISP.SUSV3")
-(package:add-nickname "COM.INFORMATIMAGO.CLISP.SUSV3" "SUSV3")
-(package:load-package "COM.INFORMATIMAGO.CLISP.SUSV3-XSI")
-(package:load-package "COM.INFORMATIMAGO.SUSV3.DIRENT")
-(package:add-nickname "COM.INFORMATIMAGO.SUSV3.DIRENT" "DIRENT")
-
-(script:initialize)
+        "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.STRING")
+  (:export "REMOTE" "ADD-REMOTE" "MAIN"))
+(in-package "COM.INFORMATIMAGO.CLISP.CLEAN-PATH")
 
 
-(defmacro memq (&rest args)
-  `(member ,@args :test (function eq)))
-
+(defun memq (element list)
+  (member element list :test (function eq)))
 
 
 (defun file-directory-p (path)
@@ -537,7 +524,7 @@ keys:    may contain one of:
           (script:exit script:ex-dataerr))
         (clean-paths src dst options)))))
 
-(when (script:is-running)
-  (main script:*arguments*))
+#-testing-script
+(main script:*arguments*)
 
-;;;; clean-paths                      --                     --          ;;;;
+;;;; THE END ;;;;

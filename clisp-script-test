@@ -10,7 +10,6 @@
                                       :name "SETUP" :type "LISP" :version NIL
                                       :case :common :defaults (user-homedir-pathname))
                        (user-homedir-pathname) nil))
-
 (without-output
   (ql:quickload :com.informatimago.common-lisp)
   (ql:quickload :com.informatimago.clisp)
