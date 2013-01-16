@@ -58,7 +58,7 @@
 (in-package "COM.INFORMATIMAGO.CLISP.VERSION")
 
 
-(defun clisp-version (&optional (version-string (LISP-IMPLEMENTATION-VERSION)))
+(defun clisp-version (&optional (version-string (lisp-implementation-version)))
   (loop
      :with r = '()
      :with start = 0
@@ -98,34 +98,35 @@
 ;;;
 ;;;
 
-(cl:in-package "COMMON-LISP-USER")
+(in-package "COMMON-LISP-USER")
 
 (defpackage "COM.INFORMATIMAGO.COMMON-LISP.SCRIPT"
   (:nicknames "SCRIPT")
   (:use "COMMON-LISP")
   (:export "PNAME" "*PROGRAM-NAME*" "*VERBOSE*" "*DEBUG*"
 
-           "REDIRECTING-STDOUT-TO-STDERR" "WITHOUT-OUTPUT"
+           "WITHOUT-OUTPUT" "WITH-PAGER"
+           "REDIRECTING-STDOUT-TO-STDERR" 
            "RELAUCH-WITH-KFULL-LINKSET-IF-NEEDED"
            
-           "DEFINE-OPTION" "CALL-OPTION-FUNCTION"  "MAIN"
+           "DEFINE-OPTION" "CALL-OPTION-FUNCTION"
+           "PARSE-OPTIONS" "MAIN"
            "SET-DOCUMENTATION-TEXT"
            "*BASH-COMPLETION-HOOK*"
+
            ;; Utilities:
            "FIND-DIRECTORIES"
            "CONCAT" "MAPCONCAT"
+
+           "GETPID" "SHELL-QUOTE-ARGUMENT" "SHELL" "EXECUTE" "RUN-PROGRAM"
+           "UNAME" "COPY-FILE"  "MAKE-SYMBOLIC-LINK" "MAKE-DIRECTORY"
+           
            ;; Exit codes:
            "EX--BASE" "EX--MAX" "EX-CANTCREAT" "EX-CONFIG"
            "EX-DATAERR" "EX-IOERR" "EX-NOHOST" "EX-NOINPUT"
            "EX-NOPERM" "EX-NOUSER" "EX-OK" "EX-OSERR" "EX-OSFILE"
            "EX-PROTOCOL" "EX-SOFTWARE" "EX-TEMPFAIL" "EX-UNAVAILABLE"
-           "EX-USAGE"
-           
-           "SHELL" "RUN-PROGRAM"
-           "UNAME" "PARSE-OPTIONS"
-           "WITH-PAGER"
-
-           ))
+           "EX-USAGE"))
 (in-package "COM.INFORMATIMAGO.COMMON-LISP.SCRIPT")
 
 
@@ -153,62 +154,8 @@ otherwise we fallback to *DEFAULT-PROGRAM-NAME*.")
 
 
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
-
-
-(defmacro redirecting-stdout-to-stderr (&body body)
-  (let ((verror  (gensym))
-        (voutput (gensym)))
-   `(let* ((,verror  nil)
-           (,voutput (with-output-to-string (stream)
-                       (let ((*standard-output* stream)
-                             (*error-output*    stream)
-                             (*trace-output*    stream))
-                         (handler-case (progn ,@body)
-                           (error (err) (setf ,verror err)))))))
-      (when ,verror
-        (terpri *error-output*)
-        (princ ,voutput *error-output*)
-        (terpri *error-output*)
-        (princ ,verror *error-output*)
-        (terpri *error-output*)
-        (terpri *error-output*)
-        #-testing-script (ext:exit EX-SOFTWARE)))))
-
-
-(defun report-the-error (err string-stream)
-  (let ((log-path (format nil "/tmp/~A.~D.errors"
-                          (pathname-name (pname))
-                          (let ((getpid (or (ignore-errors (find-symbol "getpid"     "LINUX"))
-                                            (ignore-errors (find-symbol "PROCESS-ID" "OS"))
-                                            (ignore-errors (find-symbol "PROCESS-ID" "SYSTEM")))))
-                            (if getpid
-                                (funcall getpid)
-                                "nopid")))))
-    (with-open-file (log-stream log-path
-                                :direction :output
-                                :if-exists :supersede
-                                :if-does-not-exist :create)
-      (format log-stream "~A GOT AN ERROR: ~A~%~80,,,'-<~>~%~A~%"
-              (pname) err
-              (GET-OUTPUT-STREAM-STRING string-stream)))
-    (format *error-output* "~A: ~A~%  See ~A~%" (pname) err log-path)
-    (finish-output *error-output*)
-    (ext:exit EX-SOFTWARE)))
-
-
-(defmacro without-output (&body body)
-  `(prog1 (values)
-     (with-output-to-string (net)
-       (handler-case
-           (let ((*standard-output* net)
-                 (*error-output*    net)
-                 (*trace-output*    net))
-             ,@body)
-         (error (err) (report-the-error err net))))))
-
 
 (defun relauch-with-kfull-linkset-if-needed (thunk)
   ;; If the version of clisp requires -Kfull to have linux, then let's call it with -Kfull…
@@ -229,6 +176,65 @@ otherwise we fallback to *DEFAULT-PROGRAM-NAME*.")
                                   #+linux :may-exec  #+linux t
                                   #+win32 :indirectp #+win32 nil)
                  0)))))))
+
+(relauch-with-kfull-linkset-if-needed (lambda () (require "linux")))
+
+
+
+(defmacro redirecting-stdout-to-stderr (&body body)
+  (let ((verror  (gensym))
+        (voutput (gensym)))
+   `(let* ((,verror  nil)
+           (,voutput (with-output-to-string (stream)
+                       (let ((*standard-output* stream)
+                             (*error-output*    stream)
+                             (*trace-output*    stream))
+                         (handler-case (progn ,@body)
+                           (error (err) (setf ,verror err)))))))
+      (when ,verror
+        (terpri *error-output*)
+        (princ ,voutput *error-output*)
+        (terpri *error-output*)
+        (princ ,verror *error-output*)
+        (terpri *error-output*)
+        (terpri *error-output*)
+        #-testing-script (ext:exit ex-software)))))
+
+(defun getpid ()
+  (or (ignore-errors (find-symbol "getpid"     "LINUX"))
+      (ignore-errors (find-symbol "PROCESS-ID" "OS"))
+      (ignore-errors (find-symbol "PROCESS-ID" "SYSTEM"))))
+
+
+(defun report-the-error (err string-stream)
+  (let ((log-path (format nil "/tmp/~A.~D.errors"
+                          (pathname-name (pname))
+                          (let ((getpid (getpid)))
+                            (if getpid
+                                (funcall getpid)
+                                "nopid")))))
+    (with-open-file (log-stream log-path
+                                :direction :output
+                                :if-exists :supersede
+                                :if-does-not-exist :create)
+      (format log-stream "~A GOT AN ERROR: ~A~%~80,,,'-<~>~%~A~%"
+              (pname) err
+              (get-output-stream-string string-stream)))
+    (format *error-output* "~A: ~A~%  See ~A~%" (pname) err log-path)
+    (finish-output *error-output*)
+    (ext:exit ex-software)))
+
+
+(defmacro without-output (&body body)
+  `(prog1 (values)
+     (with-output-to-string (net)
+       (handler-case
+           (let ((*standard-output* net)
+                 (*error-output*    net)
+                 (*trace-output*    net))
+             ,@body)
+         (error (err) (report-the-error err net))))))
+
 
 
 
@@ -274,93 +280,178 @@ LINES     Number of line to output in a single chunk.
         `(progn ,@body))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;
+
+
+(defun shell-quote-argument (argument)
+  "
+DO:      Quote an argument for passing as argument to an inferior shell.
+RETURN:  A string containing the quoted argument.
+"
+  (do ((i 0 (1+ i))
+       (ch)
+       (result '()))
+      ((<= (length argument) i) (coerce (nreverse result) 'string))
+    (setq ch (char argument i))
+    (unless (or (char= (character "-") ch)
+                (char= (character ".") ch)
+                (char= (character "/") ch)
+                (and (char<= (character "A") ch) (char<= ch (character "Z")))
+                (and (char<= (character "a") ch) (char<= ch (character "z")))
+                (and (char<= (character "0") ch) (char<= ch (character "9"))))
+      (push (character "\\") result))
+    (push ch result)))
+
+
+(defun shell   (command)
+  "
+SEE ALSO:    EXECUTE.
+"
+  (ext:shell command))
+
+
+(defun execute (&rest command)
+  "
+RETURN:     The status returned by the command.
+SEE ALSO:   SHELL
+"
+  (ext:run-program (car command)
+    :arguments (cdr command)
+    :input :terminal :output :terminal))
+
+
+(defun copy-file (file newname &optional ok-if-already-exists keep-time)
+  "
+IMPLEMENTATION: The optional argument is not implemented.
+
+Copy FILE to NEWNAME.  Both args must be strings.
+If NEWNAME names a directory, copy FILE there.
+Signals a `file-already-exists' error if file NEWNAME already exists,
+unless a third argument OK-IF-ALREADY-EXISTS is supplied and non-nil.
+A number as third arg means request confirmation if NEWNAME already exists.
+This is what happens in interactive use with M-x.
+Fourth arg KEEP-TIME non-nil means give the new file the same
+last-modified time as the old one.  (This works on only some systems.)
+A prefix arg makes KEEP-TIME non-nil.
+"
+  (declare (ignore ok-if-already-exists keep-time))
+  (execute "cp" (shell-quote-argument file)  (shell-quote-argument newname)))
+
+
+(defun make-symbolic-link (filename linkname &optional ok-if-already-exists)
+  "
+IMPLEMENTATION: The optional argument is not implemented.
+
+Make a symbolic link to FILENAME, named LINKNAME.  Both args strings.
+Signals a `file-already-exists' error if a file LINKNAME already exists
+unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
+A number as third arg means request confirmation if LINKNAME already exists.
+"
+  (declare (ignore ok-if-already-exists))
+  (/= 0 (linux:|symlink| filename linkname)))
+
+
+(defun make-directory (*path* &optional (parents nil))
+  "
+Create the directory *PATH* and any optionally nonexistent parents dirs.
+The second (optional) argument PARENTS says whether
+to create parents directories if they don't exist.
+"
+  (if parents
+      (ensure-directories-exist (concatenate 'string *path* "/.") :verbose nil)
+      (linux:|mkdir| *path*  511 #| #o777 |# ))
+  (ext:probe-directory (if (char= (char *path* (1- (length *path*)))
+                                  (character "/"))
+                           *path* (concatenate 'string *path* "/"))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;; From /usr/include/sysexits.h (Linux)
 ;;;
 
-(DEFCONSTANT EX-OK            0   "successful termination")
+(defconstant ex-ok            0   "successful termination")
 
 
-(DEFCONSTANT EX--BASE         64  "base value for error messages")
+(defconstant ex--base         64  "base value for error messages")
 
 
-(DEFCONSTANT EX-USAGE         64  "command line usage error
+(defconstant ex-usage         64  "command line usage error
     The command was used incorrectly, e.g., with
     the wrong number of arguments, a bad flag, a bad
     syntax in a parameter, or whatever.") ;;EX-USAGE
 
-(DEFCONSTANT EX-DATAERR       65  "data format error
+(defconstant ex-dataerr       65  "data format error
     The input data was incorrect in some way.
     This should only be used for user's data & not
     system files.") ;;EX-DATAERR
 
-(DEFCONSTANT EX-NOINPUT       66  "cannot open input
+(defconstant ex-noinput       66  "cannot open input
     An input file (not a system file) did not
     exist or was not readable.  This could also include
     errors like \"No message\" to a mailer (if it cared
     to catch it).") ;;EX-NOINPUT
 
-(DEFCONSTANT EX-NOUSER        67  "addressee unknown
+(defconstant ex-nouser        67  "addressee unknown
     The user specified did not exist.  This might
     be used for mail addresses or remote logins.
     ") ;;EX-NOUSER
 
-(DEFCONSTANT EX-NOHOST        68  "host name unknown
+(defconstant ex-nohost        68  "host name unknown
     The host specified did not exist.  This is used
     in mail addresses or network requests.") ;;EX-NOHOST
 
-(DEFCONSTANT EX-UNAVAILABLE   69  "service unavailable
+(defconstant ex-unavailable   69  "service unavailable
     A service is unavailable.  This can occur
     if a support program or file does not exist.  This
     can also be used as a catchall message when something
     you wanted to do doesn't work, but you don't know
     why.") ;;EX-UNAVAILABLE
 
-(DEFCONSTANT EX-SOFTWARE      70  "internal software error
+(defconstant ex-software      70  "internal software error
     An internal software error has been detected.
     This should be limited to non-operating system related
     errors as possible.") ;;EX-SOFTWARE
 
-(DEFCONSTANT EX-OSERR         71  "system error (e.g., can't fork)
+(defconstant ex-oserr         71  "system error (e.g., can't fork)
     An operating system error has been detected.
     This is intended to be used for such things as \"cannot
     fork\", \"cannot create pipe\", or the like.  It includes
     things like getuid returning a user that does not
     exist in the passwd file.") ;;EX-OSERR
 
-(DEFCONSTANT EX-OSFILE        72  "critical OS file missing
+(defconstant ex-osfile        72  "critical OS file missing
     Some system file (e.g., /etc/passwd, /etc/utmp,
     etc.) does not exist, cannot be opened, or has some
     sort of error (e.g., syntax error).") ;;EX-OSFILE
 
-(DEFCONSTANT EX-CANTCREAT     73  "can't create (user) output file
+(defconstant ex-cantcreat     73  "can't create (user) output file
     A (user specified) output file cannot be created.") ;;EX-CANTCREAT
 
-(DEFCONSTANT EX-IOERR         74  "input/output error
+(defconstant ex-ioerr         74  "input/output error
      An error occurred while doing I/O on some file.") ;;EX-IOERR
 
-(DEFCONSTANT EX-TEMPFAIL      75  "temp failure; user is invited to retry
+(defconstant ex-tempfail      75  "temp failure; user is invited to retry
     temporary failure, indicating something that
     is not really an error.  In sendmail, this means
     that a mailer (e.g.) could not create a connection,
     and the request should be reattempted later.") ;;EX-TEMPFAIL
 
-(DEFCONSTANT EX-PROTOCOL      76  "remote error in protocol
+(defconstant ex-protocol      76  "remote error in protocol
     the remote system returned something that
     was \"not possible\" during a protocol exchange.") ;;EX-PROTOCOL
 
-(DEFCONSTANT EX-NOPERM        77  "permission denied
+(defconstant ex-noperm        77  "permission denied
     You did not have sufficient permission to
     perform the operation.  This is not intended for
     file system problems, which should use NOINPUT or
     CANTCREAT, but rather for higher level permissions.") ;;EX-NOPERM
 
-(DEFCONSTANT EX-CONFIG        78  "configuration error")
+(defconstant ex-config        78  "configuration error")
 
 
-(DEFCONSTANT EX--MAX          78  "maximum listed value")
+(defconstant ex--max          78  "maximum listed value")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

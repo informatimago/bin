@@ -36,7 +36,10 @@
 ;;;;**************************************************************************
 (in-package "COMMON-LISP-USER")
 (load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common :defaults *load-pathname*))
-(script:relauch-with-kfull-linkset-if-needed (lambda () (require "linux")))
+(use-package "SCRIPT")
+(defparameter *program-name* (pname))
+(defparameter *program-version* "0.1.1")
+
 
 (defpackage "COM.INFORMATIMAGO.RADIO"
   (:use "COMMON-LISP" "SCRIPT")
@@ -47,8 +50,6 @@ Listen to the radio.
 (in-package "COM.INFORMATIMAGO.RADIO")
 
 
-(setf *program-name* (pname))
-(defparameter *program-version* "0.1.0")
 (setf *debug* t)
 
 ;;;---------------------------------------------------------------------

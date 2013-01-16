@@ -47,66 +47,32 @@
 
 (in-package "COMMON-LISP-USER")
 (load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common :defaults *load-pathname*))
-(script:relauch-with-kfull-linkset-if-needed (lambda () (require "linux")))
+(use-package "SCRIPT")
+(defparameter *program-name* (pname))
+(defparameter *program-version* "1.0.2")
 
-(error "This script needs some love.")
+(without-output
+  (ql:quickload :com.informatimago.common-lisp)
+  (ql:quickload :com.informatimago.clisp)
+  (ql:quickload :com.informatimago.susv3))
 
+;; (error "This script needs some love.")
 
-(progn 
-  (defvar *directories*  '())
-  (defun get-directory (key &optional (subpath ""))
-    (unless *directories*
-      (with-open-file (dirs (make-pathname :name "DIRECTORIES" :type "TXT"
-                                           :version nil :case :common
-                                           :defaults (user-homedir-pathname)))
-        (loop
-           :for k = (read dirs nil dirs)
-           :until (eq k dirs)
-           :do (push (string-trim " " (read-line dirs)) *directories*)
-           :do (push (intern (substitute #\- #\_ (string k))
-                             "KEYWORD") *directories*))))
-    (unless (getf *directories* key)
-      (error "~S: No directory keyed ~S" 'get-directory key))
-    (merge-pathnames subpath (getf *directories* key) nil)))
-
-
-(setf (logical-pathname-translations "PACKAGES") nil
-      (logical-pathname-translations "PACKAGES")
-      (list (list (make-pathname
-                   :host "PACKAGES"
-                   :directory '(:absolute :wild-inferiors)
-                   :name :wild
-                   :type :wild
-                   :version nil)
-                  (get-directory :share-lisp "packages/**/*.*"))
-            (list (make-pathname
-                   :host "PACKAGES"
-                   :directory '(:absolute :wild-inferiors)
-                   :name :wild
-                   :type nil
-                   :version nil)
-                  (get-directory :share-lisp "packages/**/*"))))
-
-
-(or (ignore-errors (load #p"PACKAGES:COM;INFORMATIMAGO;COMMON-LISP;PACKAGE"))
-    (load #p"PACKAGES:COM;INFORMATIMAGO;COMMON-LISP;PACKAGE.LISP"))
-(import 'package:define-package)
-
-
-;;; (DEFINE-PACKAGE COM.INFORMATIMAGO.CLISP.CLEAN-PATH
-;;;   (:NICKNAMES CLEAN-PATH)
-;;;   (:DOCUMENTATION
-;;;    "This scripts builds an isomorphe directory hierarchy with the names
-;;;     cleaned up (removing most special and non ASCII characters).
-;;;    ")
-;;;   (:FROM COMMON-LISP :IMPORT :ALL)
-;;;   (:USE  EXT)
-;;;   (:USE  REGEXP)
-;;;   (:USE  LINUX)
-;;;   (:FROM COM.INFORMATIMAGO.COMMON-LISP.UTILITY :IMPORT :ALL)
-;;;   (:FROM COM.INFORMATIMAGO.COMMON-LISP.STRING  :IMPORT :ALL)
-;;;   (:USE  COM.INFORMATIMAGO.CLISP.SCRIPT :AS "SCRIPT")
-;;;   (:EXPORT REMOTE ADD-REMOTE MAIN ));;COM.INFORMATIMAGO.CLISP.CLEAN-PATH
+(defpackage "COM.INFORMATIMAGO.CLISP.CLEAN-PATH"
+  (:NICKNAMES "CLEAN-PATH")
+  (:DOCUMENTATION "
+This scripts builds an isomorphe directory hierarchy with the names
+cleaned up (removing most special and non ASCII characters).
+")
+  (:use "COMMON-LISP")
+  (:use "EXT" "REGEXP" "LINUX")
+  (:use "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.UTILITY"
+        "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.STRING"
+        )
+  (:FROM  :IMPORT :ALL)
+  (:FROM   :IMPORT :ALL)
+  (:USE  COM.INFORMATIMAGO.CLISP.SCRIPT :AS "SCRIPT")
+  (:EXPORT REMOTE ADD-REMOTE MAIN ));;COM.INFORMATIMAGO.CLISP.CLEAN-PATH
 
 (package:load-package "COM.INFORMATIMAGO.COMMON-LISP.SOURCE-FORM")
 (package:load-package "COM.INFORMATIMAGO.COMMON-LISP.UTILITY")

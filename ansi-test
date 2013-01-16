@@ -12,6 +12,7 @@
 ;;;;
 ;;;;SYNOPSIS
 ;;;;    ansi-test
+;;;;    xterm -xrm 'xterm*hold: on' -e ansi-test  
 ;;;;AUTHORS
 ;;;;    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
 ;;;;MODIFICATIONS
@@ -40,11 +41,9 @@
 ;;;;**************************************************************************
 (in-package "COMMON-LISP-USER")
 (load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common :defaults *load-pathname*))
-(script:relauch-with-kfull-linkset-if-needed (lambda () (require "linux")))
-
-(use-package :script)
-(setf *program-name* (pname))
-(defparameter *program-version* "1.0.1")
+(use-package "SCRIPT")
+(defparameter *program-name* (pname))
+(defparameter *program-version* "1.0.2")
 
 (define-option ("version" "-V" "--version") ()
   "Report the version of this script."
@@ -55,43 +54,17 @@
   (parse-options ext:*args* (lambda () (throw 'go-on t)))
   (ext:exit 0))
 
-
-
-(defun report-the-error (err string-stream)
-  (let ((log-path (format nil "/tmp/ansi-test.~D.errors"
-                          #+(and clisp linux) (LINUX:|getpid|)
-                          #-(and clisp linux) "nopid")))
-    (with-open-file (log log-path
-                        :direction :output
-                        :if-exists :supersede
-                        :if-does-not-exist :create)
-      (format log "~A GOT AN ERROR: ~A~2%"
-              (or *load-pathname* "ansi-test")
-              err)
-      (princ (GET-OUTPUT-STREAM-STRING string-stream) log))
-    (format *error-output*
-      "~A: ~A~%  See ~A~%"
-      (or *load-pathname* "ansi-test") err log-path)
-    (finish-output *error-output*)
-    (ext:quit 1)))
-
-
-(defmacro without-output (&body body)
-  `(prog1 (values)
-     (with-output-to-string (net)
-       (handler-case
-           (let ((*standard-output* net)
-                 (*error-output*    net)
-                 (*trace-output*    net))
-             ,@body)
-         (error (err) (report-the-error err net))))))
-
-
 (format t "~CcLoading...~%" (code-char 27))
-(without-output                      
-    (load (make-pathname :name ".clisprc" :type "lisp"
-                         :defaults (user-homedir-pathname))))
+(load (merge-pathnames (make-pathname :directory '(:relative "QUICKLISP")
+                                      :name "SETUP" :type "LISP" :version NIL
+                                      :case :common :defaults (user-homedir-pathname))
+                       (user-homedir-pathname) nil))
 
+(without-output
+  (ql:quickload :com.informatimago.common-lisp))
+
+(shadow 'concat)
+(use-package "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.UTILITY")
 
 (defpackage "E48" (:use))
 (let ((*package* (find-package "E48")))
@@ -109,7 +82,6 @@
                :result-type 'common-lisp:string)))
 
 
-(use-package  "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.UTILITY")
 
 (defenum sgr-codes 
   "

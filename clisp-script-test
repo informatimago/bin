@@ -2,11 +2,9 @@
 
 (in-package "COMMON-LISP-USER")
 (load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common :defaults *load-pathname*))
-(script:relauch-with-kfull-linkset-if-needed (lambda () (require "linux")))
-
-(use-package :script)
-(setf *program-name* (pname))
-(defparameter *program-version* "1.0.1")
+(use-package "SCRIPT")
+(defparameter *program-name* (pname))
+(defparameter *program-version* "1.0.2")
 
 (load (merge-pathnames (make-pathname :directory '(:relative "QUICKLISP")
                                       :name "SETUP" :type "LISP" :version NIL
