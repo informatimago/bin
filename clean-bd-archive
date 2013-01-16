@@ -1,6 +1,25 @@
 #!/usr/bin/clisp -ansi -q -E utf-8
 ;;;; -*- mode:lisp; coding:utf-8 -*-
 
+;; If the version of clisp requires -Kfull to have linux, then let's call it with -Kfull…
+(multiple-value-bind (res err) (ignore-errors (require "linux"))
+  (when err
+    (let* ((argv  (ext:argv))
+           (largv (length argv))
+           (args  ext:*args*)
+           (largs (length args))
+           (pname (elt argv (- largv largs 1))))
+      (ext:exit
+       (or (EXT:RUN-PROGRAM "/usr/bin/clisp"
+                            :ARGUMENTS (append '("-ansi" "-q" "-E" "utf-8" "-Kfull")
+                                               (cons pname args))
+                            :wait t
+                            #+linux :MAY-EXEC  #+linux t
+                            #+win32 :INDIRECTP #+win32 nil)
+           0)))))
+
+
+
 ;; Clean the packages imported into COMMON-LISP-USER:
 (MAPC (LAMBDA (USED) (UNUSE-PACKAGE USED "COMMON-LISP-USER"))
       (REMOVE (FIND-PACKAGE "COMMON-LISP")
