@@ -169,14 +169,15 @@ otherwise we fallback to *DEFAULT-PROGRAM-NAME*.")
         (if (find "-Kfull" argv :test (function string=))
             (error err)
             (ext:exit
-             (or (ext:run-program "/usr/bin/clisp"
-                                  :arguments (append '("-ansi" "-q" "-E" "utf-8" "-Kfull")
-                                                     (cons name args))
-                                  :wait t
-                                  #+linux :may-exec  #+linux t
-                                  #+win32 :indirectp #+win32 nil)
-                 0)))))))
+             (or  (ext:run-program "/usr/bin/clisp"
+                    :arguments (append '("-ansi" "-q" "-E" "utf-8" "-Kfull")
+                                       (cons name args))
+                    :wait t
+                    #+linux :may-exec  #+linux t
+                    #+win32 :indirectp #+win32 nil)
+                  0)))))))
 
+#-(or macosx win32 #|what else is not linux?|#)
 (relauch-with-kfull-linkset-if-needed (lambda () (require "linux")))
 
 
