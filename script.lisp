@@ -177,7 +177,7 @@ otherwise we fallback to *DEFAULT-PROGRAM-NAME*.")
                     #+win32 :indirectp #+win32 nil)
                   0)))))))
 
-#-(or macosx win32 #|what else is not linux?|#)
+#-(or macos win32 #|what else is not linux?|#)
 (relauch-with-kfull-linkset-if-needed (lambda () (require "linux")))
 
 
@@ -340,6 +340,8 @@ A prefix arg makes KEEP-TIME non-nil.
   (execute "cp" (shell-quote-argument file)  (shell-quote-argument newname)))
 
 
+
+#+linux ;; Should probably move away.
 (defun make-symbolic-link (filename linkname &optional ok-if-already-exists)
   "
 IMPLEMENTATION: The optional argument is not implemented.
@@ -353,6 +355,7 @@ A number as third arg means request confirmation if LINKNAME already exists.
   (/= 0 (linux:|symlink| filename linkname)))
 
 
+#+linux ;; Should probably move away.
 (defun make-directory (*path* &optional (parents nil))
   "
 Create the directory *PATH* and any optionally nonexistent parents dirs.
