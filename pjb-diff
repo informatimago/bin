@@ -824,20 +824,8 @@ RETURN:  the list of lines collected from the file.
                (setf num (line-number line)))))))
    
 ;; (in-package "COMMON-LISP-USER")
-;; 
-;; ;; Clean the packages imported into COMMON-LISP-USER:
-;; (MAPC (LAMBDA (package) (UNUSE-PACKAGE package "COMMON-LISP-USER"))
-;;       (set-difference
-;;        (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))
-;;        (delete nil (list ;; A list of all the "CL" packages possible:
-;;                     (FIND-PACKAGE "COMMON-LISP")
-;;                     (FIND-PACKAGE "IMAGE-BASED-COMMON-LISP")))))
-;; 
-;; (load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common
-;;                      :defaults *load-pathname*))
+;; (load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common :defaults *load-pathname*))
 ;; (use-package "SCRIPT")
-;; 
-;; (defparameter *program-name* (pname))
 ;; (defparameter *program-version* "0.0.0")
 ;; 
 ;; 

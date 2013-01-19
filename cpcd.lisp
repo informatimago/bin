@@ -4,7 +4,6 @@
 (in-package "COMMON-LISP-USER")
 (load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common :defaults *load-pathname*))
 (use-package "SCRIPT")
-(defparameter *program-name* (pname))
 (defparameter *program-version* "1.0.2")
 
 (defpackage "CPCD"

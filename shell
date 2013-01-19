@@ -35,22 +35,14 @@
 ;;;;    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 ;;;;******************************************************************************
 
-
-;; Clean the packages imported into COMMON-LISP-USER:
-(MAPC (LAMBDA (USED) (UNUSE-PACKAGE USED "COMMON-LISP-USER"))
-      (REMOVE (FIND-PACKAGE "COMMON-LISP")
-              (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))))
-
-
-(load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common
-                     :defaults *load-pathname*))
+(in-package "COMMON-LISP-USER")
+(load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common :defaults *load-pathname*))
 
 (defpackage "COM.INFORMATIMAGO.CINE-SHELL"
   (:use "COMMON-LISP" "SCRIPT"))
 (in-package "COM.INFORMATIMAGO.CINE-SHELL")
+(defparameter *program-version* "0.0.2")
 
-(defparameter *program-name*    (pname))
-(defparameter *program-version* "0.0.1")
 
 
 (define-option ("version" "-V" "--version") ()

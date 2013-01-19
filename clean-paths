@@ -1,4 +1,4 @@
-#!/usr/bin/clisp -ansi -q -E utf-8
+#!/usr/bin/clisp -ansi -q -E utf-8 
 ;;;; -*- mode:lisp; coding:utf-8 -*-
 ;;;;*****************************************************************************
 ;;;;FILE:               clean-paths
@@ -45,10 +45,11 @@
 ;;;;
 ;;;;*****************************************************************************
 
+(error "com.informatimago.clisp.susv3 needs works to switch to 64-bit libraries…")
+
 (in-package "COMMON-LISP-USER")
 (load (make-pathname :name "SCRIPT" :type "LISP" :version nil :case :common :defaults *load-pathname*))
 (use-package "SCRIPT")
-(defparameter *program-name* (pname))
 (defparameter *program-version* "1.0.2")
 
 (load (merge-pathnames (make-pathname :directory '(:relative "QUICKLISP")
@@ -58,9 +59,11 @@
 (without-output
   (ql:quickload :com.informatimago.common-lisp)
   (ql:quickload :com.informatimago.clisp)
-  (ql:quickload :com.informatimago.susv3))
+  (ql:quickload :com.informatimago.susv3)
+  (ql:quickload :split-sequence))
 
-(com.informatimago.common-lisp.cesarum.package:add-nickname "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.PACKAGE" "PACKAGE")
+(com.informatimago.common-lisp.cesarum.package:add-nickname
+ "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.PACKAGE" "PACKAGE")
 (package:add-nickname "COM.INFORMATIMAGO.CLISP.SUSV3"  "SUSV3")
 (package:add-nickname "COM.INFORMATIMAGO.SUSV3.DIRENT" "DIRENT")
 
@@ -71,7 +74,6 @@ This scripts builds an isomorphe directory hierarchy with the names
 cleaned up (removing most special and non ASCII characters).
 ")
   (:use "COMMON-LISP")
-  (:use "EXT" "REGEXP" "LINUX")
   (:use "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.UTILITY"
         "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.STRING")
   (:export "REMOTE" "ADD-REMOTE" "MAIN"))
@@ -238,10 +240,11 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
               (files '()))
             ((null entry) (if nosort files (sort files (function string<=))))
           (when (or (not match) (regexp:match match (dirent:dirent-name entry)))
-            (when (string= "" (dirent:dirent-name entry))
-              (error "There's a bug with DIRENT:READDIR."))
-            (push (concatenate 'string dirpath (dirent:dirent-name entry))
-                  files)))
+            (script:pmessage "dirent: ~S~%dirent-name: ~S~%"
+                             entry (dirent:dirent-name entry))
+            (if (string= "" (dirent:dirent-name entry))
+              (script:perror "There's a bug with DIRENT:READDIR directory = ~S" directory)
+              (push (concatenate 'string dirpath (dirent:dirent-name entry)) files))))
       (dirent:closedir dir))))
 
 
@@ -251,21 +254,21 @@ RETURN: The path to a file found under `directory' whose inode is `inode',
         or nil if none found.
 "
   (car
-   (split-string
+   (split-sequence:split-sequence
     (ext:run-program "find"
-                     :arguments (list (script:shell-quote-argument directory)
-                                      "-inum" inode "-print")
-                     :output :stream)
-    "\n")))
+      :arguments (list (script:shell-quote-argument directory)
+                       "-inum" inode "-print")
+      :output :stream)
+    #\newline)))
 
 
 (defun print-usage ()
-  (format t "~A usage:~%~%" script:*name*)
-  (format t "    ~A [--symbolic-links|-L|--hard-links|-H|--copy|-C] \\~%"
-          script:*name*)
-  (format t "    ~V,A [--print-commands|-n] [--help|-h] \\~%"
-          (length script:*name*) "")
-  (format t "    ~V,A $srcdir $dstdir~%~%" (length script:*name*) ""))
+  (format t
+    "~A usage:~%~%~
+    ~:*~A [--symbolic-links|-L|--hard-links|-H|--copy|-C] \\~%~
+    ~V<~> [--print-commands|-n] [--help|-h] \\~%~
+    ~:*~V<~> $srcdir $dstdir~%~%"
+    script:*program-name* (length script:*program-name*)))
 
 
 (defvar *print-commands* nil 
@@ -322,9 +325,7 @@ DOES:    copy the item at src-path to dst-path.
 (defun cp-make-directory (path &optional parents)
   (cp-path-register path)
   (if *print-commands*
-    (format t "/bin/mkdir ~A ~A~%"
-            (if parents "-p" "")
-            (script:shell-quote-argument path))
+    (format t "/bin/mkdir ~:[~;-p~] ~A~%" parents (script:shell-quote-argument path))
     (script:make-directory path parents)))
 
 
@@ -349,7 +350,17 @@ RETURN: a unique name in the directory dir, formated as root-counter.extension
         (unique-name dir (format nil "~A-~D~A" name 0 "") name 0 "")))
     name))
 
+(defun clean-character-p (ch)
+  (or (alphanumericp ch) (find ch "._-")))
 
+(defun name-is-clean-p (name)
+  (every (function clean-character-p) name))
+
+(defun clean-name (name)
+  (format nil "~(~{~A~^-~}~)"
+          (split-sequence:split-sequence-if (complement (function clean-character-p)) name
+                                            :remove-empty-subseqs t)))
+(trace clean-name)
 
 (defun clean-path-directory (srcdir dstdir copy-action)
   "
@@ -375,7 +386,9 @@ DOES:    recursively clean the paths from srcdir into dstdir.
               (funcall copy-action srcitem dstitem)))))))
 
 
-(defun last-char (string) (aref string (1- (length string))))
+(defun last-char (string)
+  (aref string (1- (length string))))
+
 (defun clean-paths (srcdir dstdir keys)
   "
 DOES:    builds a directory hierarchy dstdir similar to srcdir,
@@ -388,12 +401,11 @@ keys:    may contain one of:
          :file-copy           The files are copied.
 "
   (when (char= #\/ (last-char srcdir))
-    (setq srcdir (subseq srcdir 0 (1- (length srcdir)))))
+    (setf srcdir (subseq srcdir 0 (1- (length srcdir)))))
   (when (char= #\/ (last-char dstdir))
-    (setq dstdir (subseq dstdir 0 (1- (length dstdir)))))
+    (setf dstdir (subseq dstdir 0 (1- (length dstdir)))))
   (unless (file-directory-p srcdir)
-    (error "First argument (~A) should be the path to the source directory."
-           srcdir))
+    (error "First argument (~A) should be the path to the source directory." srcdir))
   (when (file-exists-p dstdir)
     (error "Destination path (~A) already exist." dstdir))
   (cp-make-directory dstdir t)
@@ -404,8 +416,6 @@ keys:    may contain one of:
                        (t                          'cp-symbolic-link))))
     (let ((*print-commands* (memq :print-commands keys)))
       (clean-path-directory srcdir dstdir copy-action))))
-
-
 
 
 (defun reproduce-changes-directory (srcdir dstdir copy-action)
@@ -507,7 +517,7 @@ keys:    may contain one of:
       (print-usage)
       (script:exit script:ex-usage))
     ;; execute the command
-    (if (string= script:*name* "reproduce-changes")
+    (if (string= script:*program-name* "reproduce-changes")
       (progn ;; just output a script to reproduce $dst from $src
         (when (not (file-directory-p dst))
           (script:perror "invalid destination directory '~A'.~%" dst)

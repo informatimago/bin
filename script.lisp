@@ -36,7 +36,7 @@
 ;;;;    Boston, MA 02111-1307 USA
 ;;;;**************************************************************************
 (in-package "COMMON-LISP-USER")
-
+#-(and) (print (list (setf ext:*load-echo* t *load-verbose* t) *features* *modules*))
 ;; Clean the packages imported into COMMON-LISP-USER:
 (mapc (lambda (package) (unuse-package package "COMMON-LISP-USER"))
       (set-difference
@@ -103,46 +103,88 @@
 (defpackage "COM.INFORMATIMAGO.COMMON-LISP.SCRIPT"
   (:nicknames "SCRIPT")
   (:use "COMMON-LISP")
-  (:export "PNAME" "*PROGRAM-NAME*" "*VERBOSE*" "*DEBUG*"
+  (:export "*VERBOSE*" "*DEBUG*"
+           "*DEFAULT-PROGRAM-NAME*" "*PROGRAM-NAME*" "*PROGRAM-PATH*" "*ARGUMENTS*"
 
            "WITHOUT-OUTPUT" "WITH-PAGER"
            "REDIRECTING-STDOUT-TO-STDERR" 
            "RELAUCH-WITH-KFULL-LINKSET-IF-NEEDED"
+
+           ;; I/O
+           "PERROR" "PMESSAGE" "PQUERY"
            
+           ;; Options
            "DEFINE-OPTION" "CALL-OPTION-FUNCTION"
            "PARSE-OPTIONS" "MAIN"
            "SET-DOCUMENTATION-TEXT"
            "*BASH-COMPLETION-HOOK*"
-
+          
+           
            ;; Utilities:
            "FIND-DIRECTORIES"
            "CONCAT" "MAPCONCAT"
 
            "GETPID" "SHELL-QUOTE-ARGUMENT" "SHELL" "EXECUTE" "RUN-PROGRAM"
            "UNAME" "COPY-FILE"  "MAKE-SYMBOLIC-LINK" "MAKE-DIRECTORY"
-           
+
            ;; Exit codes:
            "EX--BASE" "EX--MAX" "EX-CANTCREAT" "EX-CONFIG"
            "EX-DATAERR" "EX-IOERR" "EX-NOHOST" "EX-NOINPUT"
            "EX-NOPERM" "EX-NOUSER" "EX-OK" "EX-OSERR" "EX-OSFILE"
            "EX-PROTOCOL" "EX-SOFTWARE" "EX-TEMPFAIL" "EX-UNAVAILABLE"
-           "EX-USAGE"))
+           "EX-USAGE"
+           
+           "EXIT"))
 (in-package "COM.INFORMATIMAGO.COMMON-LISP.SCRIPT")
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 
-(defvar *program-name* "<unnamed>"
-  "Name of the program.
-If available we use the actual program name (from *LOAD-PATHNAME*),
-otherwise we fallback to *DEFAULT-PROGRAM-NAME*.")
+
+(defvar *default-program-name* "untitled")
+
+
+(defun program-path ()
+  (let* ((argv  (ext:argv))
+         (largv (length argv))
+         (args  ext:*args*)
+         (largs (length args))
+         (index (- largv largs 1))
+         (path  (and (<= 0 index largv) (elt argv index))))
+    (cond
+      (path
+       path)
+      ((and *load-truename*
+            (string/= (file-namestring *load-truename*) "script.lisp"))
+       (namestring *load-truename*))
+      (t
+       *default-program-name*))))
+
+
+(defvar *program-path* (program-path)
+  "A namestring of the path to the program.
+This may be a relative pathname, when it's obtained from argv[0].
+If available we use the actual program name (from (EXT:ARGV) or
+*LOAD-TRUENAME*), otherwise we fallback to *DEFAULT-PROGRAM-NAME*.")
+
+
+(defvar *program-name* (file-namestring *program-path*)
+  "Name of the program.")
+
+
+(defvar *arguments* ext:*args*
+  "A list of command line arguments (strings).")
+
 
 (defvar *verbose* nil
   "Adds some trace output.")
 
+
 (defvar *debug* nil
   "Errors break into the debugger.")
+
 
 #-(or use-ppcre use-regexp) (push #-(and) :use-ppcre
                                   #+(and) :use-regexp
@@ -161,23 +203,21 @@ otherwise we fallback to *DEFAULT-PROGRAM-NAME*.")
   ;; If the version of clisp requires -Kfull to have linux, then let's call it with -Kfull…
   (multiple-value-bind (res err) (ignore-errors (funcall thunk))
     (when err
-      (let* ((argv  (ext:argv))
-             (largv (length argv))
-             (args  ext:*args*)
-             (largs (length args))
-             (name  (elt argv (- largv largs 1))))
-        (if (find "-Kfull" argv :test (function string=))
-            (error err)
-            (ext:exit
-             (or  (ext:run-program "/usr/bin/clisp"
-                    :arguments (append '("-ansi" "-q" "-E" "utf-8" "-Kfull")
-                                       (cons name args))
-                    :wait t
-                    #+linux :may-exec  #+linux t
-                    #+win32 :indirectp #+win32 nil)
-                  0)))))))
+      (if (find "-Kfull" (ext:argv) :test (function string=))
+        (error err)
+        (ext:exit
+         (or  (ext:run-program "/usr/bin/clisp"
+                :arguments (append '("-ansi" "-q" "-E" "utf-8" "-Kfull")
+                                   (cons *program-path* *arguments*))
+                :wait t
+                #+linux :may-exec  #+linux t
+                #+win32 :indirectp #+win32 nil)
+              0))))))
 
-#-(or macos win32 #|what else is not linux?|#)
+#-linux (when (find "linux" *modules* :test (function string=))
+          (push :linux *features*))
+
+#-(or linux macos win32 #|what else is not linux?|#)
 (relauch-with-kfull-linkset-if-needed (lambda () (require "linux")))
 
 
@@ -199,7 +239,7 @@ otherwise we fallback to *DEFAULT-PROGRAM-NAME*.")
         (princ ,verror *error-output*)
         (terpri *error-output*)
         (terpri *error-output*)
-        #-testing-script (ext:exit ex-software)))))
+        #-testing-script (exit ex-software)))))
 
 (defun getpid ()
   (or (ignore-errors (find-symbol "getpid"     "LINUX"))
@@ -208,8 +248,7 @@ otherwise we fallback to *DEFAULT-PROGRAM-NAME*.")
 
 
 (defun report-the-error (err string-stream)
-  (let ((log-path (format nil "/tmp/~A.~D.errors"
-                          (pathname-name (pname))
+  (let ((log-path (format nil "/tmp/~A.~D.errors" *program-name*
                           (let ((getpid (getpid)))
                             (if getpid
                                 (funcall getpid)
@@ -219,11 +258,10 @@ otherwise we fallback to *DEFAULT-PROGRAM-NAME*.")
                                 :if-exists :supersede
                                 :if-does-not-exist :create)
       (format log-stream "~A GOT AN ERROR: ~A~%~80,,,'-<~>~%~A~%"
-              (pname) err
-              (get-output-stream-string string-stream)))
-    (format *error-output* "~A: ~A~%  See ~A~%" (pname) err log-path)
+              *program-name* err (get-output-stream-string string-stream)))
+    (format *error-output* "~A: ~A~%  See ~A~%" *program-name* err log-path)
     (finish-output *error-output*)
-    (ext:exit ex-software)))
+    (exit ex-software)))
 
 
 (defmacro without-output (&body body)
@@ -286,23 +324,41 @@ LINES     Number of line to output in a single chunk.
 
 
 (defun shell-quote-argument (argument)
-  "
-DO:      Quote an argument for passing as argument to an inferior shell.
-RETURN:  A string containing the quoted argument.
-"
-  (do ((i 0 (1+ i))
-       (ch)
-       (result '()))
-      ((<= (length argument) i) (coerce (nreverse result) 'string))
-    (setq ch (char argument i))
-    (unless (or (char= (character "-") ch)
-                (char= (character ".") ch)
-                (char= (character "/") ch)
-                (and (char<= (character "A") ch) (char<= ch (character "Z")))
-                (and (char<= (character "a") ch) (char<= ch (character "z")))
-                (and (char<= (character "0") ch) (char<= ch (character "9"))))
-      (push (character "\\") result))
-    (push ch result)))
+  "Quote ARGUMENT for passing as argument to an inferior shell."
+  #+(or MSWINDOWS WIN32)
+  ;; Quote using double quotes, but escape any existing quotes in
+  ;; the argument with backslashes.
+  (let ((result "")
+        (start 0)
+        (end)
+        (match-beginning)
+        (match-end))
+    (when (or (null (setf match-end (position #\" argument)))
+              (< match-end (length argument)))
+      (loop
+         :while (setf match-beginning (position #\" argument :start start))
+         :do (setf end (1+ match-beginning)
+                   result (concatenate 'string result (subseq argument start end)
+                                       "\\" (subseq argument end (1+ end)))
+                   start (1+ end))))
+    (concatenate 'string "\"" result (subseq argument start) "\""))
+  #-(or MSWINDOWS WIN32)
+  (if (equal argument "")
+      "''"
+      ;; Quote everything except POSIX filename characters.
+      ;; This should be safe enough even for really weird shells.
+      (let ((result "")
+            (start 0)
+            (end)
+            (match-beginning)
+            (match-end))
+        (loop
+           :while (setf match-end (position-if-not (lambda (ch) (or (alphanumericp ch) (position ch "-_./")))  argument :start start))
+           :do (setf end match-end
+                     result (concatenate 'string result (subseq argument start end)
+                                         "\\" (subseq argument end (1+ end)))
+                     start (1+ end)))
+        (concatenate 'string result (subseq argument start)))))
 
 
 (defun shell   (command)
@@ -369,6 +425,34 @@ to create parents directories if they don't exist.
                                   (character "/"))
                            *path* (concatenate 'string *path* "/"))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun perror (format-string &rest args)
+  "
+DO:     Writes a message on the error output in the name of the script.
+"
+  (format *error-output* "~&~A: ~?" *program-name*  format-string args)
+  (finish-output *error-output*))
+
+
+(defun pmessage (format-string &rest args)
+  "
+DO:     Writes a message on the standard output in the name of the script.
+"
+  (format *standard-output* "~&~A: ~?" *program-name* format-string args)
+  (finish-output *standard-output*))
+
+
+(defun pquery (format-string &rest args)
+  "
+DO:     Writes a message on the query I/O in the name of the script, and
+        read a response line.
+RETURN: A string containing the response line.
+"
+  (format *query-io* "~&~A: ~?" *program-name* format-string args)
+  (finish-output *query-io*)
+  (read-line *query-io*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -458,17 +542,15 @@ to create parents directories if they don't exist.
 (defconstant ex--max          78  "maximum listed value")
 
 
+(defun exit (&optional (code ex-ok))
+  (ext:exit code))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;; OPTIONS PROCESSING
 ;;;
 
-
-(defun pname ()
-  "This function can be used to set *program-name* in
-the main script  (setf script:*program-name* (script:pname))
-"
-  (file-namestring (or *load-pathname* *program-name*)))
 
 
 (defparameter *options*
@@ -492,16 +574,12 @@ NOTE:   current implementation only accepts as separators
         (nextpos  0)
         (strlen   (length string)) )
     (declare (type simple-string string separators))
-    (loop while (< position strlen)
-       do
-       (loop while (and (< nextpos strlen)
-                        (not (position (char string nextpos) separators)))
-          do (setq nextpos (1+ nextpos))
-          )
-       (push (subseq string position nextpos) chunks)
-       (setq position (1+ nextpos))
-       (setq nextpos  position)
-       )
+    (loop :while (< position strlen) :do
+      (loop :while (and (< nextpos strlen) (not (position (char string nextpos) separators))) :do
+        (setq nextpos (1+ nextpos)))
+      (push (subseq string position nextpos) chunks)
+      (setf position (1+ nextpos)
+            nextpos  position))
     (nreverse chunks)))
 
 
@@ -630,7 +708,7 @@ BUG: when the optionals or keys have a present indicator,
     (cond
       (option             (funcall (option-function option) option-key arguments))
       (undefined-argument (funcall undefined-argument option-key arguments))
-      (t                  (error "Unknown option ~A ; try: ~A help" option-key (pname))))))
+      (t                  (error "Unknown option ~A ; try: ~A help" option-key *program-name*)))))
 
 
 (defmacro define-option (names parameters &body body)
@@ -690,7 +768,7 @@ RETURN:     The lisp-name of the option (this is a symbol
   "Give this help."
   (with-pager ()
       (let ((options (option-list)))
-        (format t "~2%~A options:~2%" (pname))
+        (format t "~2%~A options:~2%" *program-name*)
         (dolist (option (sort options (function string<)
                               :key (lambda (option) (first (option-keys option)))))
           (format t "    ~{~A~^ | ~}  ~:@(~{~A ~}~)~%~@[~{~%        ~A~}~]~2%"
@@ -739,7 +817,7 @@ use directly.
       (if index
           (completion-option-prefix (elt words index))
           (completion-all-options))))
-  (ext:exit 0))
+  (exit 0))
 
 
 (define-option ("--bash-completion-function") ()
@@ -756,7 +834,7 @@ autocomplete argument prefixes.
 COMPREPLY=( $(~:*~A --bash-completions \"$COMP_CWORD\" \"${COMP_WORDS[@]}\") ) ; } ;~
 complete -F completion_~:*~A ~:*~A~%"
           *program-name*)
-  (ext:exit 0))
+  (exit 0))
 
 
 
@@ -918,7 +996,8 @@ that are accessible by the user."
 ;;                               (asdf:oos 'asdf:load-op :cl-ppcre))
 ;; 
 ;; ;; #-testing-script
-;; (ext:exit (main ext:*args*))
+;; (exit (main ext:*args*))
+
 
 
 ;;;; THE END ;;;;

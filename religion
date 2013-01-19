@@ -39,24 +39,8 @@
 ;;;;    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;;;******************************************************************************
 (in-package "COMMON-LISP-USER")
-
-;; Clean the packages imported into COMMON-LISP-USER:
-(MAPC (LAMBDA (package) (UNUSE-PACKAGE package "COMMON-LISP-USER"))
-      (set-difference
-       (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))
-       (delete nil (list ;; A list of all the "CL" packages possible:
-                    (FIND-PACKAGE "COMMON-LISP")
-                    (FIND-PACKAGE "IMAGE-BASED-COMMON-LISP")))))
-
-
-(load (make-pathname :name "SCRIPT" :type nil :version NIL :case :common
-                     :defaults *load-pathname*))
+(load (make-pathname :name "SCRIPT" :type nil :version NIL :case :common :defaults *load-pathname*))
 (use-package "SCRIPT")
-
-;;;-----------------------------------------------------------------
-
-
-(setf *program-name* (pname))
 (setf *debug* t)
 (setf *random-state* (make-random-state t))
 

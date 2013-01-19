@@ -37,8 +37,7 @@
 (in-package "COMMON-LISP-USER")
 (load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common :defaults *load-pathname*))
 (use-package "SCRIPT")
-(defparameter *program-name* (pname))
-(defparameter *program-version* "0.1.1")
+(defparameter *program-version* "0.1.2")
 
 
 (defpackage "COM.INFORMATIMAGO.RADIO"
@@ -97,44 +96,6 @@ Listen to the radio.
    (format t "~A~%" command)) (finish-output)
   command)
 
-
-(defun shell-quote-argument (argument)
-  "Quote ARGUMENT for passing as argument to an inferior shell."
-  #+(or MSWINDOWS WIN32)
-  ;; Quote using double quotes, but escape any existing quotes in
-  ;; the argument with backslashes.
-  (let ((result "")
-        (start 0)
-        (end)
-        (match-beginning)
-        (match-end))
-    (when (or (null (setf match-end (position #\" argument)))
-              (< match-end (length argument)))
-      (loop
-         :while (setf match-beginning (position #\" argument :start start))
-         :do (setf end (1+ match-beginning)
-                   result (concatenate 'string result (subseq argument start end)
-                                       "\\" (subseq argument end (1+ end)))
-                   start (1+ end))))
-    (concatenate 'string "\"" result (subseq argument start) "\""))
-  #-(or MSWINDOWS WIN32)
-  (if (equal argument "")
-      "''"
-      ;; Quote everything except POSIX filename characters.
-      ;; This should be safe enough even for really weird shells.
-      (let ((result "")
-            (start 0)
-            (end)
-            (match-beginning)
-            (match-end))
-        (loop
-           :while (setf match-end (position-if-not (lambda (ch) (or (alphanumericp ch) (position ch "-_./")))
-                                                   argument :start start))
-           :do (setf end match-end
-                     result (concatenate 'string result (subseq argument start end)
-                                         "\\" (subseq argument end (1+ end)))
-                     start (1+ end)))
-        (concatenate 'string result (subseq argument start)))))
 
 
 (define-condition command-exit-status (error)
@@ -197,7 +158,7 @@ Signals an error if they exit with an error status or are killed by a signal."
 
 
 (defun s (command &rest arguments)
-  (let ((arguments  (mapcar (lambda (arg) (shell-quote-argument (princ-to-string arg)))
+  (let ((arguments  (mapcar (lambda (arg) (script:shell-quote-argument (princ-to-string arg)))
                             arguments)))
    (apply (function run) (format nil "~A~~@{ ~~A~~}" command) arguments)))
 
