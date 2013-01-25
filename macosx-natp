@@ -2,6 +2,8 @@
 
 lan_interface=en0
 wan_interface=en1
+lan_ip=192.168.0.1
+
 
 
 if [ $# -eq 0 ] ; then
@@ -10,58 +12,65 @@ else
     while [ $# -gt 0 ] ; do
         case "$1" in
 
-        status)
+            status)
 
-            echo lan_interface $lan_interface
-            echo wan_interface $wan_interface
+                echo lan_interface $lan_interface
+                echo wan_interface $wan_interface
 
-            ps ax | grep -e 'nat[d]'
-            ipfw list
-            sysctl net.inet.ip.forwarding
-            sysctl net.inet.ip.fw.enable
+                ps ax | grep -e 'nat[d]'
+                ifconfig ${wan_interface} 
+                ifconfig ${lan_interface} 
+                ipfw list
+                sysctl net.inet.ip.forwarding
+                sysctl net.inet.ip.fw.enable
 
-            ;;
+                ;;
 
-        start)
+            start)
 
-            ifconfig ${lan_interface} down
-            ifconfig ${lan_interface} 192.168.7.4 netmask 255.255.255.0 up
+                ifconfig ${lan_interface} down
+                ifconfig ${lan_interface} ${lan_ip} netmask 255.255.255.0 up
 
-            sysctl -w net.inet.ip.forwarding=1
+                sysctl -w net.inet.ip.forwarding=1
 
-            killall natd
-            natd -interface ${wan_interface} -dynamic
+                killall natd
+                natd -interface ${wan_interface} -dynamic
 
-            ipfw -f flush
-            ipfw add divert natd all from any to any via ${wan_interface}
-            ipfw add pass all from any to any
-            ipfw list
+                ipfw -f flush
+                ipfw add divert natd all from any to any via ${wan_interface}
+                ipfw add pass all from any to any
+                ipfw list
 
-            sysctl -w net.inet.ip.fw.enable=1
-            
-            ;;
+                sysctl -w net.inet.ip.fw.enable=1
+                
+                ;;
 
-        wan-interface|interface)
+            lan-ip)
+                shift
+                lan_ip="$1"
+                ;;
 
-            shift
-            wan_interface="$1"
+            wan-interface|interface)
 
-            ;;
+                shift
+                wan_interface="$1"
 
-        lan-interface)
+                ;;
 
-            shift
-            lan_interface="$1"
+            lan-interface)
 
-            ;;
+                shift
+                lan_interface="$1"
 
-        *)
+                ;;
 
-            printf "%s usage:\n\n" "$(basename "$0")"
-            printf '    %s [wan-interface|interface $if] [lan-interface $if] [start] [status] \n\n' "$(basename "$0")"
-            exit 64
+            *)
 
-            ;;
+                printf "%s usage:\n\n" "$(basename "$0")"
+                printf '    %s [wan-interface|interface $if] [lan-interface $if] [lan-ip $ip] [start] [status] \n\n' "$(basename "$0")"
+                exit 64
+
+                ;;
 
         esac
         shift
