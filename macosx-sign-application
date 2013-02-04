@@ -1,0 +1,3 @@
+#!/bin/bash
+export CODESIGN_ALLOCATE="/Applications/Xcode.app/Contents/Developer/usr/bin/codesign_allocate"
+exec codesign -fs 'Developer ID Application' --prefix 'com.informatimago' --preserve-metadata=i,e,res,req --timestamp=none "$@"
