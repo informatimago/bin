@@ -60,7 +60,7 @@ Choose an argument randomly.
 
 (defvar *probability* nil)
 (defvar *count*       nil)
-(defvar *arguments*  '())
+(defvar *items*  '())
 
 
 (define-option ("-p" "--probability") (probability)
@@ -114,7 +114,7 @@ remaining arguments, then they're all printed in random order.
 (parse-options ext:*args*
                nil ; (lambda () (call-option-function "help" '()))
                (lambda (name arguments)
-                 (push name *arguments*)
+                 (push name *items*)
                  arguments))
 
 (defun one-of (sequence)
@@ -135,8 +135,8 @@ remaining arguments, then they're all printed in random order.
    (rotatef (first current) (elt current (random length)))))
 
 
-(unless *arguments*
-  (setf *arguments*
+(unless *items*
+  (setf *items*
         (mapcar (function namestring)
                 (remove-if ; remove backup files and dot-files.
                  (lambda (path)
@@ -148,21 +148,21 @@ remaining arguments, then they're all printed in random order.
                  (remove-duplicates (append (directory "*") (directory "*.*"))
                                     :test (function equalp))))))
 
-(when *arguments*
+(when *items*
   (cond
     ((and *probability* *count*)
      (error "Specifying a probability and a count are mutually exclusive."))
     (*probability*
      (loop
-        :for arg :in *arguments*
+        :for arg :in *items*
         :when (<= (random 1.0) *probability*)
         :do (write-line arg) (finish-output)))
     (*count*
      (loop
-        :for arg :across (subseq (shuffle *arguments*) 0 (min *count* (length *arguments*)))
+        :for arg :across (subseq (shuffle *items*) 0 (min *count* (length *items*)))
         :do (write-line arg) (finish-output)))
     (t ; a single one
-     (write-line (one-of *arguments*))
+     (write-line (one-of *items*))
      (finish-output))))
 
 
