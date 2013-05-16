@@ -259,7 +259,7 @@ Signals an error if they exit with an error status or are killed by a signal."
 (defgeneric pm-remove  (pm package-designator))
 (defgeneric pm-info    (pm package-designator))
 
-(defgeneric pm-list-packages (pm &key installed all available not-installed
+(defgeneric pm-list-packages (pm &key installed all available not-installed required
                                  packages pattern))
 
 (defgeneric pm-list-files                    (pm package-designator))
@@ -338,11 +338,12 @@ or an expression such as (= <package>)  (<= <package>) etc."))
 
 
 (defmethod pm-list-packages ((self apt)
-                             &key installed all available not-installed
+                             &key installed all available not-installed required
                              packages pattern)
   (cond
     (packages            (s "dpkg --status"  packages))
     (installed           (s "dpkg --list"    pattern))
+    (required            (s "aptitude search '~~i !~~M'" pattern))
     (not-installed       (s "apt-cache search" pattern))
     (t                   (s "dpkg --list " pattern)
                          (s "apt-cache search" pattern))))
@@ -355,14 +356,13 @@ or an expression such as (= <package>)  (<= <package>) etc."))
   (s "apt-file search" file-path))
 
 (defmethod pm-find-package-with-info        ((self apt) pattern)
-  (error "not implemented yet ; how to do that?"))
+  (s "apt-cache search" pattern))
 
 (defmethod pm-dependencies                  ((self apt) package-designator)
   (s "apt-cache depends" package-designator))
 
 (defmethod pm-dependants                    ((self apt) package-designator)
   (s "apt-cache rdepends" package-designator))
-
 
 
 ;;;------------------------------------------------------------
@@ -385,7 +385,7 @@ or an expression such as (= <package>)  (<= <package>) etc."))
   (s "port info" package-designator))
 
 
-(defmethod pm-list-packages ((self macport) &key installed all available
+(defmethod pm-list-packages ((self macport) &key installed all available required
                              not-installed packages pattern)
   (error "not implemented yet")
   (s "port list")
@@ -625,12 +625,13 @@ or an expression such as (= <package>)  (<= <package>) etc."))
 
 
 (defmethod pm-list-packages ((self portage)
-                             &key installed all available not-installed
+                             &key installed all available not-installed required
                              packages pattern)
   (cond
     (packages            (s "equery list" packages))
     (installed           (s "equery list    -i -f" pattern))
     (not-installed       (s "equery list -p -I -f" pattern))
+    (required            (error "Not implemented yet"))
     (t                   (s "equery list -p    -f" pattern))))
 
 (defmethod pm-list-files                    ((self portage) package-designator)
@@ -691,7 +692,7 @@ or an expression such as (= <package>)  (<= <package>) etc."))
 
 
 (defmethod pm-list-packages ((self unimplemented-pms)
-                             &key installed all available not-installed
+                             &key installed all available not-installed required
                              packages pattern)
   (declare (ignore installed all available not-installed packages pattern))
   (unimplemented-pms self))
@@ -821,7 +822,7 @@ according to the underlying package system syntax."
   (fpm update package-name))
 
 
-(define-option ("remove" "-R" "--remove") (package-name)
+(define-option ("remove" "-R" "--remove" "uninstall" "--uninstall") (package-name)
   "Uninstalls the package named PACKAGE-NAME.  
 PACKAGE-NAME may include some specific version or version constraint
 according to the underlying package system syntax.
@@ -840,16 +841,16 @@ This package may be installed or not.
 
 
 (define-option  ("list-packages" "-p" "--list-packages" "list-package"
-                                 "list" "packages" "package") (&rest qualifier-and-package-pattern)
-  ;; [list] [installed|available|all|not-installed] packages [<package-pattern>]
+                                 "list" "packages" "package")
+    (&rest qualifier-and-package-pattern)
+  ;; [list] [installed|available|all|not-installed|required] packages [<package-pattern>]
   "Lists the packages and versions matching the PACKAGE-PATTERN or
 all the packages if omited.   The keywords installed, available,
 all or not installed restrict the listing to the correponding
 package.  available and all are synonyms and the default."
-  (let ((valid-qualifiers  '(installed available all not-installed)))
+  (let ((valid-qualifiers  '(installed available all not-installed required)))
     (when (null qualifier-and-package-pattern)
       (error "Missing a PACKAGE-PATTERN"))
-
     (let ((qualifier
            (cond
              ((member (first qualifier-and-package-pattern) valid-qualifiers
