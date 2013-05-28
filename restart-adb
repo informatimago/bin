@@ -1,0 +1,5 @@
+#!/bin/bash
+sudo $(which adb) kill-server
+sudo $(which adb) start-server
+sudo $(which adb) devices
+
