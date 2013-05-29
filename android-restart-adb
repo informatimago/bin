@@ -1,5 +1,4 @@
 #!/bin/bash
-sudo $(which adb) kill-server
-sudo $(which adb) start-server
-sudo $(which adb) devices
+sudo bash -c ". $HOME/rc/bashrc-ubudu ; adb kill-server ; adb  start-server ; adb devices"
+
 
