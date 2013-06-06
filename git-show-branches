@@ -1,0 +1,5 @@
+#!/bin/bash
+printf '# Local branches:\n'
+git branch -a
+printf '# Remote branches:\n'
+git branch -r

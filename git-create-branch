@@ -1,0 +1,20 @@
+#!/bin/bash
+branchName="$1"
+
+function pname(){
+    echo "$(dirname "$0")"
+}
+
+if [ -z "$branchName" ] ; then
+   printf "%s usage:\n\n\t%s new-branch-name\n\n" $(pname) $(pname)
+   exit 1
+fi
+
+function echodo(){
+    echo "# $@"
+    "$@"
+}
+
+echodo git checkout -b "$branchName"
+echodo git push origin "$branchName"
+
