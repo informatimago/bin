@@ -325,18 +325,18 @@ darwinVersions=
 assign darwinVersions = dictionary 
 
 function declareDarwinVersion(){
-# declareDarwinVersion "Version " "Date" "Corresponding releases" "Notes"
+    # declareDarwinVersion "Version " "Date" "Corresponding releases" "Notes"
     local darwinVersion="$1"
     local date="$2"
     local macVersion="$3"
     local notes="$4"
     case "$macVersion" in
-        'OS X'*)
-            dictionary-set $darwinVersions "$darwinVersion" "$macVersion"
-            ;;
-        *) 
-            true
-            ;;
+    'OS X'*)
+        dictionary-set $darwinVersions "$darwinVersion" "$macVersion"
+        ;;
+    *) 
+        true
+        ;;
     esac
 }
 
@@ -408,7 +408,7 @@ function distribution () {
             # Checked with Linux Immunix 6.2.
             # There seems to be no way to differenciate 
             # a RedHat 6.2 from an Immunix 6.2.
-    
+            
         elif [ -e /etc/conectiva-release ] ; then
             distrib=conectiva
             release=$(awk '{print $3}' < /etc/conectiva-release)
@@ -489,12 +489,12 @@ function distribution () {
 pname="$(basename "$0")"
 verbose=0
 for arg ; do 
-case "$arg" in
--v|--verbose) verbose=1 ;;
--h|--help) printf "%s usage:\n    %s [-v|--verbose]\n","$pname","$pname" ; exit 0 ;;
-*) "$0" -h ; exit 1 ;;
-esac
-
+    case "$arg" in
+    -v|--verbose) verbose=1 ;;
+    -h|--help) printf "%s usage:\n    %s [-v|--verbose]\n","$pname","$pname" ; exit 0 ;;
+    *) "$0" -h ; exit 1 ;;
+    esac
+done
 distribution $verbose
 
 #### THE END ####
