@@ -6,4 +6,4 @@ if [ "$host" = "" ] ; then
    echo "    $pname HOST"
    exit 0
 fi
-sed -i -e "/$host/d" ~/.ssh/known_hosts
+ssh-keygen -f ~/.ssh/known_hosts -R "$host" || sed -i -e "/$host/d" ~/.ssh/known_hosts
