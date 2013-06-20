@@ -1,0 +1,23 @@
+#!/bin/bash
+pname="$(basename "$0")" 
+if [ $# -ne 1 ] ; then
+    printf "%s usage:\n\n\t%s user@host\n\n" "$pname" "$pname"
+    exit 1
+fi
+userhost="$1"
+
+pubkeys=(~/.ssh/id_dsa.pub ~/.ssh/id_rsa.pub ~/.ssh/identity.pub  ~/.ssh/id*.pub)
+pubkey=
+for key in "${pubkeys[@]}" ; do
+    if [ -r "$key" ] ; then
+        pubkey="$key"  
+        break
+    fi
+done
+if [ -z "$pubkey" ] ; then
+    printf "%s: could not find a public key in ~/.ssh/ ;\n%s: please use ssh-keygen first.\n" "$pname" "$pname"
+    exit 2
+fi
+
+
+cat "$pubkey" | ssh -T "$userhost" bash -c "'mkdir -p ~/.ssh ; cat >> ~/.ssh/authorized_keys'"
