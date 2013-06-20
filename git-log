@@ -1,0 +1,10 @@
+#!/bin/bash
+case "$TERM" in
+dumb|emacs)
+    git log | head -100
+    ;;
+*)
+    git log | less
+    ;;
+esac
+    
