@@ -94,7 +94,7 @@ fi
 clall_lisp='
 ;; CMU uses ALIEN in CL-USER, and there is a locked ALIEN:SHORT.
 (defpackage "COM.INFORMATIMAGO.CLALL"
-  (:use "COMMON-LISP")
+  (:use #-gcl "COMMON-LISP" #+gcl "LISP")
   (:nicknames "CLALL"))
 (in-package "COM.INFORMATIMAGO.CLALL")
 
