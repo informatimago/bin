@@ -2,6 +2,9 @@
 # Fetch and install my environment.
 # pjb@informatimago.com
 
+# git config --global user.name "Pascal J. Bourguignon" 
+# git config --global user.email pjb@informatimago.com
+
 # git repository to clone in ~/emacs
 emacs_gitrepos=(
     git://github.com/remvee/android-mode.git
