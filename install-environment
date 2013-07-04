@@ -1,0 +1,88 @@
+#!/bin/bash
+# Fetch and install my environment.
+# pjb@informatimago.com
+
+# git repository to clone in ~/emacs
+emacs_gitrepos=(
+    git://github.com/remvee/android-mode.git
+    git://github.com/capitaomorte/yasnippet.git
+    git://github.com/emacs-java/auto-java-complete.git
+    git://github.com/hayamiz/twittering-mode.git 
+)
+
+# emacs lisp packages installed with elpa
+elpackages=(
+    auto-complete
+    emms
+    json
+    popup
+    w3m
+)
+
+
+cd "$HOME"
+[ -d bin ] || git clone ssh://pjb@git.informatimago.com/srv/git/public/bin bin
+[ -d rc  ] || git clone ssh://pjb@git.informatimago.com/srv/git/public/rc  rc
+make -C rc symlinks
+source rc/bashrc
+
+
+
+if [ -x /usr/local/bin/brew ] ; then
+    if [ ! -x /usr/bin/clisp ] ; then
+        brew install clisp
+        sudo ln -s /usr/local/bin/clisp /usr/bin/clisp
+    fi
+
+    if [ ! type -p wget ] ; then
+        brew install wget
+    fi
+fi
+
+
+
+mkdir -p src/public
+cd src/public
+[ -d lisp  ] || git clone ssh://pjb@git.informatimago.com/srv/git/public/lisp  lisp
+[ -d emacs ] || git clone ssh://pjb@git.informatimago.com/srv/git/public/emacs emacs
+
+
+
+cd "$HOME"
+mkdir -p emacs
+cd emacs
+
+if [ ! -r subdirs.el ] ; then
+    cat > subdirs.el <<EOF
+(if (fboundp (quote normal-top-level-add-subdirs-to-load-path))
+   (normal-top-level-add-subdirs-to-load-path))
+EOF
+fi
+
+wget --mirror --no-directories --no-host-directories http://mumble.net/~campbell/emacs/paredit.el
+
+# basename git://github.com/remvee/android-mode.git .git
+
+
+function git-clone-or-pull(){
+    local giturl="$1"
+    local dir="$(basename "$1" .git)"
+    if [ -d "$dir" ] ; then
+        ( cd "$dir" ; git pull ) 
+    else
+        git clone "$giturl"
+    fi
+}
+
+for repo in "${emacs_gitrepos[@]}" ; do
+    git-clone-or-pull "$repo"       
+done
+
+
+cd "$HOME"
+if [ -x /Applications/Emacs.app/Contents/MacOS/Emacs ] ; then
+    emacs=/Applications/Emacs.app/Contents/MacOS/Emacs
+else
+    emacs=emacs
+fi
+"$emacs"  --batch --eval "(dolist (package '(${elpackages[@]})) (package-install package))"
