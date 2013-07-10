@@ -1,0 +1,3 @@
+#!/bin/bash
+printf '# Remote repositories:\n'
+git remote -v

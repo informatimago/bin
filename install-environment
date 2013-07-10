@@ -22,6 +22,12 @@ elpackages=(
     w3m
 )
 
+system_packages=(
+    clisp
+    wget
+    w3m
+)
+
 
 cd "$HOME"
 [ -d bin ] || git clone ssh://pjb@git.informatimago.com/srv/git/public/bin bin
@@ -37,9 +43,18 @@ if [ -x /usr/local/bin/brew ] ; then
         sudo ln -s /usr/local/bin/clisp /usr/bin/clisp
     fi
 
-    if [ ! type -p wget ] ; then
-        brew install wget
-    fi
+    for sp in ${system_packages[@]} ; do
+        if type -p "$sp" ; then
+            true
+        else
+            brew install "$sp"
+        fi
+    done
+fi
+
+
+if [ ! -x /usr/bin/clisp -a -x /usr/local/bin/clisp ] ; then
+    sudo ln -s /usr/local/bin/clisp /usr/bin/clisp
 fi
 
 
