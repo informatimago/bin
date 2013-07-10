@@ -3,7 +3,7 @@ pname="$(basename "$0")"
 
 function usage(){
    printf "%s usage:\n" "$pname"
-   printf "   %s [-a|--add \$NAME] \$USER_HOST \$REMOTE_REPOSITORY_DIRECTORY\n\n" "$pname"
+   printf "   %s \$NAME \$USER_HOST \$REMOTE_REPOSITORY_DIRECTORY\n\n" "$pname"
    printf "If a remote \$NAME is specified, then a secondary remote with that name is added.\n\n"
 }
 
@@ -13,25 +13,21 @@ repository=''
 
 
 case "$1" in
--a|--add)
-    shift 
-    if [ $# -ne 3 ] ; then
-        usage
-        exit 1
-    fi
-    remote="$1"
-    shift
+-h|--help)
+    usage
+    exit 0
     ;;
 *)
-    if [ $# -ne 2 ] ; then
+    if [ $# -ne 3 ] ; then
         usage
         exit 1
     fi
     ;;
 esac
 
-uhost="$1"
-repository="$2"
+remote="$1"
+uhost="$2"
+repository="$3"
 
 case "$repository" in
 /*)
