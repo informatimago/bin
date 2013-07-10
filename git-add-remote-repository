@@ -1,0 +1,86 @@
+#!/bin/bash
+pname="$(basename "$0")"
+
+function usage(){
+   printf "%s usage:\n" "$pname"
+   printf "   %s [-a|--add \$NAME] \$USER_HOST \$REMOTE_REPOSITORY_DIRECTORY\n\n" "$pname"
+   printf "If a remote \$NAME is specified, then a secondary remote with that name is added.\n\n"
+}
+
+remote='origin'
+uhost=''
+repository=''
+
+
+case "$1" in
+-a|--add)
+    shift 
+    if [ $# -ne 3 ] ; then
+        usage
+        exit 1
+    fi
+    remote="$1"
+    shift
+    ;;
+*)
+    if [ $# -ne 2 ] ; then
+        usage
+        exit 1
+    fi
+    ;;
+esac
+
+uhost="$1"
+repository="$2"
+
+case "$repository" in
+/*)
+    true
+    ;;
+*)
+    printf "The path of the remote repository directory must be absolute.\n" 
+    printf "'%s' is a relative path.\n"  "$repository"
+    exit 2
+esac
+
+if [ -d .git ] ; then
+    true 
+else
+    printf "The current working directory must be a local git repository.\n" 
+    printf "There is no .git subdirectory in '%s'.\n"  "$(pwd)"
+    exit 3
+fi
+
+intr="$(stty -a|tr ';' '\012'|awk '/intr/{print $3}')"
+# intr="C-c"
+
+function remote(){
+    local temp=$(echo /tmp/git-add-remote-repository--$(hostname -f)--$$.sh | sed -e 's/ /-/g')
+    printf "$@" | ssh "$uhost" bash -c "cat > $temp ; source $temp ; rm $temp"
+}
+
+remote_is_git="$(remote type -f "$repository/HEAD" '&&' echo yes '||' echo no)"
+case "$remote_is_git" in
+yes)
+     true
+     ;; 
+no)
+
+    printf "The remote repository directory %s \ndoesn't seem to be a git repository (lacks a HEAD file)." \
+           "$uhost$repository"
+    exit 1
+    ;;
+*)
+    printf "Something strange occured: %s\n" "$remote_is_git"
+    exit 3
+    ;;
+esac
+
+printf "Will add the remote %s repository on ssh://%s%s\n" "$remote" "$uhost" "$repository"
+printf "Please confirm (RET/%s): " "$intr"
+read line
+
+git remote add "$remote" "ssh://$uhost$repository" 
+
+exit 0
+
