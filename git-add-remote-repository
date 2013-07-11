@@ -55,7 +55,7 @@ function remote(){
     printf "$@" | ssh "$uhost" bash -c "cat > $temp ; source $temp ; rm $temp"
 }
 
-remote_is_git="$(remote type -f "$repository/HEAD" '&&' echo yes '||' echo no)"
+remote_is_git="$(ssh "$uhost" bash -c "type -f \"$repository/HEAD\" && echo yes || echo no")"
 case "$remote_is_git" in
 yes)
      true
