@@ -1,0 +1,26 @@
+#!/bin/bash
+pname="$(basename "$0")"
+
+if [ $# -ne 2 ] ; then
+   printf '%s usage:\n' "$pname"
+   printf '\t%s $file1 $file2\n' "$pname"
+   exit 1
+fi
+
+left="$1"
+right="$2"
+preleft="/tmp/$$-left-$(basename "$left")"
+preright="/tmp/$$-right-$(basename "$right")"
+
+function preprocess(){
+    local input="$1"
+    local output="$2"
+    tr '\012' ' ' < "$input" | sed -e 's/[\t ]\+/ /g' -e 's/\([;{}]\)/\1\n/g' > "$output"
+}
+
+preprocess "$left" "$preleft"
+preprocess "$right" "$preright"
+
+diff -Naurtwb "$preleft" "$preright"
+#### THE END ####
+
