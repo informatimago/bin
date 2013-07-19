@@ -348,6 +348,8 @@ or an expression such as (= <package>)  (<= <package>) etc."))
     (t                   (s "dpkg --list " pattern)
                          (s "apt-cache search" pattern))))
 
+;; apt-cache search gnustep|sort -u|awk -F' - ' '{printf "%-30s  %s\n",$1,$2;}'
+
 (defmethod pm-list-files                    ((self apt) package-designator)
   (s "dpkg --listfiles" package-designator))
 
