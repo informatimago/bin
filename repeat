@@ -1,0 +1,11 @@
+#!/bin/bash
+if [ $# -lt 2 ] ; then
+   echo 'Usage: repeat N command argments…'
+   exit 1
+fi
+
+cnt="$1"
+shift
+for i in $(seq "$cnt") ; do
+    "$@"
+done
