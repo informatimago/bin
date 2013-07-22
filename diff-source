@@ -15,7 +15,10 @@ preright="/tmp/$$-right-$(basename "$right")"
 function preprocess(){
     local input="$1"
     local output="$2"
-    tr '\012' ' ' < "$input" | sed -e 's/[\t ]\+/ /g' -e 's/\([;{}]\)/\1\n/g' > "$output"
+    tr '\012' ' ' < "$input" \
+    | sed \
+        -e 's/[\t ]\+/ /g' \
+        -e 's/\([;{}]\)/\1\n/g' > "$output"
 }
 
 preprocess "$left" "$preleft"
