@@ -302,7 +302,7 @@ runcl clisp     -ansi  -q  -norc                                                
 runcl lisp      -noinit          -eval '(setq *load-verbose* nil)'              -load  "$script"      
 runcl cmucl     -noinit          -eval '(setq *load-verbose* nil)'              -load  "$script"      
 runcl ecl                  -norc                                                -load  "$script"      
-#runcl gcl       -batch                                                          -load  "$script"      
+runcl gcl       -batch                                                          -load  "$script"      
 runcl sbcl     --noinform --no-userinit                                        --load  "$script"      
 
 runcl winccl   --batch --no-init                                               --load  $(winquote $winscript)
