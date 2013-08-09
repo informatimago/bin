@@ -1,0 +1,7 @@
+#!/bin/sh
+IFS=: 
+echo "$1" | ( 
+     read telnet host port
+     host="$(echo "$host"|sed -e 's-^//--')"
+     port="$(echo "$port"|sed -e 's-/.*--')"
+     exec xterm -hold -fg green -bg black -e telnet "$host" "$port" )
