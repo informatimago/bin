@@ -17,4 +17,4 @@ function echodo(){
 
 echodo git checkout -b "$branchName"
 echodo git push origin "$branchName"
-
+echodo git branch --set-upstream-to=origin/"$branchName" "$branchName"
