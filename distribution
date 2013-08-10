@@ -15,11 +15,12 @@
 #AUTHORS
 #    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
 #MODIFICATIONS
+#    2013-08-10 <PJB> Added support for /etc/os-release (ubuntu).
 #    2011-11-05 <PJB> Added support for MacOSX.
 #    2001-04-29 <PJB> Creation.
 #BUGS
 #LEGAL
-#	Copyright Pascal J. Bourguignon 2001 - 2010
+#	Copyright Pascal J. Bourguignon 2001 - 2013
 #
 #   This script is free software; you can redistribute it and/or
 #   modify it under the terms of the GNU  General Public
@@ -380,6 +381,41 @@ declareDarwinVersion "13.0.0" "June 11, 2012" "iOS 6" "Unknown as to why iOS 6 u
 
 
 
+function get_keys () {
+    local file="$1"
+    (
+        IFS='='
+        while read variable value ; do
+            echo "$variable"
+        done < "$file"
+    )    
+}
+
+function get_value () {
+    local file="$1"
+    local key="$2"
+    # safely read a file that contains VARIABLE="value" lines.
+    local unescaped
+    (
+        IFS='='
+        while read variable value ; do
+            if [ "$variable" = "$key" ] ; then
+                case "$value" in
+                \"*\") 
+                    unescaped="${value//\\\"}"
+                    echo "${unescaped//\"}" 
+                    ;;
+                *) 
+                    echo "$value" 
+                    ;;
+                esac
+                break
+            fi
+        done < "$file"
+    )
+}
+
+
 function distribution () {
     # DOES:   Identify the system, distribution and release where we run.
     #         Prints a line with three corresponding keywords.
@@ -396,7 +432,12 @@ function distribution () {
     case "$systeme" in
 
     GNU/Linux|Linux)
-        if [ -e /etc/mandrake-release ] ; then
+        if [ -e /etc/os-release ] ; then
+            distrib=$(get_value /etc/os-release ID)
+            release=$(get_value /etc/os-release VERSION_ID)
+            # Checked with Ubuntu 13.04
+
+        elif [ -e /etc/mandrake-release ] ; then
             distrib=mandrake
             release=$(awk '{print $4}' < /etc/mandrake-release)
             # Checked with Linux Mandrake 6.1
@@ -487,14 +528,12 @@ function distribution () {
 } #distribution
 
 pname="$(basename "$0")"
-verbose=0
 for arg ; do 
     case "$arg" in
-    -v|--verbose) verbose=1 ;;
-    -h|--help) printf "%s usage:\n    %s [-v|--verbose]\n","$pname","$pname" ; exit 0 ;;
+    -h|--help) printf "%s usage:\n\n    %s | read system distribution release\n\n" "$pname" "$pname" ; exit 0 ;;
     *) "$0" -h ; exit 1 ;;
     esac
 done
-distribution $verbose
+distribution
 
 #### THE END ####
