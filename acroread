@@ -13,7 +13,7 @@ for f in "$@" ; do
         ;;
     esac
 done
-for f in /usr/bin/acroread /opt/bin/acroread /opt/local/bin/xpdf /usr/bin/xpdf ; do
+for f in /usr/bin/acroread /opt/bin/acroread /opt/local/bin/xpdf /usr/local/bin/xpdf /usr/bin/xpdf ; do
     [ -x $f ] && exec $f -geometry 800x990++0 "${files[@]}"
 done
 printf "Sorry, there's no acrobat reader installed on this computer.\n"
