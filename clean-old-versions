@@ -20,7 +20,7 @@ fi
 for dir in "${dirs[@]}" ; do 
     find "$dir" -maxdepth 1 \( -name \*~ -o -name .\?\*~ \) -print  \
     |while read file ; do 
-        base="$(echo "$file" | sed -e 's/\(\.~[.0-9]\+\)\?~$//')"
+        base="$(echo "$file" | sed -e 's/\.~[0-9][0-9]*~$//')"
         if [ ! -e "$base" ] ; then
             $do rm -v "$file" 
         fi
