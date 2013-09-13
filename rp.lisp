@@ -160,3 +160,20 @@ First frame should be sized with right and bottom margins.
     (t
      (format *error-output* "Unexpected command file ~A" *path*))))
 
+
+
+
+
+
+(defun renumber (old new &rest winums)
+  (handler-case
+      (let* ((old     (parse-integer old))
+             (new     (parse-integer new))
+             (winums  (mapcar (function parse-integer) winums))
+             (focused (first winums)))
+        (assert (member old winnums) () "No window number ~A" old)
+        (ext:shell (format nil "ratpoison -c 'select ~A' -c 'number ~A' -c 'select ~A'"
+                           old new (if (= old focused) new focused))))
+    (error (err) (format *error-output* "~A" err))))
+
+(renumber ext:*args*)
