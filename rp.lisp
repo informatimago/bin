@@ -1,9 +1,3 @@
-#!/bin/bash
-DIR="${HOME}/.ratpoison"
-pname="$(basename "$0")"
-
-
-SCRIPT='
 
 (defun contents-from-stream (stream &key length (min-size 256) max-extend)
   "
@@ -165,146 +159,21 @@ First frame should be sized with right and bottom margins.
          (format *error-output* "Unexpected 4 frames for a margin operation in command file ~A" *path*)))
     (t
      (format *error-output* "Unexpected command file ~A" *path*))))
-'
 
 
-RENUMBER='
+
+
+
+
 (defun renumber (old new &rest winums)
   (handler-case
       (let* ((old     (parse-integer old))
              (new     (parse-integer new))
              (winums  (mapcar (function parse-integer) winums))
              (focused (first winums)))
-        (assert (member old winums) () "No window number ~A" old)
-        (ext:shell (format nil "ratpoison -c \"select ~A\" -c \"number ~A\" -c \"select ~A\""
+        (assert (member old winnums) () "No window number ~A" old)
+        (ext:shell (format nil "ratpoison -c 'select ~A' -c 'number ~A' -c 'select ~A'"
                            old new (if (= old focused) new focused))))
     (error (err) (format *error-output* "~A" err))))
-'
 
-function renumber(){
-    local old="$1"
-    local new="$2"
-    # ${winums[0]} is the focused window,
-    # ${winums[1]} is the other window.
-    clisp  -ansi -q -norc -E ISO-8859-1 \
-        -x "$RENUMBER" \
-        -x '(renumber "'"$1"'" "'"$2"'" '"$(ratpoison -c windows|sed -e 's/^\([0-9]\+\)\([-+*]\)\(.*\)/\2 \1/'|LC_ALL=C sort|sed -e 's/^..\(.*\)/\"\1\"/'|tr '\012' ' ')"')' \
-        >/dev/null
-}
-
-cmd="$1";shift
-case "$cmd" in
-save)
-    name="$1"
-    if [ -z "$name" ] ; then
-        name=current
-    fi
-    mkdir "${DIR}" 2>/dev/null
-    exec ratpoison -c 'fdump' > "${DIR}/${name}"
-    ;;
-load)
-    name="$1"
-    if [ -z "$name" ] ; then
-        name=current
-    fi
-    exec ratpoison -c "frestore $(cat  "${DIR}/${name}")"
-    ;;
-list)
-    cd ${DIR}
-    rm -rf *~
-    exec /bin/ls -m
-    ;;
-renumber)
-    renumber "$1" "$2"
-    exit 0
-    ;;
-showfocus)
-    cmds=(
-        "set border 6"
-        "set fwcolor red"     # border color focused window.
-        "set bwcolor yellow"  # border color unfocused windows.
-        "set fgcolor black"   # foreground ratpoison windows (menu).
-        "set bgcolor yellow"  # background ratpoison windows (menu).
-        )
-    for cmd in "${cmds[@]}" ; do
-        ratpoison -c "$cmd"
-    done
-    echo "Warning: some windows don't take back colors (eg. emacs)."
-    exit 0
-    ;;
-thin)
-    cmds=(
-        "set border 0"
-        )
-    for cmd in "${cmds[@]}" ; do
-        ratpoison -c "$cmd"
-    done
-    exit 0
-    ;;
-balance)
-    order=order-by-x
-    for arg ; do 
-        case "$arg" in
-        -i) order=order-by-id ;;
-        -x) order=order-by-x ;;
-        *)  echo "Usage:"
-            echo "$(basename $0) balance [-i|-x]"
-            echo "  -i   order the windows from left to right by ID"
-            echo "  -x   order the windows from left to right by original X coordinate"
-            if [ $arg = -h -o $arg = --help ] ; then
-                exit 0
-            else
-                exit 1
-            fi
-            ;;
-        esac 
-    done
-
-    ( echo '(:order '"$order"')' ; ratpoison -c 'fdump' ) > "$DIR/last-balanced"
-    clisp  -ansi -q -norc -E ISO-8859-1 -x "$SCRIPT"
-    exec ratpoison -c "frestore $(cat "$DIR/last-balanced")"
-    ;;
-margin)
-    ratpoison -c only -c hsplit -c vsplit  -c focus -c 'select -'  -c focus -c 'select -' -c focus
-    ( echo '(:margin 128 128)' ; ratpoison -c 'fdump' ) > "$DIR/last-balanced"
-    clisp  -ansi -q -norc -E ISO-8859-1 -x "$SCRIPT"
-    exec ratpoison -c "frestore $(cat "$DIR/last-balanced")"  $(ratpoison -c windows|while read line ; do printf ' -c next' ; done) 
-    ;;
-rm)
-    name="$1"
-    if [ -z "$name" ] ; then
-        name=current
-    fi
-    exec rm  "${DIR}/${name}"
-    ;;
-help|-h|--help)
-    echo "${pname} usage:"
-    echo "    ${pname} load \$NAME            # load a named configuration"
-    echo "    ${pname} save \$NAME            # save a configuration under name"
-    echo "    ${pname} balance [-i|-x]"
-    echo "               -i   order the windows from left to right by ID"
-    echo "               -x   order the windows from left to right by original X coordinate"
-    echo "    ${pname} list                   # list configurations"
-    echo "    ${pname} rm \$NAME              # delete named configuration"
-    echo "    ${pname} showfocus              # color borders for focus and other"
-    echo "    ${pname} thin                   # reverts showfocus"
-    echo "    ${pname} margin                 # resize the windows for tmpwm"
-    echo "    ${pname} renumber \$old \$new   # renumber the window"
-    echo "    ${pname} help                   # display this help"
-    echo "    ${pname} \$RATPOISON_COMMAND    # forwards to ratpoison -c \$RATPOISON_COMMAND"
-    exit 0
-    ;;
-*)
-    if ratpoison -c help|sed -e 's/[^ ]\+ \+\([^ ]\+\).*/\1/'|sort -u|grep -q -s "^${cmd}\$" ; then
-        # if [ "$cmd" = "help" ] ; then
-        #     "$0" --help
-        # fi
-        exec ratpoison -c "${cmd} $*"
-    else
-        printf "${pname} error: Unknown command %s\n" "$cmd"
-        "$0" help
-        exit 1
-    fi
-esac
-echo 'How did I come here?'
-exit 2
+(renumber ext:*args*)

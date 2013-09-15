@@ -1,0 +1,14 @@
+
+#!/bin/bash
+echo 'Not implemented yet.'
+exit 1
+
+#to attach your remote repo with the name 'origin' (like cloning would do)
+git remote add origin [URL From Step 1]
+
+# Execute 
+git pull origin master
+# to pull the remote branch so that they are in sync.
+
+# to push up your master branch (change master to something else for a different branch):
+git push origin master
