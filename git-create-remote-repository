@@ -64,7 +64,7 @@ function remote(){
     printf "$@" | ssh "$uhost" bash -c "cat > $temp ; source $temp ; rm $temp"
 }
 
-remote "mkdir -p \"%s\" && cd \"%s\" && git --bare init" "$repository" "$repository" \
+remote "mkdir -p \"%s\" && cd \"%s\" && git --bare init && touch \"%s/git-daemon-export-ok\"" "$repository" "$repository" "$repository" \
 && git remote add "$remote" "ssh://$uhost$repository" \
 && git push "$remote" master \
 && remote "cd \"%s\" && git update-server-info" "$repository"
