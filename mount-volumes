@@ -25,10 +25,12 @@ if [ $umount -eq 1 ] ; then
     umount                ${mnt}data
     umount                ${mnt}home
     umount                ${mnt}srv
-    umount                ${mnt}movies
+    umount                ${mnt}movies1
+    umount                ${mnt}movies2
 else
     mount "${options[@]}" ${server}:/local/data    ${mnt}data
     mount "${options[@]}" ${server}:/local/home    ${mnt}home
     mount "${options[@]}" ${server}:/local/srv     ${mnt}srv
-    mount "${options[@]}" ${server}:/movies        ${mnt}movies
+    mount "${options[@]}" ${server}:/movies1       ${mnt}movies1
+    mount "${options[@]}" ${server}:/movies2       ${mnt}movies2
 fi

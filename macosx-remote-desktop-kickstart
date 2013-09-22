@@ -1,5 +1,27 @@
+#!/bin/bash
+sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
+    -verbose \
+    -agent -stop \
+    -deactivate 
+exit 0
+
+sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
+    -verbose \
+    -activate \
+    -restart -agent \
+    -allowAccessFor -allUsers \
+    -privs -all \
+    -clientopts \
+    -setvnclegacy -vnclegacy yes \
+    -setvncpw -vncpw freedom \
 
 
+
+# 2. Activate Remote Desktop Sharing, enable access privileges for the users "admin", grant full privileges for the users "admin", restart ARD Agent and Menu extra:
+sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -users admin -privs -all -restart -agent -menu
+exit 0
+
+##################################################################################
 The kickstart utility is located here:
 
 /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart

@@ -1,0 +1,35 @@
+#!/bin/bash
+
+function position(){
+    local character="$1"
+    local string="$2"
+    local i=0
+    local len=${#string}
+    while [ $i -lt $len -a "$character" != "${string:${i}:1}" ] ; do
+        i=$(( $i + 1 ))
+    done
+    if [ $i -lt $len ] ; then
+        echo $i
+    else
+        echo nil
+    fi
+}
+
+colon=$(position : "$DISPLAY")
+if [ $colon = nil ] ; then
+    printf "The environment variable DISPLAY  must contain a hostname, a color, \n"
+    printf "and a display number. \n"
+    exit 1
+fi
+host="${DISPLAY:0:${colon}}"
+
+display_screen="${DISPLAY:$(( 1 + ${colon} ))}"
+dot=$(position . "$display_screen")
+if [ $dot = nil ] ; then
+    disp="$display_screen"
+else
+    disp="${display_screen:0:${dot}}"
+fi
+
+ssh "$host" xhost +$(hostname)
+ssh "$host" xauth nextract - ":$disp" | xauth nmerge -
