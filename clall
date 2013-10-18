@@ -240,7 +240,7 @@ winquote(){
             slash="${arg//\//\\\\}"
             ;;
         *) 
-            arg="$(pwd)/$arg"
+            arg="$(pwd -P)/$arg"
             slash="${arg//\//\\\\}"
             ;;
         esac
