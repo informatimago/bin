@@ -1,2 +1,72 @@
 #!/bin/bash
 sudo rm -rf /System/Library/Extensions/AppleGraphicsControl.kext
+
+# In the com.apple.Boot.plist file, you will need to add the following
+# properties (if not already there):
+# 
+# Graphics Mode - String - 1920x1080x32 
+# GraphicsEnabler - String - y
+
+exit 0
+
+# on the host:
+VBoxManage setextradata "MacOSX" "CustomVideoMode1" "1920x1080x32"
+VBoxManage setextradata "MacOSX" "CustomVideoMode1" "1680x1050x32"
+
+
+# You’ll notice that the resolution is fixed to 1024×768. You can change
+# this resolution, but it has to be done in two files. First on Mac OS
+# X, there’s the /Extra/com.apple.Boot.plist file. This file describes
+# the resolution for the Mac to use. Before you edit this file, install
+# Xcode from the Mac OS X media (insert it into the drive with the Mac
+# running). Open ‘Optional Installs’ folder and double-click ‘Xcode’ and
+# follow the installation instructions. Note, it takes about 2.3GB of
+# space. Plist files are easier to edit when the Property List Editor is
+# installed from Xcode. Otherwise, you will have to hand edit these
+# files with TextEdit.
+# 
+# Also note that the /Extra folder is at the root of the Hard Drive
+# volume.  It is not inside your local user profile folder.  You will
+# also note that after a default install, Mac OS X doesn’t show hard
+# disk icons on the desktop.  To turn this icon on, from the top menu,
+# select ‘Finder->Preferences…’.  Then, put a check next to ‘Hard Disks’
+# under ‘Show these items on the desktop’.  Once you open the Hard Disk
+# icon, you should see the Extra folder.  If you still don’t see the
+# Extra folder, be sure that you have installed MyHack or used the
+# Nawcom ModCD.  If MyHack hasn’t been installed, there won’t be an
+# /Extra folder there.  The Extra folder gets installed as a result of
+# installing MyHack.
+# 
+# Also, there can only be one available resolution in Virtualbox and on
+# the Mac at a given time. I wish it supported more resolutions at once,
+# but it doesn’t. Note also that because VirtualBox doesn’t support Mac
+# OS X fully, there are no machine additions. To enable the resolution,
+# on the PC side of VirtualBox (on the VirtualBox host), you will need
+# to run the following command from a command shell (cmd):
+# 
+# VBoxManage setextradata "Mac OS X" "CustomVideoMode1" "1920x1080x32"
+# 
+# The “Mac OS X’ label is the exact machine name in VirtualBox. The
+# “1920x1080x32″ setting is customizable to your needs (and video card
+# capabilities). However, both this setting and com.apple.boot.plist (on
+# the Mac) must match for the screen resolution to take effect.
+# 
+# The ‘VBoxManage’ command is located in the Program
+# Files\Oracle\VirtualBox folder or wherever you installed
+# VirtualBox. You can add this location to your PATH variable so you can
+# use this command without typing in the full path each time.
+# 
+# In the com.apple.Boot.plist file, you will need to add the following
+# properties (if not already there):
+# 
+# Graphics Mode - String - 1920x1080x32 
+# GraphicsEnabler - String - y
+# 
+# (The resolution value should match the above VboxManage command). If
+# you want to change resolutions later, you will need to edit both
+# places again and reboot your Mac.
+# 
+# If you reboot and the screen hasn’t changed or has changed to
+# 1280×1024 and not the resolution you expected, double check that both
+# com.apple.boot.plist and the CustomVideoMode1 setting match and are
+# active. Both of these settings must match for the resolution to work.
