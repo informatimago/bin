@@ -417,6 +417,7 @@ function get_value () {
 
 
 function distribution () {
+    local root="$1" ; shift
     # DOES:   Identify the system, distribution and release where we run.
     #         Prints a line with three corresponding keywords.
     # STATUS: 0 upon success.
@@ -432,42 +433,42 @@ function distribution () {
     case "$systeme" in
 
     GNU/Linux|Linux)
-        if [ -e /etc/os-release ] ; then
-            distrib=$(get_value /etc/os-release ID)
-            release=$(get_value /etc/os-release VERSION_ID)
+        if [ -e "$root"/etc/os-release ] ; then
+            distrib=$(get_value "$root"/etc/os-release ID)
+            release=$(get_value "$root"/etc/os-release VERSION_ID)
             # Checked with Ubuntu 13.04
 
-        elif [ -e /etc/mandrake-release ] ; then
+        elif [ -e "$root"/etc/mandrake-release ] ; then
             distrib=mandrake
-            release=$(awk '{print $4}' < /etc/mandrake-release)
+            release=$(awk '{print $4}' < "$root"/etc/mandrake-release)
             # Checked with Linux Mandrake 6.1
 
-        elif [ -e /etc/redhat-release ] ; then
+        elif [ -e "$root"/etc/redhat-release ] ; then
             distrib=redhat
-            release=$(awk '{print $4}' < /etc/redhat-release)
+            release=$(awk '{print $4}' < "$root"/etc/redhat-release)
             # Checked with Linux RedHat 6.1, 6.2, 7.0
             # Checked with Linux Immunix 6.2.
             # There seems to be no way to differenciate 
             # a RedHat 6.2 from an Immunix 6.2.
             
-        elif [ -e /etc/conectiva-release ] ; then
+        elif [ -e "$root"/etc/conectiva-release ] ; then
             distrib=conectiva
-            release=$(awk '{print $3}' < /etc/conectiva-release)
+            release=$(awk '{print $3}' < "$root"/etc/conectiva-release)
             # Checked with Linux Conectiva 6.5
 
-        elif [ -e /etc/SuSE-release ] ; then
+        elif [ -e "$root"/etc/SuSE-release ] ; then
             distrib=SuSE
-            release=$(grep VERSION /etc/SuSE-release|sed -e 's/.*= *//')
+            release=$(grep VERSION "$root"/etc/SuSE-release|sed -e 's/.*= *//')
             # Checked with Linux SuSE 7.0, 7.1
 
-        elif [ -e /etc/debian_version ] ; then
+        elif [ -e "$root"/etc/debian_version ] ; then
             distrib=debian
-            release="$(cat /etc/debian_version)"
+            release="$(cat "$root"/etc/debian_version)"
             # Checked with Linux DebIan 5.0.4
 
-        elif [ -e /etc/gentoo-release ] ; then
+        elif [ -e "$root"/etc/gentoo-release ] ; then
             distrib=gentoo
-            release=$(awk '{print $NF}' < /etc/gentoo-release)
+            release=$(awk '{print $NF}' < "$root"/etc/gentoo-release)
             # Checked with Linux gentoo 1.12.9, 1.12.13
 
         else
@@ -484,7 +485,7 @@ function distribution () {
 
     Darwin)
         release=$(hostinfo | awk '/Darwin Kernel Version/{printf "%s",substr($4,1,index($4,":")-1);}')
-        if [ -r /System/Library/Frameworks/AppKit.framework/AppKit ] ; then
+        if [ -r "$root"/System/Library/Frameworks/AppKit.framework/AppKit ] ; then
             distrib=apple
             macOSXVersionFromDarwinVersion $release > /dev/stderr
         fi
@@ -528,12 +529,24 @@ function distribution () {
 } #distribution
 
 pname="$(basename "$0")"
+root=
 for arg ; do 
     case "$arg" in
-    -h|--help) printf "%s usage:\n\n    %s | read system distribution release\n\n" "$pname" "$pname" ; exit 0 ;;
-    *) "$0" -h ; exit 1 ;;
+    -h|--help) printf "%s usage:\n\n    %s [/root/directory] | read system distribution release\n\n" "$pname" "$pname" ; exit 0 ;;
+    *)
+        if [ "$root" = "" ] ; then
+            root="$arg"
+        else
+            "$0" -h ; exit 1 
+        fi
+        ;;
     esac
 done
-distribution
+if [ "$root" != "" ] ; then
+    if [ ! -d "$root" ] ; then
+        printf "%s error: %s is not a directory.\n" "$pname" "$root"
+    fi
+fi
+distribution "$root"
 
 #### THE END ####
