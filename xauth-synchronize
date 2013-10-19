@@ -33,3 +33,5 @@ fi
 
 ssh "$host" xhost +$(hostname)
 ssh "$host" xauth nextract - ":$disp" | xauth nmerge -
+
+# ssh xauth nextract - ":$disp" | ssh "$host" xauth nmerge -
