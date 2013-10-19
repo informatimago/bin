@@ -1,17 +1,69 @@
 #!/bin/bash
-sudo rm -rf /System/Library/Extensions/AppleGraphicsControl.kext
 
-# In the com.apple.Boot.plist file, you will need to add the following
-# properties (if not already there):
-# 
-# Graphics Mode - String - 1920x1080x32 
-# GraphicsEnabler - String - y
+case "$(uname)" in
+Darwin)
+    sudo rm -rf /System/Library/Extensions/AppleGraphicsControl.kext
+    ;;
+Linux)
+    vm="MacOSX"
+    efigopmode="4"
+    efigopmode=""
+
+    read width height depth <<<$( xwininfo -root|awk '/^ *Width:/{printf "%s ",$2} /^ *Height:/{printf "%s ",$2} /^ *Depth:/{printf "%s\n",$2}' )
+
+    case "${width}x${depth}" in
+    640×480)   efigopmode="0" ;; 
+    800×600)   efigopmode="1" ;; 
+    1024×768)  efigopmode="2" ;; 
+    1280×1024) efigopmode="3" ;; 
+    1440×900)  efigopmode="4" ;; 
+    *)         true ;;
+    esac
+
+    VBoxManage modifyvm "${vm}" --firmware efi64
+
+    VBoxManage setextradata "${vm}" "GUI/LastGuestSizeHint"        "${width},${height}"
+    VBoxManage setextradata "${vm}" "GUI/LastNormalWindowPosition" "0,0,${width},${height}"
+    VBoxManage setextradata "${vm}" "GUI/LastScaleWindowPosition"  "0,0,${width},${height}"
+
+    if [ -z "${efigopmode}" ] ; then
+        VBoxManage setextradata "${vm}" "CustomVideoMode1"             "${width}x${height}x${depth}"
+        VBoxManage setextradata "${vm}" "VBoxInternal2/EfiGopMode"
+        VBoxManage setextradata "${vm}" "VBoxInternal2/SmcDeviceKey"
+    else
+        VBoxManage setextradata "${vm}" "CustomVideoMode1"            
+        VBoxManage setextradata "${vm}" "VBoxInternal2/EfiGopMode"     "${efigopmode}"
+        VBoxManage setextradata "${vm}" "VBoxInternal2/SmcDeviceKey"   "ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc"
+    fi
+
+    for key in "CustomVideoMode1" "GUI/LastGuestSizeHint" "GUI/LastNormalWindowPosition" "GUI/LastScaleWindowPosition" ; do
+        VBoxManage setextradata global "${key}"
+    done
+
+    VBoxManage getextradata "${vm}" enumerate
+
+    case "${efigopmode}" in
+    0) wh="640×480"   ;; 
+    1) wh="800×600"   ;; 
+    2) wh="1024×768"  ;; 
+    3) wh="1280×1024" ;; 
+    4) wh="1440×900"  ;; 
+    *) wh="${width}x${height}" ;;
+    esac
+
+    echo "To put in /Extra/com.apple.Boot.plist  inside the guest:"
+    echo "<key>Graphics Mode</key><string>${wh}x${depth}</string>"
+    echo "<key>GraphicsEnabler</key><string>Yes</string>"
+
+    ;;
+*)
+    echo "Where am I?"
+    exit 1
+    ;;
+esac
 
 exit 0
 
-# on the host:
-VBoxManage setextradata "MacOSX" "CustomVideoMode1" "1920x1080x32"
-VBoxManage setextradata "MacOSX" "CustomVideoMode1" "1680x1050x32"
 
 
 # You’ll notice that the resolution is fixed to 1024×768. You can change
