@@ -3,20 +3,22 @@ pname="$(basename "$0")"
 server=kuiper
 umount=0
 options=( -o nolockd  )
+hostname=$(hostname)
 
 function usage(){
     printf "\n%s usage:\n    %s [unmount]\n\n" "$pname" "$pname" 
 }
 
 for arg ; do
-case "$arg" in
--u|--umount|--unmount|umount|unmount) umount=1 ;;
--h|--help|help) usage ; exit 0 ;;
-*)  printf "%s error: unknown option: %s\n" "$pname" "$arg" ; usage ; exit 1 ;;
-esac
+    case "$arg" in
+    -u|--umount|--unmount|umount|unmount) umount=1 ;;
+    -h|--help|help) usage ; exit 0 ;;
+    *)  printf "%s error: unknown option: %s\n" "$pname" "$arg" ; usage ; exit 1 ;;
+    esac
 done
 
-case "$(hostname)" in
+
+case "${hostname}" in
 macbook-pro-de-info-medicalis.local) mnt=/mnt/ ;;
 *)                                   mnt=/     ;;
 esac
@@ -25,12 +27,38 @@ if [ $umount -eq 1 ] ; then
     umount                ${mnt}data
     umount                ${mnt}home
     umount                ${mnt}srv
-    umount                ${mnt}movies1
-    umount                ${mnt}movies2
+    case "${hostname}" in
+    galatea)
+        umount                ${mnt}movies1
+        umount                ${mnt}movies2
+        ;;
+    triton*)
+        true
+        ;;
+    despina*)
+        true
+        ;;
+    *)
+        true 
+        ;;
+    esac
 else
     mount "${options[@]}" ${server}:/local/data    ${mnt}data
     mount "${options[@]}" ${server}:/local/home    ${mnt}home
     mount "${options[@]}" ${server}:/local/srv     ${mnt}srv
-    mount "${options[@]}" ${server}:/movies1       ${mnt}movies1
-    mount "${options[@]}" ${server}:/movies2       ${mnt}movies2
+    case "${hostname}" in
+    galatea*)
+        mount "${options[@]}" ${server}:/movies1       ${mnt}movies1
+        mount "${options[@]}" ${server}:/movies2       ${mnt}movies2
+        ;; 
+    triton*)
+        true
+        ;;
+    despina*)
+        true
+        ;;
+    *)
+        true
+        ;;
+    esac
 fi
