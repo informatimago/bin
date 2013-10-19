@@ -1,0 +1,4 @@
+#!/bin/bash
+hostname=$(hostname|sed -e 's/\..*//')
+domainname=lan.informatimago.com
+sudo scutil --set HostName "${hostname}.${domainname}"
