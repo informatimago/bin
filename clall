@@ -93,9 +93,11 @@ fi
 
 clall_lisp='
 ;; CMU uses ALIEN in CL-USER, and there is a locked ALIEN:SHORT.
+#-mocl
 (defpackage "COM.INFORMATIMAGO.CLALL"
   (:use #-gcl "COMMON-LISP" #+gcl "LISP")
   (:nicknames "CLALL"))
+#-mocl
 (in-package "COM.INFORMATIMAGO.CLALL")
 
 (setf *print-readably* nil)
@@ -275,6 +277,7 @@ echo "#+ecl       (si:quit)"                   >> "$epilog"
 echo "#+gcl       (lisp:quit)"                 >> "$epilog"
 echo "#+sbcl      (sb-ext:quit)"               >> "$epilog"
 echo "#+lispworks (ext:quit)"                  >> "$epilog"
+echo "#+mocl      (rt:quit)"                   >> "$epilog"
 cat "$epilog" >> "$script"
 cat "$epilog" >> "$winscript"
 
@@ -295,6 +298,7 @@ printf '\n'
 
 
 # debian calls cmucl cmucl instead of lisp.
+# runcl mocl       repl --verbose --android /tmp/  < "$script"
 runcl abcl     --batch --noinform --noinit --eval '(setq *load-verbose* nil)'  --load  "$script"
 runcl alisp     -batch -qq                                                      -L     "$script" -kill
 runcl ccl      --batch --no-init                                               --load  "$script"      
