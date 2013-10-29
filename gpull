@@ -1,9 +1,30 @@
 #!/bin/bash
+pname="$(basename "$0")"
 . "$(dirname "$0")/gdirs"
+# BASE="$(cd $(dirname "$0") ; cd "$(pwd -P)/../.." ; pwd -P)"
+
+if [ "$1"s = links ] ; then
+    for link in gpush gstat ; do
+        ln -v -s -f gpull "$(dirname "$0")/${link}"
+    done
+    exit 0
+fi
+
+case "$pname" in
+gpull) op=(pull) ;; # (pull --all) ;;
+gpush) op=(push) ;;
+gstat) op=(status) ;;
+*) 
+    printf "%s error: it should be named gpull, gpush or gstat\n" "$pname"
+    printf "use:\n\t gpull link \nto make the symlinks.\n"
+    exit 1
+    ;;
+esac
+
 for dir in "${gdirs[@]}" ; do
     (
-        cd "$HOME/$dir"
+        cd "$dir" # "$BASE/$dir"
         printf "\ncd %s\n" "$(pwd)"
-        git pull
+        git "${op[@]}"
     )
 done

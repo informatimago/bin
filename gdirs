@@ -1,1 +1,11 @@
-gdirs=( bin rc src/public/emacs src/public/lisp )
+# -*- mode:shell-script -*-
+gdirs=(
+    "$HOME"/rc
+    "$HOME"/bin
+    "$HOME"/src/public/emacs
+    "$HOME"/src/public/lisp
+    "$HOME"/works/gsharp/src/abnotation 
+    "$HOME"/works/gsharp/src/gsharp 
+    "$HOME"/works/gsharp/src/mcclim 
+    "$HOME"/works/gsharp/src/midi 
+)
