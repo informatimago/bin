@@ -1,9 +1,76 @@
 #!/bin/bash
-. "$(dirname "$0")/gdirs"
+# TODO: Rewrite it in clisp, it has overflown bash complexity.
+
+pname="$(basename "$0")"
+gdirs=("$HOME/.config/gpull-dirs"  "$(dirname "$0")/gdirs")
 for dir in "${gdirs[@]}" ; do
-    (
-        cd "$HOME/$dir"
-        printf "\ncd %s\n" "$(pwd)"
-        git pull
-    )
+    if [ -r "$dir" ] ; then
+        source "$dir"
+        break
+    fi
+done
+
+# BASE="$(cd $(dirname "$0") ; cd "$(pwd -P)/../.." ; pwd -P)"
+
+if [ "$1"s = links ] ; then
+    for link in gpush gstat ; do
+        ln -v -s -f gpull "$(dirname "$0")/${link}"
+    done
+    exit 0
+fi
+
+case "$pname" in
+gpull) op=(pull) ;; # (pull --all) ;;
+gpush) op=(push) ;;
+gstat) op=(status) ;;
+*) 
+    printf "%s error: it should be named gpull, gpush or gstat\n" "$pname"
+    printf "use:\n\t gpull link \nto make the symlinks.\n"
+    exit 1
+    ;;
+esac
+
+psets=()
+goterror=0
+
+for gset ; do
+
+    gotit=0
+    for e in ${gsets[@]} ; do 
+        if [ "$gset" = "$e" ] ; then
+            gotit=1
+            break
+        fi
+    done
+
+    if [ $gotit -eq 0 ] ; then
+        printf "%s error: invalid git set '%s', should be one of: \n" "$pname" "$gset"
+        printf "             %s\n" ${gsets[@]}
+        goterror=1
+    fi
+
+    psets=( ${psets[@]} $gset )
+done
+
+if [ $goterror -ne 0 ] ; then
+    exit 1
+fi
+
+if [ ${#psets} -eq 0 ] ; then
+    psets=( ${gsets[0]} )
+fi
+
+for pset in ${psets[@]} ; do
+
+    eval 'pdirs=( ${'"$pset"'[@]} )'
+
+    for dir in "${pdirs[@]}" ; do
+        (
+            cd "$dir" && (
+                printf "\ncd %s\n" "$(pwd)"
+                git "${op[@]}" 
+            )
+        )
+    done
+
 done

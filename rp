@@ -3,7 +3,7 @@ DIR="${HOME}/.ratpoison"
 pname="$(basename "$0")"
 
 
-SCRIPT='
+LIBRARY='
 
 (defun contents-from-stream (stream &key length (min-size 256) max-extend)
   "
@@ -92,7 +92,9 @@ OFFSET: must be a symbol naming an accessor to find the plist in the record.
 (define-plist-field frame-height        :height  cdr)
 (define-plist-field frame-screen-width  :screenw cdr)
 (define-plist-field frame-screen-height :screenh cdr)
+'
 
+BALANCE="$LIBRARY"'
 
 (defun order-by-id (f) (frame-number f))
 (defun order-by-x  (f) (frame-x      f))
@@ -167,6 +169,27 @@ First frame should be sized with right and bottom margins.
      (format *error-output* "Unexpected command file ~A" *path*))))
 '
 
+SETSIZE="$LIBRARY"'
+
+
+(defvar *path* "~/.ratpoison/last-balanced")
+(let* ((*print-pretty* nil)
+       (input  (read-from-string
+                (format nil "(~A)"
+                        (substitute #\space #\,
+                                    (text-file-contents
+                                     *path*))))))
+  (cond
+    ((eq :setsize (caar input))
+     (destructuring-bind (setsize width height) (first input)
+       (let ((curframe (second input)))
+          (setf (text-file-contents *path*)
+                (format nil "~(~{~S~^,~}~)"
+                        (set-size (third input) width height curframe))))))
+    (t
+     (format *error-output* "Unexpected command file ~A" *path*))))
+
+'
 
 RENUMBER='
 (defun renumber (old new &rest winums)
@@ -192,6 +215,19 @@ function renumber(){
         >/dev/null
 }
 
+function setsize(){
+    # set the size of the current window.
+    local width="$1"
+    local heigth="$2"
+    local gravity="$3"
+    if [ -z "$gravity" ] ; then
+        gravity=nw
+    fi
+    ( echo '(:setsize '"$gravity"')' ; ratpoison -c 'curframe' -c 'fdump' ) > "$DIR/last-balanced"
+    clisp  -ansi -q -norc -E ISO-8859-1 -x "$BALANCE"
+    exec ratpoison -c "frestore $(cat "$DIR/last-balanced")"
+}
+
 cmd="$1";shift
 case "$cmd" in
 save)
@@ -214,9 +250,12 @@ list)
     rm -rf *~
     exec /bin/ls -m
     ;;
-renumber)
-    renumber "$1" "$2"
-    exit 0
+rm)
+    name="$1"
+    if [ -z "$name" ] ; then
+        name=current
+    fi
+    exec rm  "${DIR}/${name}"
     ;;
 showfocus)
     cmds=(
@@ -241,6 +280,20 @@ thin)
     done
     exit 0
     ;;
+renumber)
+    renumber "$1" "$2"
+    exit 0
+    ;;
+setsize)
+    setsize "$1" "$2"
+    exit 0
+    ;;
+margin)
+    ratpoison -c only -c hsplit -c vsplit  -c focus -c 'select -'  -c focus -c 'select -' -c focus
+    ( echo '(:margin 128 128)' ; ratpoison -c 'fdump' ) > "$DIR/last-balanced"
+    clisp  -ansi -q -norc -E ISO-8859-1 -x "$BALANCE"
+    exec ratpoison -c "frestore $(cat "$DIR/last-balanced")"  $(ratpoison -c windows|while read line ; do printf ' -c next' ; done) 
+    ;;
 balance)
     order=order-by-x
     for arg ; do 
@@ -259,23 +312,9 @@ balance)
             ;;
         esac 
     done
-
     ( echo '(:order '"$order"')' ; ratpoison -c 'fdump' ) > "$DIR/last-balanced"
-    clisp  -ansi -q -norc -E ISO-8859-1 -x "$SCRIPT"
+    clisp  -ansi -q -norc -E ISO-8859-1 -x "$BALANCE"
     exec ratpoison -c "frestore $(cat "$DIR/last-balanced")"
-    ;;
-margin)
-    ratpoison -c only -c hsplit -c vsplit  -c focus -c 'select -'  -c focus -c 'select -' -c focus
-    ( echo '(:margin 128 128)' ; ratpoison -c 'fdump' ) > "$DIR/last-balanced"
-    clisp  -ansi -q -norc -E ISO-8859-1 -x "$SCRIPT"
-    exec ratpoison -c "frestore $(cat "$DIR/last-balanced")"  $(ratpoison -c windows|while read line ; do printf ' -c next' ; done) 
-    ;;
-rm)
-    name="$1"
-    if [ -z "$name" ] ; then
-        name=current
-    fi
-    exec rm  "${DIR}/${name}"
     ;;
 help|-h|--help)
     echo "${pname} usage:"

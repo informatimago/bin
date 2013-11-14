@@ -1,1 +1,19 @@
-gdirs=( bin rc src/public/emacs src/public/lisp )
+# -*- mode:shell-script -*-
+
+gsets=(pjb gsharp)
+
+
+pjb=(
+    "$HOME"/rc
+    "$HOME"/bin
+    "$HOME"/src/public/emacs
+    "$HOME"/src/public/lisp
+)
+
+gsharp=(
+    "$HOME"/works/gsharp/src/abnotation 
+    "$HOME"/works/gsharp/src/gsharp 
+    "$HOME"/works/gsharp/src/mcclim 
+    "$HOME"/works/gsharp/src/midi 
+)
+
