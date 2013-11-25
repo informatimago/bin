@@ -132,7 +132,13 @@ esac
 
 function randomarg () {
     local i=$(( ( $RANDOM % $# ) + 1 ))
-    echo ${!i}
+    local a=b
+    local b=c
+    if [ "${!a}" != "c" ] ; then
+        eval "\$$i"
+    else
+        echo "${!i}"
+    fi
 }
 
 clist=('#a0e0ff' '#b0c0f0' '#99ccff' '#90d0f0' '#a0e0f0')
@@ -228,6 +234,9 @@ white*|blue*|amber*|green*)
     *)
         fo="green_${size}_fo"
         font=( ${!fo[@]} )
+        if [ "${font[0]}" = "0" ] ; then
+            font=( $(eval "$fo") )
+        fi
         ;;
     esac
     case "$name" in
