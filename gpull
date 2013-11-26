@@ -20,7 +20,7 @@ if [ "$1"s = links ] ; then
 fi
 
 case "$pname" in
-gpull) op=(pull) ;; # (pull --all) ;;
+gpull) op=(pull --all) ;; # (pull --all) ;;
 gpush) op=(push) ;;
 gstat) op=(status) ;;
 *) 
