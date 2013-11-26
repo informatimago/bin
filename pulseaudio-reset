@@ -1,0 +1,5 @@
+#!/bin/bash
+pulseaudio --kill
+killall pulseaudio
+killall -9 pulseaudio
+rm -rf ~/.config/pulse  ~/.pulse*  ~/.pulse-cookie  /tmp/.esd-*  /tmp/pulse*
