@@ -1,6 +1,11 @@
+unset LC_ALL
+
 unset LC_MONETARY
 unset LC_NUMERIC
 unset LC_MESSAGES
 unset LC_COLLATE
 unset LC_CTYPE
 unset LC_TIME
+
+unset LANG
+unset LANGUAGE

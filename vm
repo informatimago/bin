@@ -1,0 +1,28 @@
+#!/bin/bash
+#vm=ubudu-vm-mac-1
+vm=MacOSX
+pname="$(basename "$0")"
+
+usage(){
+    printf "\n%s usage:\n\t%s [start|save]\n\n" "$pname" "$pname"
+}
+
+case "$1" in
+start)
+    vboxmanage startvm   $vm 
+    rp renumber $(rp windows|sed -n -e "s/^\([0-9]\+\).${vm}.*/\1/p") 22
+    ;;
+save)
+    vboxmanage controlvm $vm savestate
+    ;;
+-h|--help)
+    usage
+    exit 0
+    ;;
+*)
+    usage 
+    exit 1
+esac
+exit 0
+
+
