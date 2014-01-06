@@ -54,35 +54,11 @@ Listen to the radio.
 ;;;---------------------------------------------------------------------
 
 (defparameter *radio-urls*
-  '(("tv-bfm"         "mms://vipmms9.yacast.net/bfm_bfmtv")
-    ;; ("nasatv"
-    ;;         asx(){
-    ;;             tr '<>\015' '\012\012\012'< "$1" \
-    ;;                 |
-    ;; sed -n -e 's/.*[Rr][Ee][Ff]  *[Hh][Rr][Ee][Ff] *= *"\([^"]*\)".*/\1/p' \
-    ;;                 | head -1
-    ;;         }
-    ;;         trap 'rm -f /tmp/*-$$.nasatv' 0
-    ;;         url='http://www.nasa.gov/55644main_NASATV_Windows.asx'
-    ;;         wget "$url" -O "/tmp/1-$$.nasatv" > /dev/null 2>&1
-    ;;         url2="$(asx /tmp/1-$$.nasatv)"
-    ;;         wget "$url2" -O "/tmp/2-$$.nasatv" > /dev/null 2>&1
-    ;;         URL="$(asx /tmp/2-$$.nasatv)"
-    ;; # OPTIONS=( "${OPTIONS[@]}" -vo gl:nomanyfmts )
-    ;; )
+  '(("courtoisie"     "http://www.tv-radio.com/station/courtoisie/courtoisie.m3u")
     ("esradio"        "mms://streaming.esradio.fm/EsRadio")
-    ("cadena-100"     "http://www.cadena100.es/directo/directo.asx")
-    ("cadena-cope"    "http://www.cope.es/cadena/directo.asx")
-    ("cope"           "http://copefm.cope.stream.flumotion.com/cope/copefm.mp3.m3u")
     ("reinfo"         "http://www.radiocourtoisie.net/tempo/public/reinformation/reinformation.mp3")
-    ("courtoisie"     "http://www.tv-radio.com/station/courtoisie/courtoisie.m3u")
-    ("deutchlandfunk" "http://dradio-live.mp3.t-bn.de/dlf_live")
-    ("ie"             "mms://screamer.tippnet.ie/tmw")
-    ("news98"         "http://himusic.aboutmedia.com.tw/ufo/ms-news98/asx/news98.asx")
-    ("rne3"           "mms://a1830.l830120550.c8301.e.lm.akamaistream.net/D/1830/8301/v0001/reflector:20550")
     ("treffpunkt"     "http://www.cibersoft.com.ar/radio/radio.m3u")
     ("esperance"      "http://www.streamakaci.com/radios/esperance.m3u"
-     ;; "http://www.streamakaci.com/radios/esperance.asx"
      )))
 
 
