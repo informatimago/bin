@@ -104,3 +104,39 @@ else
     emacs=emacs
 fi
 "$emacs"  --batch --eval "(dolist (package '(${elpackages[@]})) (package-install package))"
+
+exit 0
+
+    1  git clone ssh://pjb@git.informatimago.com/srv/git/public/rc/
+    2  ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
+    5  cd /Applications/
+   17  cd /Applications/Kindle.app/
+   19  cd Contents/
+   25  cd ../../TextWrangler.app/
+   26  cd Contents/
+   30  cd ../../ScreenshotMakerforiOS.app/
+   31  cd Contents/
+   34  cd
+   35  ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
+   36  rm -rf /usr/local/Cellar /usr/local/.git && brew cleanup
+   37  ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
+   38  brew doctor
+   42  brew install git
+   44  git clone ssh://pjb@git.informatimago.com/srv/git/public/rc/
+   45  git clone ssh://pjb@git.informatimago.com/srv/git/public/bin
+   46  cd rc
+   52  brew install clisp
+   53  brew install wget
+   54  mkdir src/git
+   55  mkdir -p src/git
+   56  cd src/git
+   58  git clone ssh://pjb@git.informatimago.com/srv/git/public/emacs
+   59  git clone ssh://pjb@git.informatimago.com/srv/git/public/lisp
+   60  cd ..
+   61  ln -s git/* .
+   63  mv git public
+   68  git clone ssh://pjb@git.informatimago.com/srv/git/pjb/ubudu-stuff
+   69  cd
+   70  rsynch 192.168.1.151:~/quicklisp quicklisp
+   71  rsynch 192.168.1.151:~/emacs emacs
+
