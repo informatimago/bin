@@ -1,0 +1,10 @@
+#!/bin/bash
+namef="screen-dump-%06d.png"
+i=0
+n=$(printf "$namef" "$i")
+while [ -x "$n" ] ; do
+    i=$(( $i + 1 ))
+    n=$(printf "$namef" "$i")
+done
+xwd | xwdtopnm | pnmtopng > "$n"
+echo "$n"
