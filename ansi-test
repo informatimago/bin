@@ -40,6 +40,9 @@
 ;;;;    Boston, MA 02111-1307 USA
 ;;;;**************************************************************************
 (in-package "COMMON-LISP-USER")
+(defpackage "COM.INFORMATIMAGO.COMMAND.ANSI-TEST"
+  (:use "COMMON-LISP"))
+(in-package "COM.INFORMATIMAGO.COMMAND.ANSI-TEST")
 (load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common :defaults *load-pathname*))
 (use-package "SCRIPT")
 (defparameter *program-version* "1.0.2")
@@ -50,7 +53,8 @@
 
 
 (catch 'go-on
-  (parse-options ext:*args* (lambda () (throw 'go-on t)))
+  (parse-options ext:*args*
+                 (lambda () (throw 'go-on t)))
   (ext:exit 0))
 
 (format t "~CcLoading...~%" (code-char 27))

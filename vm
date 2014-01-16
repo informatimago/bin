@@ -15,6 +15,9 @@ start)
 save)
     vboxmanage controlvm $vm savestate
     ;;
+poweroff)
+    vboxmanage controlvm $vm poweroff
+    ;;
 -h|--help)
     usage
     exit 0
