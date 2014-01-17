@@ -21,7 +21,7 @@ function vmlist(){
 }
 
 function usage(){
-    printf "\n%s usage:\n\n\t%s \$vmname|\$index  start|save \n\n" "$pname" "$pname"
+    printf "\n%s usage:\n\n\t%s \$vmname|\$index  start|save|poweroff \n\n" "$pname" "$pname"
     vmlist
 }
 
@@ -91,18 +91,10 @@ start)
     $doit vboxmanage startvm "$vm"
     ;;
 save)
-<<<<<<< HEAD
-    $doit vboxmanage controlvm  "$vm" savestate
-=======
-    vboxmanage controlvm $vm savestate
+    $doit vboxmanage controlvm "$vm" savestate
     ;;
 poweroff)
-    vboxmanage controlvm $vm poweroff
-    ;;
--h|--help)
-    usage
-    exit 0
->>>>>>> 36cbe7d97911b1a51448609ff7b4a9a4ce748f05
+    $doit vboxmanage controlvm "$vm" poweroff
     ;;
 *)
     error "unknown action '%s'" "$action"
