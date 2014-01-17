@@ -2618,6 +2618,25 @@ THIS MACHINE THANKS YOU
 FOR YOUR ATTENTION.        G O O D B Y E
 ")))
 
+(defparameter *007-the-spy-who-loved-me--1977*
+  '(
+    ;; teleltype transmission:
+    ("
+
+TO STROMBERG ONE
+FROM LIPARUS
+
+SECURITY STROMBERG TOP SECRET
+
+MISSILE REPROGRAMMING
+CANCEL PREVIOUS INSTRUCTIONS
+REPROGRAMME MISSILE ONE ONLY 092765491
+STROMBERG ONE ACKNOLWEDGE
+
+"
+; --> coordinates 034285219
+     )))
+
 
 ;;;---------------------------------------------------------------------
 ;;; Run it

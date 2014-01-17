@@ -91,7 +91,18 @@ start)
     $doit vboxmanage startvm "$vm"
     ;;
 save)
+<<<<<<< HEAD
     $doit vboxmanage controlvm  "$vm" savestate
+=======
+    vboxmanage controlvm $vm savestate
+    ;;
+poweroff)
+    vboxmanage controlvm $vm poweroff
+    ;;
+-h|--help)
+    usage
+    exit 0
+>>>>>>> 36cbe7d97911b1a51448609ff7b4a9a4ce748f05
     ;;
 *)
     error "unknown action '%s'" "$action"
