@@ -1,27 +1,101 @@
 #!/bin/bash
-#vm=ubudu-vm-mac-1
-vm=MacOSX
 pname="$(basename "$0")"
 
-usage(){
-    printf "\n%s usage:\n\t%s [start|save]\n\n" "$pname" "$pname"
+vms=(macosx macosx-10-8 macosx-10-9 ubudu-vm-mac-10-8 ubudu-vm-mac-10-9)
+
+function error(){
+    printf "%s error: " "$pname" 
+    printf "$@"
+    printf "\n"
+    usage
+    exit 1
 }
 
-case "$1" in
+
+function vmlist(){
+    i=0
+    while [ $i -lt ${#vms[@]} ] ; do
+        printf "  %d) %s\n" "$i" "${vms[$i]}"
+        i=$(( $i + 1 )) 
+    done
+}
+
+function usage(){
+    printf "\n%s usage:\n\n\t%s \$vmname|\$index  start|save \n\n" "$pname" "$pname"
+    vmlist
+}
+
+function member(){
+    local item="$1" ; shift
+    for arg ; do 
+        if [ "$item" = "$arg" ] ; then
+            echo T
+            return 0
+        fi
+    done
+    echo NIL
+    return 1
+}
+
+
+vm=""
+action=""
+doit=
+gotargs=0
+
+for arg ; do
+    case "$arg" in
+    -h|--help)
+        usage
+        exit 0
+        ;;
+    -l|--list|--vmlist)
+        vmlist
+        exit 0
+        ;;
+    -n|--dry-run)
+        doit=echo
+        ;;
+    *)
+        case $gotargs in
+        0) vm="$arg" ;;
+        1) action="$arg" ;;
+        *)
+            error "too many arguments: %s" "$arg"
+            ;;
+        esac
+        gotargs=$(( $gotargs + 1 ))
+        ;;
+    esac
+done
+
+if [ $gotargs -lt 2 ] ; then
+    error "missing arguments."
+fi
+
+
+if [ -z "$vm" ] ; then
+    error "please give a vm name or index" 
+elif $(member "$vm" "${vms[@]}" >/dev/null) ; then
+    true
+else
+    vm="${vms[$2]}"
+    if [ -z "$vm" ] ; then
+        error "no such vm '%s'" "$vm" 
+    fi
+fi
+
+
+case "$action" in
 start)
-    vboxmanage startvm   $vm 
-    rp renumber $(rp windows|sed -n -e "s/^\([0-9]\+\).${vm}.*/\1/p") 22
+    $doit vboxmanage startvm "$vm"
     ;;
 save)
-    vboxmanage controlvm $vm savestate
-    ;;
--h|--help)
-    usage
-    exit 0
+    $doit vboxmanage controlvm  "$vm" savestate
     ;;
 *)
-    usage 
-    exit 1
+    error "unknown action '%s'" "$action"
+    ;;
 esac
 exit 0
 
