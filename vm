@@ -1,7 +1,7 @@
 #!/bin/bash
 pname="$(basename "$0")"
 
-vms=(MacOSX macosx-10-8 macosx-10-9 ubudu-vm-mac-10-8 ubudu-vm-mac-10-9)
+vms=( $(vboxmanage list vms|sed -e 's/.*"\([^"]*\)".*/\1/'|sort) )
 
 function error(){
     printf "%s error: " "$pname" 
