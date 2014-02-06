@@ -1,0 +1,59 @@
+#!/bin/bash
+# -*- mode:shell-script -*-
+
+# The easiest method for hiding system users (if their user ID is <
+# 500) in the login window is to run the following command:
+
+sudo defaults write /Library/Preferences/com.apple.loginwindow Hide500Users -bool TRUE
+
+
+# Alternatively you can manually hide just the username by running
+
+sudo defaults write /Library/Preferences/com.apple.loginwindow HiddenUsersList -array-add '_postgres'
+
+
+
+# To hide the 'Others...' item from the login window if need be:
+
+sudo defaults write /Library/Preferences/com.apple.loginwindow SHOWOTHERUSERS_MANAGED -bool FALSE
+
+
+
+
+
+
+dscl . create /Users/test
+dscl . create /Users/test UniqueID 420
+dscl . create /Users/test PrimaryGroupID 420
+dscl . create /Users/test UserShell /bin/bash
+dscl . create /Users/test NFSHomeDirectory /tmp
+dscl . create /Users/test RealName Test
+dscl . create /Users/test Password test
+# This creates a user that's visible in sysprefs/Accounts.
+
+
+dscl . create /Users/test Password "*"
+# This hides the user. Make sure you quote the "*" or it won't work.
+
+
+# EDIT: I accidentally managed to recreate googletorp's situation of
+# not being able to hide a user by setting his password to "*", and I
+# discovered how to fix it. This time, I had created a user using
+# dsimport, like this:
+
+dsimport /dev/fd/0 /Local/Default I --template StandardUser << EOF
+test:*:520:520:Test user:/Users/test:/bin/bash
+EOF
+
+#  But in that command, the * is taken to represent a literal
+#  one-character password of *, and so dsimport creates an
+#  AuthenticationAuthority property for the user and sets the password
+#  property to the shadow hash of * (which shows up as ******** in
+#  dscl, as for all passwords). After that, attempting to set the
+#  password to "*" using dscl just keeps setting the password to a
+#  literal *, instead of disabling the password. The solution is to
+#  delete the unwanted property, and then disable the password:
+
+sudo dscl . delete /Users/test AuthenticationAuthority
+sudo dscl . create /Users/test Password "*"
+# This hides the user.
