@@ -1,7 +1,9 @@
 #!/bin/bash
 pname="$(basename "$0")"
 
-vms=( $(vboxmanage list vms|sed -e 's/.*"\([^"]*\)".*/\1/'|sort) )
+vboxmanage list vms|sed -e '/^"\([^"]*\)" {[-0-9a-fA-F]*}$/d'
+
+vms=( $(vboxmanage list vms|sed -n -e 's/^"\([^"]*\)" {[-0-9a-fA-F]*}$/\1/p'|sort) )
 
 function error(){
     printf "%s error: " "$pname" 
@@ -79,7 +81,7 @@ if [ -z "$vm" ] ; then
 elif $(member "$vm" "${vms[@]}" >/dev/null) ; then
     true
 else
-    vm="${vms[$2]}"
+    vm="${vms[$vm]}"
     if [ -z "$vm" ] ; then
         error "no such vm '%s'" "$vm" 
     fi
