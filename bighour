@@ -1,0 +1,9 @@
+#!/bin/bash
+if type -p banner >/dev/null 2>&1 ; then
+   BANNER=(banner -w 60)
+elif type -p printerbanner >/dev/null 2>&1 ; then
+   BANNER=(printerbanner -w 60)
+else
+    BANNER=(cat)
+fi
+date +' %H:%M' | ${BANNER[@]}

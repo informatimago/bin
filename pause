@@ -1,0 +1,4 @@
+#!/bin/bash
+echo -n "$@" Press RET to continue:
+read line
+
