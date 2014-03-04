@@ -29,8 +29,7 @@ if [ $umount -eq 1 ] ; then
     umount                ${mnt}srv
     case "${hostname}" in
     galatea)
-        umount                ${mnt}movies1
-        umount                ${mnt}movies2
+        umount                ${mnt}movies
         ;;
     triton*)
         true
@@ -48,8 +47,7 @@ else
     mount "${options[@]}" ${server}:/local/srv     ${mnt}srv
     case "${hostname}" in
     galatea*)
-        mount "${options[@]}" ${server}:/movies1       ${mnt}movies1
-        mount "${options[@]}" ${server}:/movies2       ${mnt}movies2
+        mount "${options[@]}" ${server}:/new/movies    ${mnt}movies
         ;; 
     triton*)
         true
