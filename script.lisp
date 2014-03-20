@@ -89,9 +89,9 @@
         b (if (stringp b) (clisp-version b) b))
   (or (version= a b) (version< a b)))
 
-(defun rt-version=  (a b) (if (version=  a b) '(and) '(or)))
-(defun rt-version<  (a b) (if (version<  a b) '(and) '(or)))
-(defun rt-version<= (a b) (if (version<= a b) '(and) '(or)))
+(defun rt-version=  (a b) (if (version=  a b) '(:and) '(:or)))
+(defun rt-version<  (a b) (if (version<  a b) '(:and) '(:or)))
+(defun rt-version<= (a b) (if (version<= a b) '(:and) '(:or)))
 
 
 ;;;---------------------------------------------------------------------------
