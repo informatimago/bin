@@ -383,11 +383,15 @@ declareDarwinVersion "11.0.0"  "Lion"            "July 20, 2011"       "iOS 5[18
 declareDarwinVersion "11.4.0"  "Lion"            "February 1, 2012"    "Mac OS X v10.7.4"                       "\"Lion\""
 declareDarwinVersion "11.4.2"  "Lion"            "October 4, 2012"     "Mac OS X v10.7.5"                       "\"Latest version of Lion, supplemental\""
 declareDarwinVersion "12.0.0"  "Mountain Lion"   "February 16, 2012"   "OS X v10.8"                             "Code named \"Mountain Lion\"; the word \"Mac\" has been dropped from the name"
-declareDarwinVersion "12.1.0"  "Mountain Lion"   ""                    "OS X v10.8.1"                           ""
-declareDarwinVersion "12.2.0"  "Mountain Lion"   ""                    "OS X v10.8.2"                           ""
-declareDarwinVersion "12.3.0"  "Mountain Lion"   ""                    "OS X v10.8.3"                           ""
+declareDarwinVersion "12.3.0"  "Mountain Lion"   "January 6, 2013"     "OS X v10.8.2"                           ""
+declareDarwinVersion "12.4.0"  "Mountain Lion"   "June 4, 2013"        "OS X v10.8.4"                           ""
+declareDarwinVersion "12.5.0"  "Mountain Lion"   "September 12, 2013"  "OS X v10.8.5"                           ""
 declareDarwinVersion "13.0.0"  "iOS 6"           "June 11, 2012"       "iOS 6"                                  "Unknown as to why iOS 6 uses Darwin 13 instead of Darwin 12."
+declareDarwinVersion "13.0.0"  "Maverick"        "June 11, 2012"       "OS X v10.9"                             ""
+declareDarwinVersion "13.1.0"  "Maverick"        "January 16 2014"     "OS X v10.9.2"                           ""
+declareDarwinVersion "14.0.0"  "iOS 7"           "September 18, 2013"  "iOS 7"                                  ""
 
+# http://en.wikipedia.org/wiki/Darwin_%28operating_system%29#Release_history
 
 
 function get_keys () {
@@ -522,8 +526,8 @@ function distribution () {
         release=$(hostinfo | awk '/Darwin Kernel Version/{printf "%s",substr($4,1,index($4,":")-1);}')
         if [ -r "$root"/System/Library/Frameworks/AppKit.framework/AppKit ] ; then
             distrib=apple
-            macosxVersion=$(macOSXVersionFromDarwinVersion $release > /dev/stderr)
-            codename=$(macOSXCodenameFromDarwinVersion $release > /dev/stderr)
+            macosxVersion=$(macOSXVersionFromDarwinVersion $release)
+            codename=$(macOSXCodenameFromDarwinVersion $release)
         fi
         # [pascal@localhost:/Users/pascal]$ hostinfo
         # Mach kernel version:
@@ -561,7 +565,7 @@ function distribution () {
     esac
 
 
-    echo "$systeme" "$distrib" "$release" "$codename" "$macosxVersion"
+    echo "$systeme" "$distrib" "$release" "${codename// /_}" "${macosxVersion// /_}"
 } #distribution
 
 pname="$(basename "$0")"
