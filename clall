@@ -90,8 +90,8 @@ if [ $keepscript -eq 0 ] ; then
     trap 'rm "$epilog" "$script" "$winscript" "$output" "${errors[@]}"' 0
 fi
 
-
 clall_lisp='
+
 ;; CMU uses ALIEN in CL-USER, and there is a locked ALIEN:SHORT.
 #-mocl
 (defpackage "COM.INFORMATIMAGO.CLALL"
@@ -107,6 +107,7 @@ clall_lisp='
 (defvar *double-line* "========================================================================")
 (defvar *simple-line* "------------------------------------------------------------------------")
 
+
 (defun read-eval (input)
   "Read and evaluate the input.
 Return:  input
@@ -116,6 +117,7 @@ Return:  input
          list of values
          *standard-output* string
          *error-output* string
+         *trace-output* string
 "
   (multiple-value-bind (vals condi)
       (ignore-errors (multiple-value-list (read-from-string input)))
@@ -124,16 +126,17 @@ Return:  input
         (destructuring-bind (expression remains-to-read) vals
           (unless (= (length input) remains-to-read)
             (warn "~A byte~:*~P unread."  (- (length input) remains-to-read )))
-          (let* (error
-                 (output (with-output-to-string (*standard-output*)
+          (let (trace error output)
+            (setf output (with-output-to-string (*standard-output*) 
                            (setf error (with-output-to-string (*error-output*)
-                                         (multiple-value-setq (vals condi)
-                                           (ignore-errors (multiple-value-list (eval expression)))))))))
-            (values input nil expression condi vals output error))))))
+                                         (setf trace (with-output-to-string (*trace-output*)
+                                                       (multiple-value-setq (vals condi)
+                                                         (ignore-errors (multiple-value-list (eval expression))))))))))
+            (values input nil expression condi vals output error trace))))))
 
 
-(defun report-only-result (report input read-error expression eval-error vals output error)
-  (declare (ignore input expression output error))
+(defun report-only-result (report input read-error expression eval-error vals output error trace)
+  (declare (ignore input expression output error trace))
   (cond
     (read-error
      (format report "~30A ~A~%"             (lisp-implementation-type)
@@ -147,12 +150,16 @@ Return:  input
      (format report "~30A --> ~{~S~^, ~}~%" (lisp-implementation-type) vals))))
 
 
-(defun report-full-result (report input read-error expression eval-error vals output error)
+(defun report-full-result (report input read-error expression eval-error vals output error trace)
   (format report "~&~A~%" *double-line*)
-  (format report "Implementation: ~A ~A on ~A~%"
+  (format report "Implementation: ~A ~A~%    on ~A ~A~%    on ~A ~A (~A)~%"
           (lisp-implementation-type)
           (lisp-implementation-version)
-          (machine-type))
+          (software-type)
+          (software-version)
+          (machine-type)
+          (machine-version)
+          (machine-instance))
   (format report "~%Reading of: ~S~%" input)
   (if (null read-error)
       (format report "signaled no error~%")
@@ -161,33 +168,32 @@ Return:  input
   (if (null eval-error)
       (format report "signaled no error~%")
       (format report "signaled the following error:~%  ~S~%  ~:*~A~%" eval-error))
-  (if (or (null error) (string= "" error))
-      (format report "wrote nothing on *ERROR-OUTPUT*~%")
-      (progn
-        (format report "wrote the following *ERROR-OUTPUT* (lines excluded):")
-        (format report "~&~A~%" *simple-line*)
-        (format report "~A" error)
-        (format report "~&~A~%" *simple-line*)))
-  (if (or (null output) (string= "" output))
-      (format report "wrote nothing on *STANDARD-OUTPUT*~%")
-      (progn
-        (format report "wrote the following *STANDARD-OUTPUT* (lines excluded):")
-        (format report "~&~A~%" *simple-line*)
-        (format report "~A" output)
-        (format report "~&~A~%" *simple-line*)))
+  (flet ((report (name data)
+           (if (or (null data) (string= "" data))
+               (format report "wrote nothing on ~A~%" name)
+               (progn
+                 (format report "wrote the following ~A (lines excluded):" name)
+                 (format report "~&~A~%" *simple-line*)
+                 (format report "~A" data)
+                 (format report "~&~A~%" *simple-line*)))))
+    (report (quote *error-output*) error)
+    (report (quote *trace-output*) trace)
+    (report (quote *standard-output*) output))
   (if (null vals)
       (format report "returned no value~%")
       (format report "returned the following value~P:~%--> ~{~S~^ ;~%    ~}~2%"  (length vals) vals)))
 
-(defun report-short-result (report input read-error expression eval-error vals output error)
+
+(defun report-short-result (report input read-error expression eval-error vals output error trace)
   (format report "~2%~A:" (lisp-implementation-type))
   (if (or read-error eval-error)
-      (report-full-result report input read-error expression eval-error vals output error)
+      (report-full-result report input read-error expression eval-error vals output error trace)
       (progn
         (unless (or (null output) (string= "" output))
           (format report "~A" output))
         (when vals
           (format report "~&--> ~{~S~^, ~}~%" vals)))))
+
 
 (defmacro result (output &body expressions)
   `(with-open-file (report ,output
@@ -199,6 +205,7 @@ Return:  input
                expressions)
      (values)))
 
+
 (defmacro full (output &body expressions)
   `(with-open-file (report ,output
                            :direction :output
@@ -208,6 +215,7 @@ Return:  input
                  `(multiple-value-call (function report-full-result) report (read-eval ,input)))
                expressions)
      (values)))
+
 
 (defmacro short (output &body expressions)
   `(with-open-file (report ,output
@@ -220,6 +228,9 @@ Return:  input
      (values)))
 
 '
+
+
+
 
 
 # quote is used to quote unix pathnames and sexps.

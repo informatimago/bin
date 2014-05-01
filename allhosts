@@ -1,13 +1,14 @@
 #!/bin/bash
+
 HOSTS="
     kuiper.lan.informatimago.com
-    hubble.lan.informatimago.com
     galatea.lan.informatimago.com
+    larissa.lan.informatimago.com
+    lassell.lan.informatimago.com
+    despina.lan.informatimago.com
     triton.lan.informatimago.com
     galle.lan.informatimago.com
-    lassell.lan.informatimago.com
     voyager.informatimago.com
-    neuron.intergruas.com
 "
 
 verbose=1
@@ -29,7 +30,7 @@ usage(){
 case "$1" in
 -s)
     verbose=0
-n    shift
+    shift
     ;;
 -h)
     verbose=1
