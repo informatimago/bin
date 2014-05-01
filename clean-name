@@ -1,5 +1,5 @@
-#!/usr/bin/clisp -ansi -q -E utf-8
-;;;; -*- mode:lisp; coding:utf-8 -*-
+#!/usr/bin/clisp -ansi -q -E iso-8859-1
+;;;; -*- mode:lisp; coding:iso-8859-1 -*-
 
 ;; Replaces any sequences of non alphanumeric or dot character in the
 ;; arguments by a single dash.
@@ -23,16 +23,42 @@ NOTE:   current implementation only accepts as separators
     (nreverse chunks)))
 
 
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defparameter +character-foldings+
+    '( ("A" "ÀÁÂÃÄÅ") ("AE" "Æ") ("C" "Ç") ("E" "ÈÉÊË") ("I" "ÌÍÎÏ") 
+       ("ETH" "Ğ") ("N" "Ñ") ("O" "ÒÓÔÕÖØ") ("U" "ÙÚÛÜ") ("Y" "İ")
+       ("TH" "Ş") ("ss" "ß") ("a" "àáâãäå") ("ae" "æ") ("c" "ç")
+       ("e" "èéêë") ("i" "ìíîï") ("eth" "ğ") ("n" "ñ") ("o" "òóôõöø")
+       ("u" "ùúûü") ("u" "ıÿ") ("th" "ş")))
+  (defun character-folding (character)
+    (car (member (character character) +character-foldings+ 
+                 :test (function position) :key (function second))))
+  (defun character-fold (character)
+    "
+RETURN: A string containing the character without accent 
+        (for accented characters), or a pure ASCII form of the character.
+"
+    (car (character-folding character)))
+  (defun string-fold (string)
+    (apply (function concatenate) 'string
+           (map 'list (lambda (ch) (let ((conv (character-folding ch)))
+                                (if conv
+                                  (first conv)
+                                  (list ch)))) string))))
+
+
 (defun clean-name (name)
   (format nil "~{~A~^-~}"
           (split-string-if (lambda (char) (not (or (alphanumericp char)
                                               (char= char #\/)
                                               (char= char #\.))))
-                           (string-downcase name)
+                           (string-fold (string-downcase name))
                            :remove-empty-subseqs t)))
 
 (defun main (argv)
   (dolist (arg argv)
+    (terpri)
     (princ (clean-name arg))
     (terpri)))
 
