@@ -1,6 +1,8 @@
 #!/bin/bash
+pname=$(basename "$0")
+verbose=1
 
-HOSTS="
+HOSTS=(
     kuiper.lan.informatimago.com
     galatea.lan.informatimago.com
     larissa.lan.informatimago.com
@@ -9,43 +11,87 @@ HOSTS="
     triton.lan.informatimago.com
     galle.lan.informatimago.com
     voyager.informatimago.com
-"
-
-verbose=1
+)
 
 
-usage(){
-    local pname=$(basname "$0")
+function usage(){
     local space="${pname//./ }"
     printf "%s usage:\n" "$pname"
     printf "\n"
-    printf "    %s [-s|-h|-v] command arguments...\n" "$pname"
+    printf "    %s [-s|-h|-v]  command arguments...\n" "$pname"
+    printf "    %s [-s|-h|-v]  -f script\n" "$pname"
     printf "\n"
-    printf "    %s -s    outputs only the output of command.\n" "$space"
-    printf "    %s -h    prefix the output of command by the host name.\n" "$space"
-    printf "    %s -v    prefix the output of command by the host name and command.\n" "$space"
+    printf "    %s -s          outputs only the output of command.\n" "$space"
+    printf "    %s -h          prefix the output of command by the host name.\n" "$space"
+    printf "    %s -v          prefix the output of command by the host name and command.\n" "$space"
+    printf "    %s -f script   copies the script to the remote hosts and runs it there.\n" "$space"
     printf "\n"
 }
 
-case "$1" in
--s)
-    verbose=0
-    shift
-    ;;
--h)
-    verbose=1
-    shift
-    ;;
--v)
-    verbose=2
-    shift
-    ;;
--*)
-    usage
-    exit 1
-    ;;
-esac
+function docmd(){
+    if [ $verbose -ge 2 ] ; then
+        printf "# %s\n" "$*"
+    fi
+    "$@"
+}
 
+function hostheader(){
+    local h="$1"
+    case "$verbose" in
+    1)
+        printf "### %-16s" "${h/\.*/}"
+        ;;
+    2)
+        printf "### %-16s\n" "${h/\.*/}"
+        ;;
+    esac 
+}
+
+
+script=""
+command=()
+while [ $# -gt 0 ] ; do
+    case "$1" in
+    -s)
+        verbose=0
+        shift
+        ;;
+    -h)
+        verbose=1
+        shift
+        ;;
+    -v)
+        verbose=2
+        shift
+        ;;
+    -f)
+        shift
+        script="$1"
+        shift
+        ;;
+    -*)
+        usage
+        exit 1
+        ;;
+    *)
+        command[${#command[@]}]="$1"
+        shift
+        ;;
+    esac
+done
+
+if [ -n "$script" ] ; then
+    if [ ${#command[@]} -gt 0 ] ; then
+        printf "%s error: cannot give -f script and command arguments at the same time.\n" "$pname"
+        usage
+        exit 1
+    fi
+    if [ ! -r "$script" ] ; then
+        printf "%s error: cannot read %s.\n" "$pname" "$script"
+        usage
+        exit 1
+    fi  
+fi
 
 
 # AHOSTS=
@@ -54,7 +100,7 @@ esac
 #         && AHOSTS="$AHOSTS $h"
 # done
 
-AHOSTS="$HOSTS"
+AHOSTS=(${HOSTS[@]})
 
 quote(){
     for arg ; do
@@ -65,28 +111,30 @@ quote(){
     printf "\n"
 }
 
-args=$(quote "$@")
+args=$(quote "${command[@]}")
 
 
-case $verbose in
-0)
-    for h in $AHOSTS ; do
-        ssh $h bash -c $(quote "$args")
-    done
-    ;;
-1)
-    for h in $AHOSTS ; do
-        printf "%-16s" ${h/\.*/}
-        ssh $h bash -c $(quote "$args")
-    done
-    ;;
-2)
-    for h in $AHOSTS ; do
-        printf "%-16s" ${h/\.*/}
-        echo "ssh $h bash -c $(quote "$args")" 
-        ssh $h bash -c $(quote "$args")
-    done
-    ;;
-esac
+# printf "script='%s'\n" "$script"
+# printf "remtemp='%s'\n" "$remtemp"
+# printf "command='%s'\n" "${command[@]}"
+# printf "args=%s\n" "$args"
+# exit 0
+
+for h in ${AHOSTS[@]} ; do
+    hostheader "$h"
+    if [ -n "$script" ] ; then
+        remtemp="${pname}-${script}-$(hostname)-${h}-$$.sh"
+        if [ $verbose -gt 0 ] ; then
+            verbose=2
+        fi
+        docmd scp "$script" "${h}:~/${remtemp}"
+        docmd ssh -x "${h}" bash -c "\"( chmod 755 ~/${remtemp} ; ~/${remtemp} > ~/${remtemp}.out 2> ~/${remtemp}.err ; rm ~/${remtemp} )\""
+        docmd scp "${h}:~/${remtemp}.out" "${h}:~/${remtemp}.err" /tmp/
+        docmd ssh -x "${h}" bash -c "\"( rm ~/${remtemp}.out ~/${remtemp}.err )\""
+        docmd cat /tmp/${remtemp}.out /tmp/${remtemp}.err
+    else
+        docmd ssh -x $h bash -c "$(quote "$args")"
+    fi
+done
 
 #### END ####
