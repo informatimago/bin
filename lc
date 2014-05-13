@@ -1,4 +1,4 @@
-#!/usr/bin/clisp -ansi -q -E utf-8
+#!/usr/bin/clisp -ansi -q -E iso-8859-1
 ;;;; -*- mode:lisp; coding:utf-8 -*-
 
 (shadow 'copy-file)
@@ -55,7 +55,7 @@ DO:     Copy the contents of the file at path SRC to the file at path DST.
       (error (err)
         (format *error-output*
                 "Error while copying the input stream to the output stream~%~A"
-                file.bak file err)
+                err)
         (return-from process-stream 1)))
   0)
 
