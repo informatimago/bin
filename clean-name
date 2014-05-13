@@ -58,7 +58,6 @@ RETURN: A string containing the character without accent
 
 (defun main (argv)
   (dolist (arg argv)
-    (terpri)
     (princ (clean-name arg))
     (terpri)))
 
