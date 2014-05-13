@@ -1,0 +1,65 @@
+#!/bin/bash
+pname="$(basename "$0")"
+
+function usage(){
+    printf "%s usage:\n\n" "$pname"
+    printf "\t %s -h|--help\n" "$pname"
+    printf "\t %s \$login \$newUID\n" "$pname"
+    printf "\n"
+}
+
+user=
+newuid=
+for arg ; do
+    case "$arg" in
+    -h|--help) 
+        usage
+        exit 0
+        ;; 
+    -*) 
+        printf "%s error: invalid option: %s\n" "$pname" "$arg" 
+        usage
+        exit 1
+        ;;
+    *)
+        if [ -z "$user" ] ; then
+            user="$arg"
+        elif [ -z "$newuid" ] ; then
+            newuid="$arg"
+        else
+            printf "%s error: too many arguments '%s'.\n" "$pname" "$arg"
+            usage
+            exit 1
+        fi
+    esac
+done
+
+if [ -z "$newuid" ] ; then
+    printf "%s error: missing argument.\n" "$pname"
+    usage
+    exit 1
+fi
+
+olduid="$(dscl . -read "/Users/$user" UniqueID|sed -e 's/UniqueID: //')"
+if [ $olduid = $newuid ] ; then
+    printf "%s error: User %s already has UID %d\n" "$pname" "$user" "$olduid"
+    exit 1
+fi
+
+printf "Changeing UID.\n"
+dscl . -change "/Users/$user" UniqueID $olduid $newuid
+chguid="$(dscl . -read "/Users/$user" UniqueID|sed -e 's/UniqueID: //')"
+if [ $chguid != $newuid ] ; then
+    printf "%s error: Could not change %s's UID %d, it's still %d.\n" "$pname" "$user" "$chguid"
+    exit 1
+fi
+
+printf "Changing ownership of files, will take some time…\n"
+find -xP / -user $olduid -print0 | xargs -0 chown -h $newuid
+
+printf "Renaming trash.\n"
+mv /.Trashes/$olduid  /.Trashes/$newuid
+
+printf "Renumbering complete.  -- It would be wise de reboot.\n"
+
+exit 0
