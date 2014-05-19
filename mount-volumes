@@ -4,6 +4,7 @@ server=kuiper.lan.informatimago.com
 umount=0
 options=( -o nolockd  )
 hostname=$(hostname)
+mnt=/mnt/
 
 function usage(){
     printf "\n%s usage:\n    %s [unmount]\n\n" "$pname" "$pname" 
@@ -18,11 +19,6 @@ for arg ; do
 done
 
 
-case "${hostname}" in
-macbook-pro-de-info-medicalis.local) mnt=/mnt/ ;;
-*)                                   mnt=/     ;;
-esac
-
 if [ $umount -eq 1 ] ; then
     umount                ${mnt}data
     umount                ${mnt}home
@@ -35,6 +31,9 @@ if [ $umount -eq 1 ] ; then
         true
         ;;
     despina*)
+        true
+        ;;
+    larissa*)
         true
         ;;
     *)
@@ -53,6 +52,9 @@ else
         true
         ;;
     despina*)
+        true
+        ;;
+    larissa*)
         true
         ;;
     *)
