@@ -54,12 +54,11 @@ Listen to the radio.
 ;;;---------------------------------------------------------------------
 
 (defparameter *radio-urls*
-  '(("courtoisie"     "http://www.tv-radio.com/station/courtoisie/courtoisie.m3u")
+  '(("courtoisie"     "http://mp3.live.tv-radio.com/courtoisie/all/courtoisie.mp3")
     ("esradio"        "mms://streaming.esradio.fm/EsRadio")
     ("reinfo"         "http://www.radiocourtoisie.net/tempo/public/reinformation/reinformation.mp3")
     ("treffpunkt"     "http://www.cibersoft.com.ar/radio/radio.m3u")
-    ("esperance"      "http://www.streamakaci.com/radios/esperance.m3u"
-     )))
+    ("esperance"      "http://www.streamakaci.com/radios/esperance.m3u")))
 
 
 ;;;------------------------------------------------------------------------
