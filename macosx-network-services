@@ -1,0 +1,4 @@
+#!/bin/bash
+echo networksetup listallnetworkservices
+echo networksetup -setdnsservers 'Ethernet 1' 212.4.96.22 212.4.6.21
+

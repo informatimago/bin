@@ -1,0 +1,8 @@
+#!/bin/bash
+REMOTE=$1
+BRANCH=$2
+# uncomment the following line to create BRANCH locally first
+#git checkout -b ${BRANCH}
+git push ${REMOTE} ${BRANCH}:refs/heads/${BRANCH} &&
+git config branch.${BRANCH}.remote ${REMOTE} &&
+git config branch.${BRANCH}.merge refs/heads/${BRANCH}
