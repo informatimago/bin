@@ -67,6 +67,7 @@ for pset in ${psets[@]} ; do
     for dir in "${pdirs[@]}" ; do
         (
             cd "$dir" && (
+                printf "\n########################################################################"
                 printf "\ncd %s\n" "$(pwd)"
                 git "${op[@]}" 
             )
