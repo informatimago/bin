@@ -24,6 +24,8 @@
 #                     Added abcl.
 #    2007-07-05 <PJB> Added this header.
 #BUGS
+#    cmucl and sbcl don't seem to signal an error on program errors in defun
+#    (defun f () (let z 42) (print z))
 #LEGAL
 #    GPL
 #    
