@@ -66,6 +66,10 @@ function usage(){
     printf "   %s -h|--help\n" "$pname"
     printf "   %s -b|--batch \$start [-f|--directory-format \$format]\n" "$pname"
     printf "   %s \$directory\n" "$pname"
+    printf "\nExamples:\n"
+    printf "   %s one-CDA\n" "$pname"
+    printf "   %s -b 1 -f 'cd%%02d-multiple-CDAs'\n" "$pname"
+    printf "\n"
 }
 
 

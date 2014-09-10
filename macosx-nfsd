@@ -1,0 +1,96 @@
+
+Assume we have 2 Macs, Mac1 and Mac2. This document will help you to create a NFS share on Mac1 and access it from Mac2. Mac2 will preserve the mount during reboots.
+1. 	
+To create an NFS share on Mac1
+
+Open SSH terminal on Mac1
+Type in "sudo nfsd enable"
+This starts the nfs server and sets it to startup on reboot.
+
+Edit /etc/exports (create if it does not exist)
+
+Type the full path of the folder you want to share.
+
+Optional: Use the “-alldirs” option to allow clients to mount any directory under there.
+If your UIDs across machines do not match the “-mapall” will map all IDs with an ID that has access to the directory.
+You can find your ID by typing “id” at the terminal on Mac1.
+
+The /etc/exports on the Mac1 will looks like this (I have used the Macintosh HD volume in this example; you can add/edit lines if you need to share more volumes).
+
+/Volumes/Macintosh HD -mapall=501
+
+Verify the mount using the command "showmount -e"
+(You will see the following output on Mac1)
+
+"/Volumes/Macintosh HD Everyone"
+	
+2. 	
+To mount this share from Mac2
+
+Open SSH terminal on Mac2
+Type in "cd / && sudo nano .nfsmount.sh"
+
+Copy and paste the following lines to the nano editor
+--------------------------------------------------------------------------------------
+mkdir /Volumes/Mac1-Macintosh-HD
+sudo mount -o rsize=32768,wsize=32768,intr,noatime -t nfs Mac1 (or IP Address):/Volumes/ Macintosh HD /Volumes/Mac1-Macintosh-HD
+-------------------------------------------------------------------------------------------------------------
+Save and exit the nano editor
+
+This will create a Bash script to create a directory called Mac1-Macintosh-HD under /Volumes and map the Mac1 volume under it.
+
+Set the permissions of the script for root access only:
+Type in "sudo chown -R root:admin .nfsmount.sh"
+
+Now make the script executable:
+Type in "sudo chmod u=rwx .nfsmount.sh"
+
+Now we’ll need to create a .plist file for launchd to handle the script, do the following:
+Type in "cd /Library/LaunchDaemons && sudo nano nfsmount.plist"
+
+Inside the editor, copy and paste the following code:
+------------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">;
+<plist version="1.0">
+<dict>
+<key>Label</key>
+<string>.nfsmount</string>
+<key>ProgramArguments</key>
+<array>
+<string>/.nfsmount.sh</string>
+</array>
+<key>UserName</key>
+<string>root</string>
+<key>GroupName</key>
+<string>wheel</string>
+<key>RunAtLoad</key>
+<true></true>
+<key>Debug</key>
+<true></true>
+</dict>
+</plist>
+---------------------------------------------------------------------------------------------------------------
+Save and exit the editor and then change the necessary permissions
+Type in "sudo chown -R root:wheel nfsmount.plist"
+
+Next, we’ll load the plist into launchd:
+
+Type in "sudo launchctl load nfsmount.plist"
+
+Confirm that the plist loaded:
+Type in "sudo launchctl list | grep nfsmount"
+If the plist name appears, it’s installed.
+
+Reboot Mac2 and check if the Mac1 volume is accessible under /Volumes/Mac1-Macintosh-HD
+
+Done!
+
+To remove the .plist, type the following:
+Type in "sudo launchctl unload -w /Library/LaunchDaemons/nfsmount.plist"
+	
+3. 	
+Reference
+
+http://seanmcgrath.wordpress.com/2010/07/05/setup-nfs-on-mac-os-x-10-6/
+http://powercycled.wordpress.com/2012/04/25/spoof-mac-address-from-boot-using-launchd/ 
