@@ -1,6 +1,10 @@
 #!/usr/bin/clisp -ansi -q -E iso-8859-1
 ;;;; -*- mode:lisp; coding:iso-8859-1 -*-
 
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;
+;; Warning: processes iso-8859-1 not utf-8 arguments! ;;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;
+
 ;; Replaces any sequences of non alphanumeric or dot character in the
 ;; arguments by a single dash.
 
@@ -26,11 +30,11 @@ NOTE:   current implementation only accepts as separators
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defparameter +character-foldings+
-    '( ("A" "ÀÁÂÃÄÅ") ("AE" "Æ") ("C" "Ç") ("E" "ÈÉÊË") ("I" "ÌÍÎÏ") 
-       ("ETH" "Ğ") ("N" "Ñ") ("O" "ÒÓÔÕÖØ") ("U" "ÙÚÛÜ") ("Y" "İ")
-       ("TH" "Ş") ("ss" "ß") ("a" "àáâãäå") ("ae" "æ") ("c" "ç")
-       ("e" "èéêë") ("i" "ìíîï") ("eth" "ğ") ("n" "ñ") ("o" "òóôõöø")
-       ("u" "ùúûü") ("u" "ıÿ") ("th" "ş")))
+    '(("A" "ÀÁÂÃÄÅ") ("AE" "Æ") ("C" "Ç") ("E" "ÈÉÊË") ("I" "ÌÍÎÏ") 
+      ("ETH" "Ğ") ("N" "Ñ") ("O" "ÒÓÔÕÖØ") ("U" "ÙÚÛÜ") ("Y" "İ")
+      ("TH" "Ş") ("ss" "ß") ("a" "àáâãäå") ("ae" "æ") ("c" "ç")
+      ("e" "èéêë") ("i" "ìíîï") ("eth" "ğ") ("n" "ñ") ("o" "òóôõöø")
+      ("u" "ùúûü") ("u" "ıÿ") ("th" "ş")))
   (defun character-folding (character)
     (car (member (character character) +character-foldings+ 
                  :test (function position) :key (function second))))
@@ -51,9 +55,9 @@ RETURN: A string containing the character without accent
 (defun clean-name (name)
   (format nil "~{~A~^-~}"
           (split-string-if (lambda (char) (not (or (alphanumericp char)
-                                              (char= char #\/)
-                                              (char= char #\.))))
-                           (string-fold (string-downcase name))
+                                                   (char= char #\/)
+                                                   (char= char #\.))))
+                           (string-trim "-" (string-fold (string-downcase name)))
                            :remove-empty-subseqs t)))
 
 (defun main (argv)
@@ -62,5 +66,3 @@ RETURN: A string containing the character without accent
     (terpri)))
 
 (main ext:*args*)
-
-
