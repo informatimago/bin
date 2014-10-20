@@ -312,7 +312,7 @@ printf '\n'
 
 # debian calls cmucl cmucl instead of lisp.
 # runcl mocl       repl --verbose --android /tmp/  < "$script"
-runcl abcl     --batch --noinform --noinit --eval '(setq *load-verbose* nil)'  --load  "$script"
+# runcl abcl     --batch --noinform --noinit --eval '(setq *load-verbose* nil)'  --load  "$script"
 runcl alisp     -batch -qq                                                      -L     "$script" -kill
 runcl ccl      --batch --no-init                                               --load  "$script"      
 runcl clisp     -ansi  -q  -norc                                                       "$script"      
