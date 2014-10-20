@@ -28,28 +28,31 @@ NOTE:   current implementation only accepts as separators
 
 
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defparameter +character-foldings+
-    '(("A" "ÀÁÂÃÄÅ") ("AE" "Æ") ("C" "Ç") ("E" "ÈÉÊË") ("I" "ÌÍÎÏ") 
-      ("ETH" "Ğ") ("N" "Ñ") ("O" "ÒÓÔÕÖØ") ("U" "ÙÚÛÜ") ("Y" "İ")
-      ("TH" "Ş") ("ss" "ß") ("a" "àáâãäå") ("ae" "æ") ("c" "ç")
-      ("e" "èéêë") ("i" "ìíîï") ("eth" "ğ") ("n" "ñ") ("o" "òóôõöø")
-      ("u" "ùúûü") ("u" "ıÿ") ("th" "ş")))
-  (defun character-folding (character)
-    (car (member (character character) +character-foldings+ 
-                 :test (function position) :key (function second))))
-  (defun character-fold (character)
-    "
+
+(defparameter *character-foldings*
+  '(("A" "ÀÁÂÃÄÅ") ("AE" "Æ") ("C" "Ç") ("E" "ÈÉÊË") ("I" "ÌÍÎÏ") 
+    ("ETH" "Ğ") ("N" "Ñ") ("O" "ÒÓÔÕÖØ") ("U" "ÙÚÛÜ") ("Y" "İ")
+    ("TH" "Ş") ("ss" "ß") ("a" "àáâãäå") ("ae" "æ") ("c" "ç")
+    ("e" "èéêë") ("i" "ìíîï") ("eth" "ğ") ("n" "ñ") ("o" "òóôõöø")
+    ("u" "ùúûü") ("u" "ıÿ") ("th" "ş")))
+
+(defun character-folding (character)
+  (car (member (character character) *character-foldings*
+               :test (function position) :key (function second))))
+
+(defun character-fold (character)
+  "
 RETURN: A string containing the character without accent 
         (for accented characters), or a pure ASCII form of the character.
 "
-    (car (character-folding character)))
-  (defun string-fold (string)
-    (apply (function concatenate) 'string
-           (map 'list (lambda (ch) (let ((conv (character-folding ch)))
-                                (if conv
-                                  (first conv)
-                                  (list ch)))) string))))
+  (car (character-folding character)))
+
+(defun string-fold (string)
+  (apply (function concatenate) 'string
+         (map 'list (lambda (ch) (let ((conv (character-folding ch)))
+                                   (if conv
+                                       (first conv)
+                                       (list ch)))) string)))
 
 
 (defun clean-name (name)
@@ -60,9 +63,53 @@ RETURN: A string containing the character without accent
                            (string-trim "-" (string-fold (string-downcase name)))
                            :remove-empty-subseqs t)))
 
+
+
+
+
+(defparameter *diacritics* '((#x80
+                              "AÀ" "EÈ" "IÌ" "OÒ" "UÙ"
+                              "aà" "eè" "iì" "oò" "uù")
+                             (#x81
+                              "AÁ" "EÉ" "IÍ" "OÓ" "UÜ" "Yİ"
+                              "aá" "eé" "ií" "oó" "uü" "yı")
+                             (#x82
+                              "AÂ" "EÊ" "IÎ" "OÔ" "UÛ"
+                              "aâ" "eê" "iî" "oô" "uû")
+                             (#x88
+                              "AÄ" "EË" "IÏ" "OÖ" "UÜ"
+                              "aä" "eë" "iï" "oö" "uü")
+                             (#xa7
+                              "CÇ" "cç")))
+
+(defun combine-diacritic (ch diacritic)
+  (let ((dia (find ch diacritic :key (lambda (dia) (aref dia 0)))))
+    (if dia
+        (aref dia 1)
+        ch)))
+
+(defun translate-diacritics (text)
+  (let ((escape (code-char #xcc)))
+    (if (find escape text)
+        (let ((out (make-array (length text) :fill-pointer 0 :element-type 'character)))
+          (loop :with state = :normal
+                :for ch :across text
+                :do (case state
+                      ((:normal) (if (char= escape ch)
+                                     (setf state :escaped)
+                                     (vector-push ch out)))
+                      ((:escaped) (let ((diacritic (cdr (assoc (char-code ch) *diacritics*))))
+                                    (when diacritic 
+                                      (setf (aref out (1- (length out)))
+                                            (combine-diacritic (aref out (1- (length out))) diacritic)))
+                                    (setf state :normal)))))
+          out)
+        text)))
+
+
 (defun main (argv)
   (dolist (arg argv)
-    (princ (clean-name arg))
+    (princ (clean-name (translate-diacritics arg)))
     (terpri)))
 
 (main ext:*args*)
