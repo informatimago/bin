@@ -194,8 +194,8 @@
                             :duration duration
                             :lines (list text))))))
 
-(DEFUN MAIN (argv)
-  (FORMAT T "~&")
+(defun main (argv)
+  (format t "~&")
   (ensure-directories-exist (make-pathname :name "TEST" :defaults *memo-dir*))
   (let ((key (first argv)))
     (handler-case
