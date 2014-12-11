@@ -1,0 +1,3 @@
+#!/bin/sh
+w="$1"
+xdotool windowraise "$w"  windowfocus "$w"

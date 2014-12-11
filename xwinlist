@@ -1,0 +1,2 @@
+#!/bin/sh
+xwininfo -root -tree|sed -n -e 's/ *\(0x\([0-9a-f]*\) "\)/\1/p'
