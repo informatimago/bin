@@ -1,12 +1,69 @@
 #!/bin/bash
-voice_options=( -v lancashire -s 180 -g 3 )
+pname="$(basename "$0")"
+
+function usage(){
+    printf "\n"
+    printf "%s usage:\n" "$pname"
+    printf "    %s [-f file] [-v voice] [-l lang] [-?|-h|--help] [text…]\n" "$pname"
+    printf "\n"
+}
+
+function error(){
+    printf "%s error: %s\n" "$pname" "$@"
+    usage
+}
+
+voice=()
 infile="/tmp/speak-$$.txt"
-fifo="/tmp/speakd"
+infile_set=0
 if [ $# -ge 1 ] ; then
     case "$1" in
-    -f)
-        echo "$2" >> "$fifo"
-        exit 0
+    -*)
+        while  [ $# -ge 1 ] ; do
+            case "$1" in
+            -f)
+                infile="$2"
+                if [ -z "$infile" ] ; then
+                    error "Missing file name after -f"
+                    exit 1
+                fi
+                infile_set=1
+                shift; shift
+                ;;
+            -v)
+                v="$2"
+                if [ ! -z "$v" ] ; then
+                    voice=(-v "$v")
+                fi
+                shift;shift
+                ;;
+            -l)
+                lang="$2"
+                v="$(say -v ? | grep " ${lang}_"|sed -n -e '1s/^\([^ ]*\) .*/\1/p')"
+                if [ ! -z "$v" ] ; then
+                    voice=(-v "$v")
+                fi
+                shift;shift
+                ;;
+            -?|-h|--help)
+                usage
+                exit 0
+                ;;
+            -*)
+                error "Invalid option $1"
+                exit 1
+                ;;
+            *)
+                if [ $infile_set -eq 0 ] ; then
+                    echo "$@" > "$infile"
+                    set --
+                else
+                    error "Cannot have both -f and text arguments."
+                    exit 1
+                fi
+                ;;
+            esac
+        done
         ;;
     *)
         echo "$@" > "$infile"
@@ -15,5 +72,16 @@ if [ $# -ge 1 ] ; then
 else
     cat > "$infile"
 fi
-echo "$infile" >> "$fifo"
+
+
+case "$(uname)" in
+Darwin)
+    say "${voice[@]}" -f "$infile"
+    ;;
+*)
+    voice_options=( -v lancashire -s 180 -g 3 )
+    fifo="/tmp/speakd"
+    echo "$infile" >> "$fifo"
+    ;;
+esac
 exit 0
