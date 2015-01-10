@@ -15,6 +15,7 @@ function error(){
 
 voice=()
 infile="/tmp/speak-$$.txt"
+errfile="/tmp/speak-${UID}.err"
 infile_set=0
 if [ $# -ge 1 ] ; then
     case "$1" in
@@ -73,15 +74,20 @@ else
     cat > "$infile"
 fi
 
+trap 'rm "$infile"' 0
 
 case "$(uname)" in
 Darwin)
     say "${voice[@]}" -f "$infile"
     ;;
 *)
-    voice_options=( -v lancashire -s 180 -g 3 )
-    fifo="/tmp/speakd"
-    echo "$infile" >> "$fifo"
+    if type -p espeak ; then
+        espeak "${voice[@]}" -f "$infile" 2>"$errfile"
+    else
+        voice_options=( -v lancashire -s 180 -g 3 )
+        fifo="/tmp/speakd"
+        echo "$infile" >> "$fifo"
+    fi
     ;;
 esac
 exit 0
