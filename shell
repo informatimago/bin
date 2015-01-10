@@ -2117,7 +2117,21 @@ APOGEE / PERIGEE   1130/220  STATUTE MLE
 "
   "Abraxas Guardian of the Universe")
 
- 
+
+(defparameter forbidden-world ; MUTANT
+  '("
+WE ARE TRYING TO COMMUNICATE.
+DO YOU SCAN?
+" "
+AFFIRMATIVE. WHAT DO YOU WANT?
+" "
+REQUEST INFORMATION:
+CAN WE CO-EXIST?
+" "
+PLEASE STAND BY
+"))
+
+
 (defparameter matrix-data 
   '(
     "
@@ -2200,7 +2214,7 @@ Matrix -- 1998 / (3 2)5550690 / cmatrix
     abilities in English and History. Then, the words blur together
     and I can't read any more.
 
-16) Neo's driver's liscense picture is taken in the same suit that he
+16) Neo's driver's license picture is taken in the same suit that he
     wore to work.
 
 17) Neo's dad had black curly hair and a mustache. His mom had long
