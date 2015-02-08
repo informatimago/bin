@@ -2674,7 +2674,82 @@ TERMINAL READY FOR INPUT  FARLEY FLAVORS
 "
     ))
 
- 
+(defparameter *cargo--2009*
+  '(
+
+"
+--------------------------------------------------------------------------------
+connecting to KUIPER_338091 @  7.111  TB/S
+HS port 132.35.798.:26906
+mod A/23.000
+//172.DE//
+
+--------------------------------------------------------------------------------
+DECKER: Login (@subnet) Pkt Rcv = On         WAKE STATE Init: sen0s3, HS Connect...
+
+SIM: Login Attempt Successful*               DATA2270:08.25.23:12
+Enabling extended security on subnet / TRANSFER
+SIM: Log \"SESSION.FILE\" (@SysOverride)=      DATA UP 2270:01.14.10:43
+CSRHIDTransmissionDriver:: Start
+SIM: Log \"SESSION.FILE\" (@Init)=             DATA 2270:11.28.18:33
+IO HSCICS Controller:: Start
+ath_attach: devide 0x1c                      SYSTEM WARE UP... Done.
+SIM: Log \"DOWNLINK.FILE\" (@null)=          DATA2271:01.14.10:43
+Resetting IOCatalogues.
+RHEA: SIM says \"Hello Decker\"=               DATA2271:05.09.06:39
+SIM: Matching Successful. Routing...
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA2273:09.23.11.05
+ath_descdea_setup: tx dd_desc
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA2267:11.24.16:56
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA2268:01.14.10:43
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA2268:05.09.06:39
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA2268:08.04.12:13 vm_page_bootstrap:
+512891 free pages
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA2268:11.28.18:33 sig_table_sax_displ =
+71
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA Enabling XMM register save/restore and
+SSE/SSE2 opcodes
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA 103 prelinked modules
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATASIMCPI CA 20060421:322
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA2269:05.04.22:16 SIM_Sub_Management:
+
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA2272:05.04.22:16
+ath_attach: devid 0x1c
+SIM_Wire (OHCI) YI ID 8025 active.         DATA2272:05.04.00:00
+ath_attach: devid 0x1d
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA2272:12.25.15:10
+ath_attach: devid 0x1e
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA2273:03.04.12:07
+ath_attach: devid 0x1f
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA2273:05.04.22:16
+RHEA: SIM says \"Jacking you in...\"
+
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA2269:08.12.10:50 SIM SCPICPU:
+ProcessorSIM_Id=0 LocalSIM_Id=0 Enabled
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA2269:11.18.17:56 SIM SCPICPU:
+ProcessorSIM_Id=1 LocalSIM_Id=1 Enabled
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA wake up
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA 2269:11.24.10:46
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA using 10485 buffer headers and 4096
+cluster IO buffer headers
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA Enabling XMM register save/restore and
+SSE/SSE2 opcodes
+
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA Started CPU 01-4096
+RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA I OAPIC: Version -x20 Vectors 64:87
+
+RHEA: Log *SESSION.FILE\" (@Decker)=         DATA2281:08.04.12:13
+ath_attach: devid 0x1c
+
+--------------------------------------------------------------------------------
+connecting to KUIPER_338091 @  7.555  TB/S
+pkt_rcv //a_133:89// uhspd 64738
+connection established / sys override
+user login @ port 129/ie
+conn res. //200.456.94(KG):2390//
+--------------------------------------------------------------------------------
+"
+    )) 
 ;;;---------------------------------------------------------------------
 ;;; Run it
 ;;;---------------------------------------------------------------------
