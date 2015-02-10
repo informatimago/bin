@@ -2675,8 +2675,13 @@ TERMINAL READY FOR INPUT  FARLEY FLAVORS
     ))
 
 (defparameter *cargo--2009*
-  '(
+  '("
 
+  Come来To RHEA
+Kuiper Industries
+
+"
+    
 "
 --------------------------------------------------------------------------------
 connecting to KUIPER_338091 @  7.111  TB/S
@@ -2693,7 +2698,7 @@ SIM: Log \"SESSION.FILE\" (@SysOverride)=      DATA UP 2270:01.14.10:43
 CSRHIDTransmissionDriver:: Start
 SIM: Log \"SESSION.FILE\" (@Init)=             DATA 2270:11.28.18:33
 IO HSCICS Controller:: Start
-ath_attach: devide 0x1c                      SYSTEM WARE UP... Done.
+ath_attach: devid 0x1c                       SYSTEM WARE UP... Done.
 SIM: Log \"DOWNLINK.FILE\" (@null)=          DATA2271:01.14.10:43
 Resetting IOCatalogues.
 RHEA: SIM says \"Hello Decker\"=               DATA2271:05.09.06:39
@@ -2738,18 +2743,47 @@ SSE/SSE2 opcodes
 RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA Started CPU 01-4096
 RHEA: Log \"SESSION.FILE\" (@Decker)=        DATA I OAPIC: Version -x20 Vectors 64:87
 
-RHEA: Log *SESSION.FILE\" (@Decker)=         DATA2281:08.04.12:13
-ath_attach: devid 0x1c
 
 --------------------------------------------------------------------------------
 connecting to KUIPER_338091 @  7.555  TB/S
-pkt_rcv //a_133:89// uhspd 64738
+Pkt_rcv //a_133:89// uhspd 64738
 connection established / sys override
 user login @ port 129/ie
 conn res. //200.456.94(KG):2390//
 --------------------------------------------------------------------------------
 "
-    )) 
+    ))
+
+(defparameter *inspecteur-derrik--060--une-visite-de-new-york*
+  '("
+
+00661 24951
+TO
+BKA WIESBADEN FRG
+5798 224546 BKA D
+
+PASS ON TO:
+
+POLIZEIPRAESIDIUM MUENCHEN
+KRIMINALDAUERDIENST
+88 ZZZ Y 327 PP MU
+
+FROM INTERPOR DELP.US1 NEW YORK NY
+212 509823 USIP INTERNATIONAL
+
+CONCERN YOUR REQUEST
+
+RICHARD E. BRIAN
+
+538 RED LANE LONGISLAND
+NEW YORK NY 10036 CITIZEN
+BORN:SEPT.14 1912 BREMEN FRG
+IMMIG:NOV.13 1932
+…
+
+"))
+
+
 ;;;---------------------------------------------------------------------
 ;;; Run it
 ;;;---------------------------------------------------------------------
