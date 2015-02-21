@@ -1,0 +1,18 @@
+#!/bin/sh
+#| Both a lisp and sh comment.  This must come on the line just after the #! line.
+
+# next, we may have shell commands:
+echo "This is shell $SHELL"
+
+# eventually, we switch to clisp:
+
+exec clisp "$0" "$@" 
+
+# and end the Common Lisp comment:
+|#
+;; from here on, it is lisp forms.
+
+(format t "This is lisp ~A~%" (lisp-implementation-type))
+(princ "Hi") (terpri)
+
+
