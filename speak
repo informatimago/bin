@@ -83,9 +83,9 @@ Darwin)
 *)
     # todo: check whether speakd runs.
     if type -p espeak >/dev/null ; then
-        espeak "${voice[@]}" -f "$infile" 2>"$errfile"
+        espeak -v lancashire -s 180 -p 70 -a 18 "${voice[@]}" -f "$infile" 2>"$errfile"
     else
-        voice_options=( -v lancashire -s 180 -g 3 )
+        voice_options=( -v lancashire -s 180 -a 4 )
         fifo="/tmp/speakd"
         echo "$infile" >> "$fifo"
     fi
