@@ -1,0 +1,5 @@
+#!/bin/bash
+echo 'class javev { public static void main(String[] args){ try{'>javev.java
+echo "$@">>javev.java
+echo '}catch(Exception e){ System.err.println("Caught exception "+e);}}}'>>javev.java
+javac javev.java && java  javev
