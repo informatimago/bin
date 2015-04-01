@@ -133,7 +133,10 @@ Return:  input
                            (setf error (with-output-to-string (*error-output*)
                                          (setf trace (with-output-to-string (*trace-output*)
                                                        (multiple-value-setq (vals condi)
-                                                         (ignore-errors (multiple-value-list (eval expression))))))))))
+                                                         #-(or abcl ecl gcl) (ignore-errors (multiple-value-list (eval expression)))
+                                                         #+(or abcl ecl gcl) (handler-case (multiple-value-list (eval expression))
+                                                                               (error     (err) (values nil err))
+                                                                               (condition (err) (values nil err))))))))))
             (values input nil expression condi vals output error trace))))))
 
 
@@ -309,17 +312,17 @@ function runcl(){
 
 printf '\n'
 
-
-# debian calls cmucl cmucl instead of lisp.
-# runcl mocl       repl --verbose --android /tmp/  < "$script"
 runcl abcl     --batch --noinform --noinit --eval '(setq *load-verbose* nil)'  --load  "$script"
 runcl alisp     -batch -qq                                                      -L     "$script" -kill
 runcl ccl      --batch --no-init                                               --load  "$script"      
 runcl clisp     -ansi  -q  -norc                                                       "$script"      
-runcl lisp      -noinit          -eval '(setq *load-verbose* nil)'              -load  "$script"      
+# debian calls cmucl cmucl instead of lisp.
 runcl cmucl     -noinit          -eval '(setq *load-verbose* nil)'              -load  "$script"      
+runcl lisp      -noinit          -eval '(setq *load-verbose* nil)'              -load  "$script"      
 runcl ecl                  -norc                                                -load  "$script"      
-runcl gcl       -batch                                                          -load  "$script"      
+# we can't run gcl, because it can't handle errors. (ignore-errors, handler-case).
+# runcl gcl       -batch                                                          -load  "$script"      
+# runcl mocl       repl --verbose --android /tmp/  < "$script"
 runcl sbcl     --noinform --no-userinit                                        --load  "$script"      
 
 runcl winccl   --batch --no-init                                               --load  $(winquote $winscript)
