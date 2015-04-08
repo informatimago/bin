@@ -47,6 +47,7 @@
 #    Boston, MA 02111-1307 USA
 #*****************************************************************************
 #export PATH=/bin:/usr/bin
+trap 'printf "\ninterrupted\n";exit 1' INT
 
 epilog=/tmp/clall-$$.epilog
 script=/tmp/clall-$$.lisp
