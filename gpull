@@ -10,6 +10,9 @@ for dir in "${gdirs[@]}" ; do
     fi
 done
 
+gvers=$(git --version|sed -e 's/git version \([0-9]*\)\..*/\1/')
+
+
 # BASE="$(cd $(dirname "$0") ; cd "$(pwd -P)/../.." ; pwd -P)"
 
 push_all_remotes=0
@@ -22,7 +25,7 @@ function usage(){
     printf "%s usage:\n\n" "$pname"
     printf "  %s link  # creates the associated symlinks.\n" "$pname"
     printf "  gstat [gset]\n"
-    printf "  gpull [gset]\n"
+    printf "  gpull [gset] [--all-remotes]\n"
     printf "  gpush [gset] [--all-remotes]\n"
     printf "\n"
     printf "gset should be one of: \n" 
@@ -72,9 +75,9 @@ done
 
 
 case "$pname" in
-gpull) op=(pull --all) ;; # (pull --all) ;;
-gpush) op=(push) ;;
-gstat) op=(status) ;;
+gpull) op=pull ;;
+gpush) op=push ;;
+gstat) op=status ;;
 *) 
     error "it should be named gpull, gpush or gstat\nuse:\n\t gpull link \nto make the symlinks.\n"
     ;;
@@ -99,13 +102,27 @@ for pset in ${psets[@]} ; do
             cd "$dir" && (
                 printf "\n########################################################################"
                 printf "\ncd %s\n" "$(pwd)"
-                if [ ${op[0]} = push -a $push_all_remotes -ne 0 ] ; then
-                    for r in $(git remote) ; do
-                        printf "%s " "$r"
-                        git "${op[@]}" "$r"
-                    done
+                if [ $push_all_remotes -ne 0 ] ; then
+                    case "$op" in
+                    push)
+                        for r in $(git remote) ; do
+                            printf "%s " "$r"
+                            git "$op" "$r"
+                        done
+                        ;;
+                    pull)
+                        if [ $gvers -eq 1 -a $(git remote|wc -l) -eq 1 ] ; then
+                            git "$op"
+                        else
+                            git "$op" --all
+                        fi
+                        ;;
+                    *)
+                        git "$op"
+                        ;;
+                    esac
                 else
-                    git "${op[@]}"
+                    git "$op"
                 fi
             )
         )
