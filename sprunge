@@ -1,3 +1,2 @@
 #!/bin/sh
-printf "%s/lisp\n" $(cat - | curl -F 'sprunge=<-' http://sprunge.us)
-
+cat - | curl -F 'sprunge=<-' http://sprunge.us
