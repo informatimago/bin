@@ -1,1 +1,136 @@
-gpull
+#!/bin/bash
+# TODO: Rewrite it in clisp, it has overflown bash complexity.
+
+pname="$(basename "$0")"
+gdirs=("$HOME/.config/gpull-dirs"  "$(dirname "$0")/gdirs")
+for dir in "${gdirs[@]}" ; do
+    if [ -r "$dir" ] ; then
+        source "$dir" # should define gsets
+        break
+    fi
+done
+
+gvers=$(git --version|sed -e 's/git version \([0-9]*\)\..*/\1/')
+
+
+# BASE="$(cd $(dirname "$0") ; cd "$(pwd -P)/../.." ; pwd -P)"
+
+push_all_remotes=0
+psets=()
+goterror=0
+
+
+function usage(){
+    printf "\n"
+    printf "%s usage:\n\n" "$pname"
+    printf "  %s link  # creates the associated symlinks.\n" "$pname"
+    printf "  gstat [gset]\n"
+    printf "  gpull [gset] [--all-remotes]\n"
+    printf "  gpush [gset] [--all-remotes]\n"
+    printf "\n"
+    printf "gset should be one of: \n" 
+    printf "             %s\n" ${gsets[@]}
+    printf "\n"
+}
+
+function error(){
+    goterror=1
+    printf "%s error: " "$pname" 1>&2
+    printf "$@"                  1>&2
+    printf "\n"                  1>&2
+}
+
+
+function docmd(){
+    echo "# $@"
+    "$@"
+}
+
+if [ "$1"s = links ] ; then
+    for link in gpush gstat ; do
+        docmd ln -v -s -f gpull "$(dirname "$0")/${link}"
+    done
+    exit 0
+fi
+
+
+for arg ; do
+    case "$arg" in
+    --all-remotes)
+        push_all_remotes=1
+        ;;
+    *)
+        gset="$arg"
+        gotit=0
+        for e in ${gsets[@]} ; do 
+            if [ "$gset" = "$e" ] ; then
+                gotit=1
+                break
+            fi
+        done
+
+        if [ $gotit -eq 0 ] ; then
+            error "invalid git set '%s'" "$gset"
+        else
+            psets=( ${psets[@]} $gset )
+        fi
+       ;;
+    esac
+done
+
+
+case "$pname" in
+gpull) op=pull ;;
+gpush) op=push ;;
+gstat) op=status ;;
+*) 
+    error "it should be named gpull, gpush or gstat\nuse:\n\t gpull link \nto make the symlinks.\n"
+    ;;
+esac
+
+if [ $goterror -ne 0 ] ; then
+    usage
+    exit 1
+fi
+
+
+if [ ${#psets} -eq 0 ] ; then
+    psets=( ${gsets[0]} )
+fi
+
+for pset in ${psets[@]} ; do
+
+    eval 'pdirs=( ${'"$pset"'[@]} )'
+
+    for dir in "${pdirs[@]}" ; do
+        (
+            cd "$dir" && (
+                printf "\n########################################################################"
+                printf "\ncd %s\n" "$(pwd)"
+                if [ $push_all_remotes -ne 0 ] ; then
+                    case "$op" in
+                    push)
+                        for r in $(git remote) ; do
+                            printf "%s " "$r"
+                            docmd git "$op" "$r"
+                        done
+                        ;;
+                    pull)
+                        if [ $gvers -eq 1 -a $(git remote|wc -l) -eq 1 ] ; then
+                            docmd git "$op"
+                        else
+                            docmd git "$op" --all
+                        fi
+                        ;;
+                    *)
+                        docmd git "$op"
+                        ;;
+                    esac
+                else
+                   docmd git "$op"
+                fi
+            )
+        )
+    done
+
+done
