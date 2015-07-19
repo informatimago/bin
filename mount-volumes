@@ -45,16 +45,16 @@ else
     mount "${options[@]}" ${server}:/local/home    ${mnt}home
     mount "${options[@]}" ${server}:/local/srv     ${mnt}srv
     case "${hostname}" in
+    larissa*)
+        mount "${options[@]}" ${server}:/movies    ${mnt}movies
+        ;;
     galatea*)
-        mount "${options[@]}" ${server}:/new/movies    ${mnt}movies
+        mount "${options[@]}" ${server}:/movies    ${mnt}movies
         ;; 
     triton*)
         true
         ;;
     despina*)
-        true
-        ;;
-    larissa*)
         true
         ;;
     *)
