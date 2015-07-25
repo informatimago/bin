@@ -77,8 +77,6 @@
                    (lambda (&rest args)
                      (declare (ignore args))
                      (error "Cannot generate the ECMA048 functions")))
-               :verbose common-lisp:nil
-               :compile common-lisp:t
                :export  common-lisp:t
                :8-bit   common-lisp:nil
                :print   common-lisp:t
