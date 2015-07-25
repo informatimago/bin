@@ -1,0 +1,3 @@
+#!/bin/sh
+transmission-daemon -f -t -u ptrans -v transp -w /home/pjb/torrents -g /home/pjb/torrents
+transmission-remote -n ptrans:transp -l
