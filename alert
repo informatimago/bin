@@ -1,0 +1,27 @@
+#!/bin/bash
+alert=/tmp/alert.wav
+TERM=dumb
+wget -q 'http://soundbible.com/grab.php?id=1911&type=wav' -O $alert 
+mplayer -quiet -really-quiet -nojoystick -noconsolecontrols -nomouseinput -nolirc -noar -loop 2 $alert &
+sleep 3
+say -v Samantha 'Warning: please evacuate the premises.' 
+sleep 5
+say -v Veena    'Warning: the base will self destruct in 2 minutes.' 
+sleep 5
+say -v Samantha 'Warning: no, the base will not self destruct, just evacuate the premises.' 
+sleep 5
+say -v Veena    'Warning: the base will self destruct in 1 minute 30 seconds.'
+sleep 2
+say -v Samantha "Warning: no, it won't. Don't listen to her, just evacuate the premises."
+sleep 5
+say -v Kathy    -r 300 'WARNING!  HELP ME!'
+sleep 1
+say -v Veena    'Warning: the base will self destruct in 1 minute.'
+sleep 3
+say -v Samantha "Warning: Listen, this is just an exercise, Just evacuate the premises."
+sleep 5
+say -v Veena    'Warning: the base will self destruct in 30 seconds!'
+sleep 2
+say -v Samantha "Warning: Shut up! Don't frighten the people! Just evacuate the premises."
+sleep 5
+say -v Samantha 'See! Told you so, all is finished now.  Hey, people, come back!'
