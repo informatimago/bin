@@ -496,6 +496,8 @@ function distribution () {
         debian)
             release="$(cat "$root"/etc/debian_version)"
             case "$release" in
+            9.[0-9]) codename=stretch ;; 
+            8.[0-9]) codename=jessie ;; 
             7.[0-9]) codename=wheezy ;; 
             6.[0-9]) codename=squeeze ;; 
             5.[0-9]) codename=lenny ;; 
