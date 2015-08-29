@@ -391,7 +391,7 @@ declareDarwinVersion "13.0.0"  "Maverick"        "June 11, 2012"       "OS X v10
 declareDarwinVersion "13.1.0"  "Maverick"        "January 16 2014"     "OS X v10.9.2"                           ""
 declareDarwinVersion "14.0.0"  "iOS 7"           "September 18, 2013"  "iOS 7"                                  ""
 declareDarwinVersion "14.0.0"  "Yosemite"        "2014"                "OS X v10.10.1"                          ""
-
+declareDarwinVersion "14.5.0"  "Yosemite"        "2015"                "OS X v10.10.5"                          ""
 # http://en.wikipedia.org/wiki/Darwin_%28operating_system%29#Release_history
 
 
