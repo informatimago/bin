@@ -2810,7 +2810,109 @@ CONNECTING >>>
 >>> NO
 
        <<< SO... WHAT NOW?
-"))
+"
+    ;; cl-crypto/sources/strings.lisp:86 (commit 1d2a7eb9)
+    ;; https://github.com/billstclair/cl-crypto/blob/1d2a7eb9e5dcac4b3b5548434bd5a8ded3dcd621/source/strings.lisp#L86
+"         (SETF (AREF RES I)
+               (LDB (BYTE 8 24) X)
+               (AREF RES (INCF I))
+               (LDB (BYTE 8 16) X)
+               (AREF RES (INCF I))
+               (LDB (BYTE 8 8) X)
+               (AREF RES (INCF I))
+               (LDB (BYTE 8 0) X))
+         (INCF I)
+         REST))
+     (:STRING
+      (LET ((RES (MAKE-STRING 20))
+            (I 0))
+        (DOLIST (X STATE)
+          (SETF (AREF RES I)
+                (CODE-CHAR (LDB (BYTE 8 24) X))
+                (AREF RES (INCF I))
+                (CODE-CHAR (LDB (BYTE 8 16) X))
+                (AREF RES (INCF I))
+                (CODE-CHAR (LDB (BYTE 8 8) X))
+                (AREF RES (INCF I))
+                (CODE-CHAR (LDB (BYTE 8 0) X)))
+          (INCF I))
+        RES))))))
+
+*****************
+STRING TO ENCRYPT
+*****************
+RACHEL MATHESON
+GRACE BEAUMONT
+RANDALL
+MIRJAM BOHNET-BREW
+ERIN HUNTER
+ROGER LIVELY
+BETH ROBINSON-BROMLEY
+MICHAEL DOOLING
+DOUG SLOAN
+LUKE CONNER
+BILLY FRAME
+DOUG MEERDINK
+MATTHEW JACOBS
+GEORGE MAYA
+AMY TIPTON
+PAUL MARKOVICH
+SAM OCDEN
+RICK CLARK
+RUDY PERSICO
+IAN PRANGE
+SCOTT OBERHOLZER
+SEAN BOZEMAN
+ALEX OSTAPIEJ
+ROSS BURCHFIELD
+DAVID MOXMESS
+DAVID STOCKTON
+"
+
+    "
+#!/usr/bin/ksh
+# $Id: csrvc,v 2.1 25:12:54 sms Exp $
+# Shell script to connect to 16654/70 by PPP
+
+Connect ()
+{
+   echo Connecting...
+   ncmap 0 mtu 296 noipdefault
+ defaultroute
+   echo Connect chat
+..AT OK-AT-OK ATZ OK-AT-OK
+.ATSO:0 Q0 V1 &C1&D2&K0&M4&R2&H1&I0'  OK-AT-OK
+}
+OTDT192957BBOSA CONNECT...
+Connection Failed...
+Retrying...
+"
+
+    "
+#!/usr/bin/ksh
+# $Id: csrvc,v 2.1 25:12:54 sms Exp $
+# Shell script to connect to 16654/70 by PPP
+
+Connect ()
+{
+   echo Connecting...
+   ncmap 0 mtu 296 noipdefault
+ defaultroute
+   echo Connect chat
+..AT OK-AT-OK ATZ OK-AT-OK
+.ATSO:0 Q0 V1 &C1&D2&K0&M4&R2&H1&I0'  OK-AT-OK
+}
+OTDT192957BBOSA CONNECT...
+
+CONNECTING >>>
+
+>>> RANDALL IS HERE
+
+ >>> 
+
+"
+    
+    ))
 
 
 ;;;---------------------------------------------------------------------
