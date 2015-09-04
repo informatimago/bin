@@ -2783,6 +2783,35 @@ IMMIG:NOV.13 1932
 
 "))
 
+(defparameter *revolution*
+  '("
+#!/usr/bin/ksh
+# $Id: csrvc,v 1.1 22:30:47 sms Exp $
+# Shell script to connect to 8397/37 by PPP
+
+Connect ()
+{
+   echo Connecting...
+   ncmap 0 mtu 296 noipdefault
+ defaultroute
+   echo Connect chat
+''AT OK-AT-OK ATZ OK-AT-OK
+'ATS0=0 Q0 V1 &C1&D2&K0&M4&R2&H1&I0'  OK-AT-OK
+ATDT085450801000 CONNECT
+
+
+CONNECTING >>>
+
+
+>>> THE MILITIA WAS HERE
+
+       <<< DID THEY FIND IT?
+
+>>> NO
+
+       <<< SO... WHAT NOW?
+"))
+
 
 ;;;---------------------------------------------------------------------
 ;;; Run it
