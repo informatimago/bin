@@ -2911,6 +2911,23 @@ CONNECTING >>>
  >>> 
 
 "
+
+    "
+"
+
+    ;; from linux kernel cpu.c:
+    "
+mutex_lock(&cpu_hotplug.lock);
+if(likey(!cpu_hotplug.refcount))
+break;
+__set_current_state(TASK_UNINTERRUPTIBLE);
+mutex_unlock(&cpu_hotplug.lock);
+schedule();
+}
+}
+static void cpu_hotplug_done(void)
+"
+
     
     ))
 
