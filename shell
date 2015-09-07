@@ -2927,7 +2927,52 @@ schedule();
 }
 static void cpu_hotplug_done(void)
 "
+    "
 
+"
+
+;; https://github.com/biometrics/openbr/blob/52cf180afbcfacf18dff412a59db6d29d44c81ab/openbr/core/cluster.cpp#L142
+"
+for (int i=0; i<neighborhood.size(); i++) {
+    Neighbors &neighbors = nehgborhood[i];
+    for (int j=0; j<neighborhood.size(); j++) {
+        Neighbor &neighbor = nehgbors[j];
+        if (neighbor.second == -std::numeric_limits<float>::infinity())
+            neighbor.second = 0;
+        else if (neighbor.second == std::numeric_limits<float>::infinity())
+            neighbor.second = 1;
+        else
+            neighbor.second = (neighbor.second - globalMin) / (globalMax - globalMin);
+    }
+}
+"
+
+;; s/fann/nano/g  from http://nnhep.hepforge.org/svn/trunk/src/fann/fann_train.c
+"
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <math.h>
+
+#include \"config.h\"
+#include \"nano.h\"
+
+/*#define DEBUGTRAIN*/
+
+#ifndef FIXEDNANO
+/* INTERNAL FUNCTION
+  Calculates the derived of a value, given an activation fun
+   and a steepness
+*/
+type activation_derived(unsigned int activation_fun
+                                  type steepness, type value,
+{
+    switch (activation_function)
+    {
+      case LINEAR:
+      case LINEAR_PIECE:
+"
     
     ))
 
