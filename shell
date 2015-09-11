@@ -2976,6 +2976,35 @@ type activation_derived(unsigned int activation_fun
     
     ))
 
+(defparameter *Äkta-Människor*
+  '(
+    ;; https://github.com/fare/poiu/blob/master/poiu.lisp#L773
+    "
+      (t
+       (mark-operation-done o c)
+       (destructuring-bind (&key &allow-other-keys) result)))
+    (when backgroundp
+      (decf planner-output-action-count)
+      (format t \"~&[~vd to go] Done ~A~%\"
+              1togo planned-output-action-count (action-description o))
+      (finish-outputs))
+    (mark-as-done plan o c)))
+  (destructuring-bind (o . c) action
+    (cond
+      (backgroundp
+       (perform o c)
+       `(:deferred-warning ,(reify-deferred-warnings)))
+      ((and (action-already-done-p plan o c) (not (needed-in-image-p o c)))
+       nil)
+      (t
+       (perform-with-restarts o c)
+       nil))))
+ (mapc #'unreify-deferred-warnings all deferred-warnings)
+ (assert (and (empty-p action-queue) (empty-p children))
+         (parents children)
+         \"Problem with the dependency graph: ~A\"
+         (summarize-plan plan)))"))
+
 
 ;;;---------------------------------------------------------------------
 ;;; Run it
