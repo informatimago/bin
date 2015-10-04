@@ -206,7 +206,7 @@ If available we use the actual program name (from (EXT:ARGV) or
       (if (find "-Kfull" (ext:argv) :test (function string=))
         (error err)
         (ext:exit
-         (or  (ext:run-program "/usr/bin/clisp"
+         (or  (ext:run-program "/usr/local/bin/clisp"
                 :arguments (append '("-ansi" "-q" "-E" "utf-8" "-Kfull")
                                    (cons *program-path* *arguments*))
                 :wait t

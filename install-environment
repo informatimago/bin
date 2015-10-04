@@ -38,9 +38,9 @@ source rc/bashrc
 
 
 if [ -x /usr/local/bin/brew ] ; then
-    if [ ! -x /usr/bin/clisp ] ; then
+    if [ ! -x /usr/local/bin/clisp ] ; then
         brew install clisp
-        sudo ln -s /usr/local/bin/clisp /usr/bin/clisp
+        sudo ln -s /usr/local/bin/clisp /usr/local/bin/clisp
     fi
 
     for sp in ${system_packages[@]} ; do
@@ -53,8 +53,8 @@ if [ -x /usr/local/bin/brew ] ; then
 fi
 
 
-if [ ! -x /usr/bin/clisp -a -x /usr/local/bin/clisp ] ; then
-    sudo ln -s /usr/local/bin/clisp /usr/bin/clisp
+if [ ! -x /usr/local/bin/clisp -a -x /usr/local/bin/clisp ] ; then
+    sudo ln -s /usr/local/bin/clisp /usr/local/bin/clisp
 fi
 
 
