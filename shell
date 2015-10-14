@@ -43,6 +43,18 @@
 (in-package "COM.INFORMATIMAGO.CINE-SHELL")
 (defparameter *program-version* "0.0.2")
 
+#|
+
+
+Ce film n'ayant pas encore,
+pour des raisons techniques
+reçu le visa d'exploitation,
+les spectateurs sont invités
+    lors de sa projection
+à vérifier s'il est autorisé
+    pour tous publics.
+
+|#
 
 
 (define-option ("version" "-V" "--version") ()
@@ -3004,6 +3016,7 @@ type activation_derived(unsigned int activation_fun
          (parents children)
          \"Problem with the dependency graph: ~A\"
          (summarize-plan plan)))"))
+
 
 
 ;;;---------------------------------------------------------------------
