@@ -42,7 +42,7 @@ function error(){
 
 
 if [ "$1"s = links ] ; then
-    for link in gpush gstat ; do
+    for link in gpush gstat gremotes ; do
         ln -v -s -f gpull "$(dirname "$0")/${link}"
     done
     exit 0
@@ -75,9 +75,10 @@ done
 
 
 case "$pname" in
-gpull) op=pull ;;
-gpush) op=push ;;
-gstat) op=status ;;
+gpull)    op=pull ;;
+gpush)    op=push ;;
+gstat)    op=status ;;
+gremotes) op=remote ;;
 *) 
     error "it should be named gpull, gpush or gstat\nuse:\n\t gpull link \nto make the symlinks.\n"
     ;;
@@ -104,6 +105,9 @@ for pset in ${psets[@]} ; do
                 printf "\ncd %s\n" "$(pwd)"
                 if [ $push_all_remotes -ne 0 ] ; then
                     case "$op" in
+                    remote)
+                        git-show-remotes |expand -16
+                        ;;
                     push)
                         for r in $(git remote) ; do
                             printf "%s " "$r"
@@ -122,7 +126,14 @@ for pset in ${psets[@]} ; do
                         ;;
                     esac
                 else
-                    git "$op"
+                    case "$op" in
+                    remote)
+                        git-show-remotes |expand -16
+                        ;;
+                    *)
+                        git "$op"
+                        ;;
+                    esac
                 fi
             )
         )
