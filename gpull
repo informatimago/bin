@@ -23,7 +23,8 @@ goterror=0
 function usage(){
     printf "\n"
     printf "%s usage:\n\n" "$pname"
-    printf "  %s link  # creates the associated symlinks.\n" "$pname"
+    printf "  %s links  # creates the associated symlinks.\n" "$pname"
+    printf "  %s sets   # display the list of gsets.\n" "$pname"
     printf "  gstat [gset]\n"
     printf "  gpull [gset] [--all-remotes]\n"
     printf "  gpush [gset] [--all-remotes]\n"
@@ -41,13 +42,18 @@ function error(){
 }
 
 
-if [ "$1"s = links ] ; then
+case "$1" in
+link|links)
     for link in gpush gstat gremotes ; do
         ln -v -s -f gpull "$(dirname "$0")/${link}"
     done
     exit 0
-fi
-
+    ;;
+sets|gsets)
+    echo ${gsets[@]}
+    exit 0
+    ;;
+esac
 
 for arg ; do
     case "$arg" in
@@ -106,32 +112,44 @@ for pset in ${psets[@]} ; do
                 if [ $push_all_remotes -ne 0 ] ; then
                     case "$op" in
                     remote)
+                        trap : INT
                         git-show-remotes |expand -16
+                        trap INT
                         ;;
                     push)
+                        trap : INT
                         for r in $(git remote) ; do
                             printf "%s " "$r"
                             git "$op" "$r"
                         done
+                        trap INT
                         ;;
                     pull)
+                        trap : INT
                         if [ $gvers -eq 1 -a $(git remote|wc -l) -eq 1 ] ; then
                             git "$op"
                         else
                             git "$op" --all
                         fi
+                        trap INT
                         ;;
                     *)
+                        trap : INT
                         git "$op"
+                        trap INT
                         ;;
                     esac
                 else
                     case "$op" in
                     remote)
+                        trap : INT
                         git-show-remotes |expand -16
+                        trap INT
                         ;;
                     *)
+                        trap : INT
                         git "$op"
+                        trap INT
                         ;;
                     esac
                 fi
