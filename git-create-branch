@@ -16,5 +16,9 @@ function echodo(){
 }
 
 echodo git checkout -b "$branchName"
-echodo git push origin "$branchName"
-echodo git branch --set-upstream "$branchName" origin/"$branchName" 
+trap : INT
+for remote in $(git remote) ; do
+    echodo git push "$remote" "$branchName"
+    echodo git branch --set-upstream-to "$branchName" "$remote"/"$branchName" 
+done
+trap INT
