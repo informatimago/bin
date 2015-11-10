@@ -117,6 +117,7 @@ for pset in ${psets[@]} ; do
                         trap INT
                         ;;
                     push)
+                        printf "# pushing branch \"%s\".\n" "$(git branch |awk '/*/{print $2}')"
                         trap : INT
                         for r in $(git remote) ; do
                             printf "%s " "$r"
@@ -144,6 +145,12 @@ for pset in ${psets[@]} ; do
                     remote)
                         trap : INT
                         git-show-remotes |expand -16
+                        trap INT
+                        ;;
+                    push)
+                        printf "# pushing branch \"%s\".\n" "$(git branch |awk '/*/{print $2}')"
+                        trap : INT
+                        git "$op"
                         trap INT
                         ;;
                     *)
