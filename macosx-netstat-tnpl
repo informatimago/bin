@@ -1,0 +1,2 @@
+#!/bin/bash
+netstat -a -tnp tcp | grep -i listen
