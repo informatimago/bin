@@ -1,0 +1,12 @@
+#!/bin/bash
+chunk=20
+uptime
+dmesg | tail -$chunk
+vmstat 1 $chunk
+mpstat -P ALL 1 $chunk
+pidstat 1 $chunk
+iostat -xz 1 $chunk
+free -m
+sar -n DEV 1 $chunk
+sar -n TCP,ETCP 1 $chunk
+top
