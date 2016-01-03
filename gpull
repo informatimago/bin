@@ -41,6 +41,10 @@ function error(){
     printf "\n"                  1>&2
 }
 
+function homedir(){
+    local dir="$1"
+    echo $dir|sed -e "s:^${HOME}/:\\\${HOME}/:" -e "s:^${HOME}\$:\\\${HOME}:"
+}
 
 case "$1" in
 link|links)
@@ -51,6 +55,32 @@ link|links)
     ;;
 sets|gsets)
     echo ${gsets[@]}
+    exit 0
+    ;;
+clone)
+    for gset in ${gsets[@]} ; do
+        eval echo \${${gset}[@]}|tr ' ' '\012'
+    done \
+        | sort -u \
+        | while read dir ; do
+              echo '#'
+              first=0
+              ( cd $dir >/dev/null 2>&1 ; git-show-remotes ) \
+                  | sed -n -e 's/ (fetch)//p' \
+                  | while read name url ; do
+                        dstdir="$(homedir $(dirname ${dir}))"
+                        if [ $first -eq 0 ] ; then
+                            
+                            echo mkdir -p ${dstdir}
+                            echo cd ${dstdir}
+                            echo git clone -o $name $url $dir
+                            first=1
+                        else
+                            echo cd ${dstdir}
+                            echo git remote add $name $url
+                        fi
+                    done
+          done
     exit 0
     ;;
 esac
