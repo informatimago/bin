@@ -73,10 +73,10 @@ clone)
                             
                             echo mkdir -p ${dstdir}
                             echo cd ${dstdir}
-                            echo git clone -o $name $url $dir
+                            echo git clone -o $name $url $(basename $dir)
                             first=1
                         else
-                            echo cd ${dstdir}
+                            echo cd ${dstdir}/$(basename $dir)
                             echo git remote add $name $url
                         fi
                     done
