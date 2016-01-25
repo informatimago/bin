@@ -1,0 +1,34 @@
+#!/bin/bash
+pname=
+path="$1"
+kind="$2"
+
+function usage(){
+    printf '\n%s usage:\n    %s $kind $subprojectdir\n\n' "$pname"
+    printf "  kind = Android # for an Android application.\n"
+    printf "  kind = iOS     # for an iOS application.\n"
+}
+if [ "$path" = "" ] ; then
+    usage
+    exit 1
+fi
+
+
+mkdir -p $path/_deps
+mkdir -p $path/Locals/Code
+mkdir -p $path/Locals/Build
+
+case "$kind" in
+    Android)
+        svn propset svn:ignore '.gradle 
+local.properties
+build' .
+
+    ;;
+    iOS)
+        
+    ;;
+    *)
+    ;;
+esac
+

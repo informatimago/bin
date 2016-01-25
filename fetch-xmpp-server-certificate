@@ -1,0 +1,16 @@
+#!/bin/bash
+server="$1"
+port=5222
+pname="$(basename  "$(readlink -f "${BASH_SOURCE[0]}")")"
+#thisdir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+function usage(){
+    printf '%s usage:\n\n    %s $server > $certificate\n\n' "$pname" "$pname"
+}
+
+if [ "$server" = "" -o "$server" = "-h" -o "$server" = "--help" ] ; then
+   usage
+   exit 1
+fi
+
+exec openssl s_client -connect ${server}:${port} </dev/null -starttls xmpp
+

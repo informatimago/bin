@@ -1,0 +1,33 @@
+#!/usr/local/bin/clisp -ansi -q -E iso-8859-1
+;;;; -*- mode:lisp; coding:iso-8859-1 -*-
+
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;
+;; Warning: processes iso-8859-1 not utf-8 arguments! ;;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;
+
+(defparameter *element-type* "uint8")
+(defparameter *size-type*    "usize_t")
+
+(defmethod generate-c-array ((in stream) name)
+  (format t "~%~A ~A[]={" *element-type* name)
+  (loop
+    :with i := 0
+    :for byte := (read-byte in nil nil)
+    :while byte
+    :do (format t "0x~2,'0X," byte)
+        (incf i)
+        (when (zerop (mod i 16))
+          (terpri))
+    :finally (format t "};~%")
+             (format t "~A ~A_size=~D;~%" *size-type* name i)))
+
+(defun main (argv)
+  (let* ((path (first argv))
+         (name (string-downcase (remove-if-not (lambda (ch)
+                                                 (or (alphanumericp ch)
+                                                     (char= ch #\_)))
+                                               (substitute #\_ #\- (pathname-name path))))))
+    (with-open-file (in path :element-type '(unsigned-byte 8))
+      (generate-c-array in name))))
+
+(main ext:*args*)
