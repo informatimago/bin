@@ -1,0 +1,6 @@
+#!/bin/bash
+cat $0
+exit 1
+
+diskutil list
+sudo /Applications/VirtualBox.app/Contents/MacOS/VBoxManage internalcommands createrawvmdk -filename ~/Documents/VirtualBoxVMs/galatea-disk2s2.vmdk -rawdisk /dev/disk2s2
