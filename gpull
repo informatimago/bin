@@ -111,10 +111,10 @@ done
 
 
 case "$pname" in
-gpull)    op=pull ;;
-gpush)    op=push ;;
-gstat)    op=status ;;
-gremotes) op=remote ;;
+gpull)    op=(pull) ;;
+gpush)    op=(push) ;;
+gstat)    op=(status --untracked-files=no) ;;
+gremotes) op=(remote) ;;
 *) 
     error "it should be named gpull, gpush or gstat\nuse:\n\t gpull link \nto make the symlinks.\n"
     ;;
@@ -140,7 +140,7 @@ for pset in ${psets[@]} ; do
                 printf "\n########################################################################"
                 printf "\ncd %s\n" "$(pwd)"
                 if [ $push_all_remotes -ne 0 ] ; then
-                    case "$op" in
+                    case "${op[0]}" in
                     remote)
                         trap : INT
                         git-show-remotes |expand -16
@@ -151,27 +151,27 @@ for pset in ${psets[@]} ; do
                         trap : INT
                         for r in $(git remote) ; do
                             printf "%s " "$r"
-                            git "$op" "$r"
+                            git "${op[@]}" "$r"
                         done
                         trap INT
                         ;;
                     pull)
                         trap : INT
                         if [ $gvers -eq 1 -a $(git remote|wc -l) -eq 1 ] ; then
-                            git "$op"
+                            git "${op[@]}"
                         else
-                            git "$op" --all
+                            git "${op[@]}" --all
                         fi
                         trap INT
                         ;;
                     *)
                         trap : INT
-                        git "$op"
+                        git "${op[@]}"
                         trap INT
                         ;;
                     esac
                 else
-                    case "$op" in
+                    case "${op[0]}" in
                     remote)
                         trap : INT
                         git-show-remotes |expand -16
@@ -180,12 +180,12 @@ for pset in ${psets[@]} ; do
                     push)
                         printf "# pushing branch \"%s\".\n" "$(git branch |awk '/*/{print $2}')"
                         trap : INT
-                        git "$op"
+                        git "${op[@]}"
                         trap INT
                         ;;
                     *)
                         trap : INT
-                        git "$op"
+                        git "${op[@]}"
                         trap INT
                         ;;
                     esac
