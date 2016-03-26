@@ -1,0 +1,11 @@
+#!/bin/bash
+pid="$1";shift
+if [ $# -gt 0 ] ; then
+    pids="${pid}$(printf ",%s" "$@")"
+else
+    pids="${pid}"
+fi
+while ps -p "$pids" >/dev/null ; do
+    sleep 1
+done
+
