@@ -1,0 +1,44 @@
+#!/bin/bash
+
+#
+# outputs the svn root  (url), the checkout directory (branch) and the compilation directory (current module).
+#
+
+
+#      current_dir                        /Users/pjb/src/trustonic/tbase/branches/dev_kinibi_wb_sdk/dev/components/Apps/iOS/TrustChat/Locals/Code/TrustChat
+#      Working Copy Root Path:            /Users/pjb/src/trustonic/tbase/branches/dev_kinibi_wb_sdk
+#      URL:                     https://svn.trustonic.internal/svn/tbase/branches/dev_kinibi_wb_sdk/dev/components/Apps/iOS/TrustChat/Locals/Code/TrustChat
+# root Repository Root:         https://svn.trustonic.internal/svn/tbase
+# checkout_dir                                                           branches/dev_kinibi_wb_sdk
+# compile_dir                                                                                       dev/components/Apps/iOS/TrustChat/Locals/Code/TrustChat
+# 
+# compile_dir = pwd - wcrp
+# checkout_dir = url - compile_dir - root
+
+#                                         /Users/pjb/src/trustonic/tbase/users/pasbou01/dev_kinibi_wb_sdk/dev/components/MobiCoreTools/TlSdk
+# Working Copy Root Path:                 /Users/pjb/src/trustonic/tbase/users/pasbou01
+# URL:                          https://svn.trustonic.internal/svn/tbase/users/pasbou01/dev_kinibi_wb_sdk/dev/components/MobiCoreTools/TlSdk
+# Repository Root:              https://svn.trustonic.internal/svn/tbase
+# checkout_dir                                                           users/pasbou01
+# compile_dir                                                                           dev_kinibi_wb_sdk/dev/components/MobiCoreTools/TlSdk
+
+current_dir="$(pwd -L)"
+cd "$current_dir"
+
+eval $(svn info | awk '
+          function quote(x){ gsub("[\\\"\\\\]","\\\\&",x); return "\"" x "\""; } 
+          /^Working Copy Root Path:/{printf("wcrp=%s\n",quote($5));} \
+          /^Repository Root/{printf("root=%s\n",quote($3));} \
+          /^URL: /{printf("url=%s\n",quote($2));}\
+          /^Revision/{printf "revision=%s\n",quote($2);}
+     ')
+
+
+compile_dir="${current_dir:$(( 1 + ${#wcrp} ))}"
+checkout_dir="${url:$(( 1 + ${#root} )):$(( ${#url} - ${#root} - ${#compile_dir} - 2))}"
+
+
+echo $root
+echo ${checkout_dir:=.}
+echo ${compile_dir:=.}
+echo ${revision}
