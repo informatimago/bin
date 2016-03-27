@@ -1,31 +1,45 @@
 #!/bin/bash
 pname="$(basename "$0")"
-server=kuiper.lan.informatimago.com
+default_server=kuiper.lan.informatimago.com
+default_mountdir=/mnt/
 umount=0
 options=( -o nolockd  )
 hostname=$(hostname)
-mnt=/mnt/
 
 function usage(){
-    printf "\n%s usage:\n    %s [unmount]\n\n" "$pname" "$pname" 
+    printf "\n%s usage:\n    %s [-s|--server server] [-m|--mountdir mountdir] [-u|--unmount|unmount]\n\n" "$pname" "$pname" 
 }
 
-for arg ; do
+server=""
+mountdir=""
+
+args=("$@")
+i=0;
+while [[ $i -lt $# ]] ; do
+    arg="${args[$i]}"
     case "$arg" in
+    -s|--server|server)     i=$((i+1)) ; server="${args[$i]}"   ;;
+    -m|--mountdir|mountdir) i=$((i+1)) ; mountdir="${args[$i]}" ;;
     -u|--umount|--unmount|umount|unmount) umount=1 ;;
     -h|--help|help) usage ; exit 0 ;;
     *)  printf "%s error: unknown option: %s\n" "$pname" "$arg" ; usage ; exit 1 ;;
     esac
+    i=$((i+1))
 done
 
+server="${server:-${default_server}}"
+mountdir="${mountdir:-${default_mountdir}}"
 
 if [ $umount -eq 1 ] ; then
-    umount                ${mnt}data
-    umount                ${mnt}home
-    umount                ${mnt}srv
+    umount                "${mountdir}"/data
+    umount                "${mountdir}"/home
+    umount                "${mountdir}"/srv
     case "${hostname}" in
     galatea)
-        umount                ${mnt}movies
+        umount                "${mountdir}"/movies
+        ;;
+    larissa*)
+        umount                "${mountdir}"/movies
         ;;
     triton*)
         true
@@ -33,23 +47,20 @@ if [ $umount -eq 1 ] ; then
     despina*)
         true
         ;;
-    larissa*)
-        true
-        ;;
     *)
         true 
         ;;
     esac
 else
-    mount "${options[@]}" ${server}:/local/data    ${mnt}data
-    mount "${options[@]}" ${server}:/local/home    ${mnt}home
-    mount "${options[@]}" ${server}:/local/srv     ${mnt}srv
+    mount "${options[@]}" "${server}":/local/data    "${mountdir}"/data
+    mount "${options[@]}" "${server}":/local/home    "${mountdir}"/home
+    mount "${options[@]}" "${server}":/local/srv     "${mountdir}"/srv
     case "${hostname}" in
     larissa*)
-        mount "${options[@]}" ${server}:/movies    ${mnt}movies
+        mount "${options[@]}" "${server}":/movies    "${mountdir}"/movies
         ;;
     galatea*)
-        mount "${options[@]}" ${server}:/movies    ${mnt}movies
+        mount "${options[@]}" "${server}":/movies    "${mountdir}"/movies
         ;; 
     triton*)
         true
