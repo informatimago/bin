@@ -1,0 +1,4 @@
+#!/bin/bash
+for username ; do
+    sudo dscl . append /Groups/_developer GroupMembership "$username"
+done
