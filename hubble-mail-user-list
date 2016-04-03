@@ -1,0 +1,42 @@
+#!/bin/bash
+
+
+function error(){
+    printf "ERROR: "
+    printf "$@"
+    printf "\n"
+}
+
+
+function quote(){
+    local text="$1";shift
+    echo -n \'${text//\'/\'\'}\'
+}
+
+function email_domain(){
+    local email="$1";shift
+    echo "$email"|sed -e 's/.*@//'
+}
+
+function mail_user_list_users(){
+    sudo -u postfix psql --pset pager -1 -c 'SELECT username,name FROM mailbox;'
+}
+
+function mail_user_display(){
+    local user="$1";shift=
+    local quser="$(quote "%${user}%")"
+    sudo -u postfix psql --pset pager -1 -c 'SELECT name,username,maildir,created,modified,quota,active FROM mailbox WHERE username LIKE '"$quser"' OR name LIKE '"$quser"';'
+}
+
+function main(){
+    if [ $# -eq 0 ] ; then
+        mail_user_list_users
+    else
+        for user ; do
+            mail_user_display "$user"
+        done
+    fi
+}
+
+main "$@"
+
