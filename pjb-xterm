@@ -69,6 +69,7 @@ if [ "$DISPLAY" == "" ] ; then
     exit 1
 fi
 
+
 case "$DISPLAY" in
 :*)
     displayhost="`hostname`"
@@ -81,8 +82,8 @@ esac
 cmd_xterm=xterm
 for c in /usr/bin/xterm /usr/X11R6/bin/xterm $(which xterm) xterm ; do
     if [ $c = xterm -o -x $c ] ; then 
-	cmd_xterm=$c
-	break 
+	    cmd_xterm=$c
+	    break 
     fi
 done
 
@@ -93,30 +94,32 @@ function xterm () {
 xterm=$cmd_xterm
 
 
-options=( \
-    -ie \
-    +ah -aw -rw -cn \
-    -tn xterm-256color \
-    -bc -bcf 200 -bcn 500 \
-    -bdc \
-    +cm +dc \
-    +mb -j +l -ls \
-    +nul \
-    -s  +sb -si -sk -sl 14400  +t  +vb -name xterm \
-    +sp )
+oldopts=( 
+    +mb +aw +rw +ah -cn -j -ls 
+    -s  -sb -si -sk -sl  2000  +t  +vb -name xterm 
+)
+
+options=( 
+    -ie 
+    +ah -aw -rw -cn 
+    -tn xterm-256color 
+    -bc -bcf 200 -bcn 500 
+    -bdc 
+    +cm +dc 
+    +mb -j +l -ls 
+    +nul 
+    -s  +sb -si -sk -sl 14400  +t  +vb -name xterm 
+    +sp
+)
 
 version=$(xterm -version | sed -e 's/.*(\([0-9]+\))$/\1/')
 case "$version" in
 [0-9]*) 
-if [ $version -gt 165 ]  ; then options[${#options}]="-sm" ; fi 
-if [ $version -gt 200 ]  ; then options[${#options}]="-lc" ; fi # encodings from LC_*
-;;
+    if [ $version -gt 165 ]  ; then options[${#options}]="-sm" ; fi 
+    if [ $version -gt 200 ]  ; then options[${#options}]="-lc" ; fi # encodings from LC_*
+    ;;
 esac
 
-oldopts=( \
-    +mb +aw +rw +ah -cn -j -ls \
-    -s  -sb -si -sk -sl  2000  +t  +vb -name xterm \
-    )
 
 name="$1"
 case "$name" in
@@ -275,11 +278,10 @@ unl*)           colors=( -fg '#011' -bg PaleGoldenrod ) ;;
 *@naiad)        colors=(            -bg PowderBlue );; #'#e1e2f3' ) ;;
 *) 
     rgb="/dev/null"
-    for f in \
-        /usr/X11/share/X11/rgb.txt \
-        /usr/X11R6/lib/X11/rgb.txt \
-        /usr/share/X11/rgb.txt \
-        ; do 
+    for f in /usr/X11/share/X11/rgb.txt \
+                 /usr/X11R6/lib/X11/rgb.txt \
+                 /usr/share/X11/rgb.txt \
+             ; do 
         if [ -r "$f" ] ; then
             rgb="$f"
             break
