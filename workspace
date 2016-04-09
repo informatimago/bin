@@ -1,0 +1,4 @@
+#!/bin/bash
+pjb-xterm green -c screen & disown
+emacsen & 
+(sleep 40 ; firefox >/tmp/firefox-${UID}-$$.log & disown) &
