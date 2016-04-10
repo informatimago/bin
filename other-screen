@@ -1,0 +1,11 @@
+#!/bin/bash
+winid=$(ratpoison -c info|sed -e 's/.*)\([^)]\+\)(.*/\1/')
+ratpoison \
+    -c 'select -' \
+    -c 'nextscreen' \
+    -c "select ${winid}" \
+    -c 'prevscreen' \
+    -c 'next'
+    -c 'banish'
+
+
