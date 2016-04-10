@@ -1,0 +1,27 @@
+#!/bin/sh
+#| -*- mode:lisp; coding:utf-8 -*-
+exec ccl -e '(set-dispatch-macro-character #\# #\! 
+                (lambda (stream subchar arg)
+                  (declare (ignore subchar arg))
+                  (read-line stream)
+                  (values)))' \
+         -Q -n -l "$0" -- "$@"
+|#
+
+;; #!/usr/local/bin/clisp -ansi -q -E utf-8
+
+(setf *load-verbose* nil *load-print* nil)
+(load #P"~/quicklisp/setup.lisp" :verbose nil)
+(let ((*standard-output* (make-broadcast-stream))
+      (*trace-output* *standard-output*))
+  (ql:quickload :alexandria))
+(prin1 (alexandria:iota 20))
+(terpri)
+
+(defparameter *arguments* (subseq ccl:*command-line-argument-list* 
+                                  (1+ (or (position "--" ccl:*command-line-argument-list* :test 'string=) -1))))
+(prin1 *arguments*)
+(terpri)
+
+#+ccl   (ccl:quit 0)
+#+clisp (ext:quit 0)
