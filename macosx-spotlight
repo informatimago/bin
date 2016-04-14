@@ -1,0 +1,7 @@
+#!/bin/bash
+echo see mdutil
+cat "$0"
+exit 0
+
+# Activate spotlight:
+sudo mdutil -i on /
