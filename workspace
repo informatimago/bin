@@ -1,4 +1,4 @@
 #!/bin/bash
 pjb-xterm green -e screen & disown
-(sleep  1 ; emacsen ) & 
-(sleep 40 ; firefox >/tmp/firefox-${UID}-$$.log & disown) &
+(sleep 10 ; emacsen ) & disown
+(sleep 50 ; firefox >/tmp/firefox-${UID}-$$.log & disown) &
