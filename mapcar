@@ -1,0 +1,30 @@
+#!/bin/bash
+# mapcar echo 1 2 3
+# mapcar echo -n -- 1 2 3
+
+function member(){
+    local item="$1" ; shift
+    for arg ; do 
+        if [ "$item" = "$arg" ] ; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+
+cmd="$1";shift
+command=("$cmd")
+
+if member "--" "$@" ; then
+    while [[ "$1" != "--" ]] ; do
+        command[${#command[@]}+1]="$1"
+        shift
+    done
+    shift
+fi
+
+for arg ; do 
+    "${command[@]}" "$arg"
+done
+
