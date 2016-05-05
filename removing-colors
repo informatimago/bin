@@ -1,2 +1,7 @@
 #!/bin/bash
-"$@" 2>&1 | sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g'
+if sed --version 2>/dev/null ; then
+    extended=-r
+else
+    extended=-E
+fi
+"$@" 2>&1 | sed ${extended} 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g'
