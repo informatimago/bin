@@ -1,0 +1,8 @@
+#!/bin/bash
+echo "See $0"
+exit 1
+ssh-keygen -t rsa1 -b 1024 -f /etc/ssh/ssh_host_key     -N ''
+ssh-keygen -t dsa  -b 1024 -f /etc/ssh/ssh_host_dsa_key -N ''
+ssh-keygen -t rsa  -b 1024 -f /etc/ssh/ssh_host_rsa_key -N ''
+#### THE END ####
+
