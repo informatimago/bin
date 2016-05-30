@@ -37,7 +37,7 @@ memo
 menu
 merge
 mfod
-newpassword
+new-password
 news-to-mbox
 nls
 one-of

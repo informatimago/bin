@@ -1,54 +1,19 @@
 #!/usr/local/bin/clisp -ansi -q -E iso-8859-1
 ;;;; -*- mode:lisp; coding:iso-8859-1 -*-
 
-;; Note: xxd -i does about the same.
+;; prefix each line of input with its length.
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;
 ;; Warning: processes iso-8859-1 not utf-8 arguments! ;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;
 
 
-
-(defparameter *element-type* "uint8")
-(defparameter *size-type*    "usize_t")
-
-(defmethod generate-c-array ((in stream) name
-                             &key (radix 16)
-                               (byte-type "unsigned char")
-                               (size-type "unsigned int"))
-  (format t "~%~A ~A[]={" byte-type name)
+(defun llen (stream)
   (loop
-    :with sep := ""
-    :with r   := (case radix (8 0) (10 1) (otherwise 2))
-    :with i   := 0
-    :for byte := (read-byte in nil nil)
-    :while byte
-    :do (format t "~A~:[~;~%    ~]~[0~3,'0O~;~3D~;0x~2,'0X~]" sep  (zerop (mod i 8)) r byte)
-        (incf i)
-        (setf sep ", ")
-    :finally (format t "};~%")
-             (format t "~A ~A_size=~D;~%" size-type name i)))
+    :for line = (read-line stream nil nil)
+    :while line
+    :do (format t "~D ~A~%" (length line) line)))
 
-
-
-
-#-(and)
-(let ((paths '("a" "b" "c")))
-  (unwind-protect
-       (progn
-         (map nil (lambda (path)
-                    (close (open path :if-does-not-exist :create)))
-           paths)
-         (multiple-value-bind (arguments files)
-             (process-arguments paths '())
-           (assert (= 3 (loop :for stream := (funcall files)
-                              :for path :in paths
-                              :while stream
-                              :do (assert (equal (pathname path)
-                                                 (pathname stream)))
-                              :do (close stream)
-                              :count 1)))))
-    (map nil (function delete-file) paths)))
 
 (defun process-arguments (argv options &key (standard-input t))
   (flet ((input-files (argv)
@@ -112,51 +77,23 @@
                                (input-files argv))))))
 
 (defun main (pname argv)
-  (let ((meta-options  '(((:decimal   "-d" "--decimal"))
-                         ((:octal     "-o" "--octal"))
-                         ((:hexa      "-x" "--hexa" "--hexadecimal"))
-                         ((:byte-type "-bt" "--byte-type") 1)
-                         ((:size-type "-st" "--size-type") 1)
-                         ((:help      "-h"  "--help")))))
+  (let ((meta-options  '(((:help      "-h"  "--help")))))
     (multiple-value-bind (options files)
         (process-arguments argv
                            meta-options
-                           :standard-input nil)
+                           :standard-input t)
       (when (member '(:help) options :test (function equal))
         (loop :for option :in meta-options
-              :initially (format t "~A usage:~2%    ~:*~A {option} [--] {file}~2%" pname)
+                :initially (format t "~A usage:~2%    ~:*~A {option} [--] {file}~2%" pname)
               :do (destructuring-bind ((ignore &rest options) &optional typep) option
                     (declare (ignore ignore))
-                    (format t "         ~{~A~^|~}~:[~; type~]~%" options typep))
+                    (format t "         ~{~A~^|~}~%" options))
               :finally (terpri))
         (return-from main))
-      (let ((radix     (cond
-                         ((member '(:decimal) options :test (function equal)) 10)
-                         ((member '(:octal)   options :test (function equal))  8)
-                         (t                                                   16)))
-            (byte-type (let ((type (find :byte-type options :key (function first))))
-                         (if type
-                             (second type)
-                             "unsigned char")))
-            (size-type (let ((type (find :size-type options :key (function first))))
-                         (if type
-                             (second type)
-                             "unsigned int"))))
-        (loop
-          :for stream := (funcall files)
-          :for path   := (and stream (pathname stream))
-          :for name   := (and stream
-                              (string-downcase
-                               (remove-if-not
-                                (lambda (ch) (or (alphanumericp ch) (char= ch #\_)))
-                                (substitute #\_ #\- (pathname-name path)))))
-          :while stream
-          :do (close stream)
-              (with-open-file (in path :element-type '(unsigned-byte 8))
-                (generate-c-array in name
-                                  :radix radix
-                                  :byte-type byte-type
-                                  :size-type size-type)))))))
+      (loop
+        :for stream := (funcall files)
+        :while stream
+        :do (llen stream)))))
 
 (defun program-path ()
   (let* ((argv  (ext:argv))

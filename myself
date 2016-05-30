@@ -1,0 +1,5 @@
+#!/bin/bash
+myself="$(if [[ "$BASH_SOURCE" = /* ]]; then echo "$BASH_SOURCE" ; else cd "$(dirname "$BASH_SOURCE")" >/dev/null ; echo "$(pwd -P)/$(basename "$BASH_SOURCE")" ; cd - >/dev/null ; fi)"
+echo "$myself"
+
+

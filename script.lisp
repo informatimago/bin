@@ -145,7 +145,6 @@
 
 (defvar *default-program-name* "untitled")
 
-
 (defun program-path ()
   (let* ((argv  (ext:argv))
          (largv (length argv))
