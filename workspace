@@ -2,3 +2,4 @@
 pjb-xterm green -e screen & disown
 (sleep 10 ; emacsen ) & disown
 (sleep 50 ; firefox >/tmp/firefox-${UID}-$$.log & disown) &
+xset -dpms
