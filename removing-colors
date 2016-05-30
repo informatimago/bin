@@ -1,5 +1,5 @@
 #!/bin/bash
-if sed --version 2>/dev/null ; then
+if sed --version >/dev/null 2>/dev/null ; then
     extended=-r
 else
     extended=-E
