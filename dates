@@ -8,12 +8,12 @@
     echo "London  (Angleterre): $(TZ=/usr/share/zoneinfo/Europe/London        LC_TIME=en_UK date)"
     echo "Madrid     (Espagne): $(TZ=/usr/share/zoneinfo/Europe/Madrid        LC_TIME=es_ES date)"
     echo "Paris       (France): $(TZ=/usr/share/zoneinfo/Europe/Paris         LC_TIME=fr_FR date)"
-    echo "Riga      (Letonnie): $(TZ=/usr/share/zoneinfo/Europe/Riga          LC_TIME=lv_LV date)"
+    echo "Riga      (Létonnie): $(TZ=/usr/share/zoneinfo/Europe/Riga          LC_TIME=lv_LV date)"
     echo "Moscou      (Russie): $(TZ=/usr/share/zoneinfo/Europe/Moscow        LC_TIME=ru_RU date)"
     echo "Kabul   (Afganistan): $(TZ=/usr/share/zoneinfo/Asia/Kabul           LC_TIME=en_US date)"
     echo "Novosibirsk (Russie): $(TZ=/usr/share/zoneinfo/Asia/Novosibirsk     LC_TIME=ru_RU date)"
     echo "Seoul (Corée du Sud): $(TZ=/usr/share/zoneinfo/Asia/Seoul           LC_TIME=ko_KR date)"
     echo "Tokyo        (Japon): $(TZ=/usr/share/zoneinfo/Asia/Tokyo           LC_TIME=ja_JP date)"
-    echo "Canberra (Australia): $(TZ=/usr/share/zoneinfo/Australia/Canberra   LC_TIME=en_AU date)"
+    echo "Canberra (Australie): $(TZ=/usr/share/zoneinfo/Australia/Canberra   LC_TIME=en_AU date)"
     echo ''
 )|sed -e 's/\([^:]*:\) \([^ ][^ ]* [^ ][^ ]* [0-9][0-9]*\) \(.............\) *\([0-9]*\)$/\1 \3 \2 \4/'
