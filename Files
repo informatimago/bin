@@ -1,15 +1,14 @@
 #!/bin/bash
-OPTIONS="-y --width=200"
-OPTIONS=""
+OPTIONS="-twb -y --width=200"
+OPTIONS="-twb"
 left="$1"
 and="$2"
 right="$3"
 differ="$4"
 if [ "$and" = "and" -a "$differ" = "differ" ] ; then
-    diff -twb -y --width=200 $OPTIONS "$left" "$right"
+    diff  $OPTIONS "$left" "$right"
 else
     echo "Usage:"
     echo "   File ${left-file} and ${right-file} differ"
     exit 1
 fi
-
