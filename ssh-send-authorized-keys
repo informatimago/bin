@@ -1,0 +1,16 @@
+#!/bin/bash
+set -eu
+pname="$(basename "$0")"
+if [ $# -ne 1 ] ; then
+    printf "%s usage:\n\n\t%s user@host\n\n" "$pname" "$pname"
+    exit 1
+fi
+userhost="$1"
+
+pubkeys=(~/.ssh/id*.pub)
+if [[ ${#pubkeys[@]} -eq 0 ]] ; then
+    printf '%s: could not find a public key in ~/.ssh/ ;\n%s: please use ssh-keygen or ssh-generate-keys first.\n' "$pname" "$pname"
+    exit 2
+fi
+
+cat "${pubkeys[@]}" | ssh -x -T "$userhost" bash -c "'mkdir -p ~/.ssh ; cat >> ~/.ssh/authorized_keys'"
