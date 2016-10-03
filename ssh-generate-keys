@@ -1,8 +1,20 @@
 #!/bin/bash
-echo "See $0"
-exit 1
-ssh-keygen -t rsa1 -b 1024 -f /etc/ssh/ssh_host_key     -N ''
-ssh-keygen -t dsa  -b 1024 -f /etc/ssh/ssh_host_dsa_key -N ''
-ssh-keygen -t rsa  -b 1024 -f /etc/ssh/ssh_host_rsa_key -N ''
-#### THE END ####
+ssh-keygen -o -a 100 -t ed25519
+exit $?
 
+
+# https://blog.g3rt.nl/upgrade-your-ssh-keys.html
+#
+# DSA or RSA 1024 bits: red flag. Unsafe.
+# RSA 2048: yellow recommended to change
+# RSA 3072/4096: great, but Ed25519 has some benefits!
+# ECDSA: depends. Recommended to change
+# Ed25519: wow cool, but are you brute-force safe?
+
+
+
+
+# ssh-keygen -t rsa1 -b 1024 -f /etc/ssh/ssh_host_key     -N ''
+# ssh-keygen -t dsa  -b 1024 -f /etc/ssh/ssh_host_dsa_key -N ''
+# ssh-keygen -t rsa  -b 1024 -f /etc/ssh/ssh_host_rsa_key -N ''
+#### THE END ####
