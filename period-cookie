@@ -19,12 +19,14 @@ if [ -n "$COOKIE" ] ; then
     if [ 0 -ne $(( $now - $last > $period )) ] ; then
         echo $now > ~/.period-cookie
 	    text="$("$COOKIE" 2>/dev/null)"
-	    if [ -s "$text" ] ; then
+	    if [ -n "$text" ] ; then
 	        line=+-----------------------------------------------------------------------
-	        ( printf "\n$line\n" ;
-		        (echo "$text";printf "\n")|sed -e '/^$/d' -e 's/^/|  /' ;
-		        printf "$line\n\n" ) > $output
+	        (
+                printf "\n%s\n" "$line";
+		        printf "%s\n"   "$text" | sed -e '/^$/d' -e 's/^/|  /' ;
+                printf "\n%s\n" "$line";
+            ) > $output
 	    fi
     fi
 fi
-#### period-cookie                    --                     --          ####
+#### THE END ####
