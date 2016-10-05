@@ -1,4 +1,4 @@
-#!/usr/local/bin/clisp -ansi -q -E utf-8
+#!/usr/local/bin/clisp -ansi -q -E utf-8 -on-error debug
 ;;;; -*- mode:lisp; coding:utf-8 -*-
 ;;;;****************************************************************************
 ;;;;FILE:               cookie
@@ -12,6 +12,7 @@
 ;;;;AUTHORS
 ;;;;    <PJB> Pascal Bourguignon <pjb@informatimago.com>
 ;;;;MODIFICATIONS
+;;;;    2016-10-03 <PJB> Use system fortune files when available.
 ;;;;    2004-12-17 <PJB> Created (converted from cookie.c)
 ;;;;    2003-12-01 <PJB> Some changes.
 ;;;;    1993-09-08 <PJB> Implemented the lookup of the file "cookie.files".
@@ -22,7 +23,7 @@
 ;;;;LEGAL
 ;;;;    GPL
 ;;;;    
-;;;;    Copyright Pascal Bourguignon 1990 - 2004
+;;;;    Copyright Pascal Bourguignon 1990 - 2016
 ;;;;    
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU General Public License
@@ -60,42 +61,62 @@
     "/home/pjb/pjb.cookies"))
 
 
+(defun configure-cookie-files ()
+  (setf *default-table-path* nil
+        *default-files*
+        (remove-duplicates (append
+                            (mapcan (lambda (dir)
+                                      (append (set-difference (ignore-errors (directory (merge-pathnames "*" dir)))
+                                                              (append (ignore-errors (directory (merge-pathnames "*.dat" dir)))
+                                                                      (ignore-errors (directory (merge-pathnames "*.u8" dir))))
+                                                              :test (function equal))
+                                              (ignore-errors (directory (merge-pathnames "*.cookies" dir)))))
+                                    (list "/usr/share/games/fortune/"
+                                          "/opt/local/share/games/fortune/"
+                                          "/data/cookies/"))
+                            (ignore-errors (directory (merge-pathnames "*.cookies"
+                                                                       (user-homedir-pathname)))))
+                           :test (function equal))))
+
 (defun load-file-names (table-path)
-  (with-open-file (input table-path :direction :input :if-does-not-exist nil)
-    (when input
-      (loop for line = (read-line input nil nil)
-            while line
-            collect (string-trim " " line)))))
+  (and table-path
+       (with-open-file (input table-path :direction :input :if-does-not-exist nil)
+         (when input
+           (loop for line = (read-line input nil nil)
+                 while line
+                 collect (string-trim " " line))))))
 
 
-(defparameter +hash+ (character "#"))
+(defun cookie-separator-p (ch)
+  (or (char= #\# ch)
+      (char= #\% ch)))
 
 (defun cookie-from-file (file)
   (with-open-file (input file :direction :input :if-does-not-exist :error)
     (loop repeat 3 do
-          (loop repeat 3
-                until (file-position input (random (file-length input))))
-          (let* ((line (and
-                       (loop for line = (read-line input nil nil)
-                             while (and line
-                                        (or (zerop (length line))
-                                            (char/= +hash+ (char line 0))))
-                             finally (return line))
-                       (loop for line = (read-line input nil nil)
-                             while (and line
-                                        (or (zerop (length line))
-                                            (char=  +hash+ (char line 0))))
-                             finally (return line))))
-                 (cookie (list line)))
-            (when line
-              (loop for line = (read-line input nil nil)
-                    while (and line (or (zerop (length line))
-                                        (char/= +hash+ (char line 0))))
-                    do (push line cookie)
-                    finally (when line
-                              (dolist (line (nreverse cookie))
-                                (princ line) (terpri))
-                              (return-from cookie-from-file))))))))
+      (loop repeat 3
+            until (file-position input (random (file-length input))))
+      (let* ((line (and
+                    (loop for line = (read-line input nil nil)
+                          while (and line
+                                     (or (zerop (length line))
+                                         (not (cookie-separator-p (char line 0)))))
+                          finally (return line))
+                    (loop for line = (read-line input nil nil)
+                          while (and line
+                                     (or (zerop (length line))
+                                         (cookie-separator-p (char line 0))))
+                          finally (return line))))
+             (cookie (list line)))
+        (when line
+          (loop for line = (read-line input nil nil)
+                while (and line (or (zerop (length line))
+                                    (not (cookie-separator-p (char line 0)))))
+                do (push line cookie)
+                finally (when line
+                          (dolist (line (nreverse cookie))
+                            (princ line) (terpri))
+                          (return-from cookie-from-file))))))))
 
 
 (defun optionp (options arguments)
@@ -115,30 +136,32 @@
   (let ((file (optionp '("--file" "-f") argv)))
     (format t "~&")
     (if file
-      (cookie-from-file (second file))
-      (let* ((total-size 0)
-             (files
-              (mapcan (lambda (file)
-                        (with-open-file (stream file :direction :input
-                                                :if-does-not-exist nil)
-                          (when stream
-                            (let ((size (file-length stream)))
-                              (incf total-size size)
-                              (list (cons size file))))))
-                      (or (load-file-names
-                           (or (ext:getenv +cookie-environment-variable-name+)
-                               *default-table-path*))
-                          *default-files*)))
-             (arrow (if (zerop total-size) 
-                        (progn (error "~A: not a good cookie file! ~
+        (cookie-from-file (second file))
+        (progn
+          (configure-cookie-files)
+          (let* ((total-size 0)
+                 (files
+                   (mapcan (lambda (file)
+                             (with-open-file (stream file :direction :input
+                                                          :if-does-not-exist nil)
+                               (when stream
+                                 (let ((size (file-length stream)))
+                                   (incf total-size size)
+                                   (list (cons size file))))))
+                           (or (load-file-names
+                                (or (ext:getenv +cookie-environment-variable-name+)
+                                    *default-table-path*))
+                               *default-files*)))
+                 (arrow (if (zerop total-size) 
+                            (progn (error "~A: not a good cookie file! ~
                                        (This is not a cookie).~%"
-                                      *pname*)
-                               (ext:exit 1))
-                        (random total-size))))
-        (cookie-from-file (loop with total = 0 
-                                for file in files
-                                while (< (+ total (car file)) arrow)
-                                do (incf total (car file))
-                                finally (return (cdr file))))))))
+                                          *pname*)
+                                   (ext:exit 1))
+                            (random total-size))))
+            (cookie-from-file (loop with total = 0 
+                                    for file in files
+                                    while (< (+ total (car file)) arrow)
+                                    do (incf total (car file))
+                                    finally (return (cdr file)))))))))
 
 (main ext:*args*)
