@@ -1,0 +1,384 @@
+#!/bin/bash -e
+export PATH=/usr/bin:/bin
+
+#
+# SYNOPSIS
+#
+#    xcode-merge-libraries libOutput.a  libInput1.a  … libInputN.a
+#
+#    Merges  (link with libtool) the input libraries into the
+#    output library, for each architecture present in all the input
+#    libraries (intersection).
+#
+#    With the -u option, it will merge them for the architecture
+#    present in any input library.
+#
+#    xcode-merge-libraries -u libFat.a libArmV7.a libArm64.a
+#    is equivalent to: lipo -create libFat.a libArmV7.a libArm64.a
+#
+
+
+pname="$(basename "$BASH_SOURCE")"
+
+verbose=no
+union=no
+output=
+inputs=()
+doArchitectures=no
+doSearchSymbol=no
+doExplode=no
+link=-static
+link_how="Statically"
+keep=no
+symbol=''
+
+if [[ "${SHELL_DEBUG-no}" = "yes" ]] ; then
+    verbose=yes
+fi
+
+function usage(){
+    printf '\n%s usage:\n\n'  "$pname"
+    # shellcheck disable=SC2016
+    printf '\t%s [options…] $outputlib $inputlib …\n\n' "$pname"
+    printf '    Options:\n\n'
+    printf '    -h|--help                prints this message and exit.\n'
+    printf '    -v|--verbose             prints messages while working.\n'
+    printf '    -u|--union               create the fat library even if not all\n'
+    printf '                             input libraries contain all the architectures.\n'
+    printf '    -d|--dynamic|--dylib     produces a dynamically linked library.\n'
+    printf '    -s|--static              produces a statically linked library (default).\n'
+    printf '    --keep-temporary-files   keeps temporary files.\n'
+    printf '    -e|--explode             extracts thin libraries for each architecture from each fat input.\n'
+    printf '    -a|--list-architectures  prints the architectures present in the input\n'
+    printf '                             libraries, and that would result in the output\n'
+    printf '                             library, with and without the --union option.\n'
+    printf '\n'
+    # shellcheck disable=SC2016
+    printf '\t%s -n|--search-symbol $symbol $inputlib …\n\n' "$pname"
+    printf '    -n|--search-symbol       Searches a symbol in each library in the fat libraries.\n'
+    printf '\n'
+}
+
+
+function verbosely(){
+    local message="$*"
+    if [[ $verbose = yes ]] ; then
+        printf 'INFO     %s: %s\n' "$pname" "$message" >&2
+    fi
+}
+
+function printWarning(){
+    local message="$*"
+    printf 'WARNING  %s: %s\n' "$pname" "$message" >&2
+}
+
+function printError(){
+    local message="$*"
+    printf 'ERROR    %s: %s\n' "$pname" "$message" >&2
+}
+
+
+function parseArguments(){
+    local allArguments=("$@")
+    while [[ "$1" = -* ]] ; do
+        case "$1" in
+            (-v|--verbose)            verbose=yes ;;
+            (-h|--help)               usage; exit 0 ;;
+            (-u|--union)              union=yes ;;
+            (--keep-temporary-files)  keep=yes ;;
+            (-d|--dynamic|--dylib)    link=-dynamic ; link_how="Dynamically" ;;
+            (-s|--static)             link=-static  ; link_how="Statically"  ;;
+            (-a|--list-architectures) doArchitectures=yes ;;
+            (-e|--explode)            doExplode=yes       ;;
+            (-n|--search-symbol)      doSearchSymbol=yes  ;;
+            (*) printError "Invalid option: ${1}" ; usage >&2 ; exit 1 ;;
+        esac
+        shift
+    done
+    if [[ $doArchitectures = yes ]] ; then
+        output=''
+        inputs=("$@")
+    elif [[ $doExplode = yes ]] ; then
+        inputs=("$@")
+    elif [[ $doSearchSymbol = yes ]] ; then
+        output=''
+        symbol="$1";shift
+        inputs=("$@")
+    else
+        output="$1";shift
+        inputs=("$@")
+    fi
+
+    if [[ ${#inputs[@]} -eq 0 ]] ; then
+        if [[ $doArchitectures != no ]] ; then
+            printError "Missing input files with -a|--list-architectures option."
+        elif [[ $doExplode != no ]] ; then
+            printError "Missing input files with -e|--explode option."
+        elif [[ $doSearchSymbol != no ]] ; then
+            printError "Missing input files with -n|--search-symbol option."
+        else
+            printError "Missing input files."
+        fi
+        printError "Arguments: ${allArguments[*]}"
+        usage >&2
+        exit 1
+    elif [[ $doArchitectures != no && $doSearchSymbol != no  ]] ; then
+        printError "Options -a|--list-architectures  and  -n|--search-symbol are mutually exclusive."
+        printError "Arguments: ${allArguments[*]}"
+        usage >&2
+        exit 1
+    fi
+}
+
+
+member=no
+function member(){
+    local item="$1";shift
+    member=no
+    for element ; do
+        if [[ "$item" = "$element" ]] ; then
+            member=yes
+            break
+        fi
+    done
+}
+
+intersection=()
+function intersection(){
+    local s1=($1)
+    local s2=($2)
+    intersection=()
+    for e1 in "${s1[@]}" ; do
+        member "$e1" "${s2[@]}"
+        if [[ "$member" = yes ]] ; then
+            intersection[${#intersection[@]}]="$e1"
+        fi
+    done
+}
+
+
+function fileIsFat(){
+    local file="$1"
+    if xcrun lipo -info "$file" |grep -q -s 'input file .* is not a fat file' ; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+function fileContainsArchitecture(){
+    local file="$1"
+    local architecture="$2"
+    xcrun lipo "$file" -verify_arch "$architecture" 2>/dev/null 1>&2 #| true
+}
+
+function architecturesInFiles(){
+    for file in "$@" ; do
+        xcrun lipo -info "$file"  2>/dev/null || true
+    done | sed -n \
+              -e 's/^Architectures in the fat file: \(.*\) are: \(.*\) *$/\2/p' \
+              -e 's/^Non-fat file: \(.*\) is architecture: \(.*\) *$/\2/p'
+}
+
+function allArchitectures(){
+    architecturesInFiles "$@"|tr -s ' ' '\012'|sort -u
+}
+
+function commonArchitectures(){
+    architecturesInFiles "$@"|sort -u \
+        | (
+        read set1
+        while read set2 ; do
+            intersection "$set1" "$set2"
+            set1="${intersection[*]}"
+        done
+        echo "$set1"|tr -s ' ' '\012'|sort -u
+    )
+}
+
+input_slices=()
+output_slices=()
+
+function mergeLibrariesByArchitecture(){
+    local output="$1";shift
+    local inputs=("$@")
+    local input_base
+    local output_base
+    output_base="slice-$(basename "$output" .a)"
+    #local output_dire
+    #output_dire="$(dirname  "$output")"
+    local archs=()
+    output_slices=()
+    if [[ $union = yes ]] ; then
+        archs=( $(allArchitectures "${inputs[@]}") )
+    else
+        archs=( $(commonArchitectures "${inputs[@]}") )
+    fi
+    if [[ ${#archs[@]} -eq  0 ]] ; then
+        printWarning "No common architecture."
+        exit 1
+    else
+        if [[ "${link}" = -static ]] ; then
+            for arch in "${archs[@]}" ; do
+                verbosely "Processing architecture ${arch}"
+                input_slices=()
+                for input in "${inputs[@]}" ; do
+                    verbosely "Extracting architecture ${arch} from input file ${input}"
+                    input_base="temporary-$(basename "$input" .a)"
+                    if fileContainsArchitecture "$input" "$arch" ; then
+                        if fileIsFat "$input" ; then
+                            if xcrun lipo -extract "$arch"  "$input" -output "${input_base}-${arch}.a" 2>/dev/null ; then
+                                status=0
+                            else
+                                status=$?
+                            fi
+                        else
+                            cp "$input" "${input_base}-${arch}.a" ; status=$?
+                        fi
+                    else
+                        status=1
+                    fi
+                    if [[ $status -eq 0 ]] ; then
+                        input_slices[${#input_slices[@]}]="${input_base}-${arch}.a"
+                    fi
+                done
+                if [[ ${#input_slices[@]} -gt 0 ]] ; then
+                    verbosely "${link_how} linking architecture ${arch}"
+                    if [[ ${#input_slices[@]} -gt 1 ]] ; then
+                        xcrun libtool "${link}" -o "${output_base}-${arch}.a"     "${input_slices[@]}" ; status=$?
+                    else
+                        cp "${input_slices[@]}" "${output_base}-${arch}.a" ; status=$?
+                    fi
+                    [[ "$keep" = no ]] && rm "${input_slices[@]}"
+                    if [[ $status -eq 0 ]] ; then
+                        output_slices[${#output_slices[@]}]="${output_base}-${arch}.a"
+                    fi
+                fi
+            done
+        else
+            # dynamic, we just do a lipo
+            output_slices=("${inputs[@]}")
+        fi
+        if [[ "${#output_slices[@]}" -eq 0 ]] ; then
+            printError "Nothing to merge."
+            exit 1
+        else
+            verbosely "Creating multi-architecture library ${output}"
+            verbosely "from: ${output_slices[*]}"
+            xcrun lipo -create "${output_slices[@]}" -output "${output}" \
+                && [[ "$keep" = no ]] && rm -f "${output_slices[@]}"
+            exit 0
+        fi
+    fi
+}
+
+
+function bitcode-symbol(){
+    local bitcode=''
+    local lc="${LC_ALL-${LC_MESSAGES-${LANG-C}}}"
+    lc="${lc/*.}"
+    if [[ "${lc}" = UTF-8 ]] ; then
+        bitcode='⁶'
+    else
+        bitcode='[b]'
+    fi
+    echo "$bitcode"
+}
+
+function libraryHasBitcodeByArchitecture(){
+    local bitcode;bitcode="$(bitcode-symbol)"
+    local input="$1";shift
+    local input_base
+    local input_slice
+    local input_slices
+    local archs=()
+    archs=( $(architecturesInFiles "${input}"|grep -v none) )
+    if [[ "${#archs[@]}" -eq 0 ]] ; then
+        printWarning "No architecture in file ${input}"
+    else
+        for arch in "${archs[@]}" ; do
+            verbosely "Processing architecture ${arch}"
+            input_slices=()
+
+            verbosely "Extracting architecture ${arch} from input file ${input}"
+            input_base="temporary-$(basename "$input" .a)"
+            if fileContainsArchitecture "$input" "$arch" ; then
+                if fileIsFat "$input" ; then
+                    xcrun lipo -extract "$arch"  "$input" -output "${input_base}-${arch}.a" ; status=$?
+                else
+                    cp "$input" "${input_base}-${arch}.a" ; status=$?
+                fi
+            else
+                status=1
+            fi
+            if [[ $status -eq 0 ]] ; then
+                input_slices[${#input_slices[@]}]="${input_base}-${arch}.a"
+            fi
+
+            if [[ ${#input_slices[@]} -gt 0 ]] ; then
+                for input_slice in "${input_slices[@]}" ; do
+                    if otool -l "${input_slice}" | grep -qs bitcode ; then
+                        printf '%s%s ' "${arch}" "${bitcode}"
+                    else
+                        printf '%s '  "${arch}"
+                    fi
+                done
+
+                [[ "$keep" = no ]] && rm "${input_slices[@]}"
+            fi
+        done
+    fi
+}
+
+
+function explodeLibrary(){
+    local input="$1"
+    local input_base;input_base="$(basename "$input" .a)"
+    local archs=();archs=( $(architecturesInFiles "${input}"|grep -v none) )
+    local output
+    if [[ "${#archs[@]}" -eq 0 ]] ; then
+        printWarning "No architecture in file ${input}"
+    else
+        for arch in "${archs[@]}" ; do
+            verbosely "Processing architecture ${arch}"
+            output="${input_base}-${arch}.a"
+            if fileIsFat "$input" ; then
+                xcrun lipo  "$input" -thin "$arch" -output "${output}" ; status=$?
+            else
+                cp "$input" "${output}" ; status=$?
+            fi
+            if [[ $status -eq 0 ]] ; then
+                printf '%s\n' "${output}"
+            fi
+        done
+    fi
+}
+
+verbosely "$0 $*"
+parseArguments "$@"
+if [[ $doArchitectures = yes ]] ; then
+    if [[ "${#inputs[@]}"  -eq 1 ]] ; then
+        libraryHasBitcodeByArchitecture "${inputs[0]}"
+    else
+        for file in "${inputs[@]}" ; do
+            printf '%-47s %s\n' "$(libraryHasBitcodeByArchitecture "${file}")" "$file"
+        done
+        printf "In common:              \n%s\n" "$(commonArchitectures "${inputs[@]}")"
+        printf "All architectures (-u): \n%s\n" "$(allArchitectures "${inputs[@]}")"
+    fi
+elif [[ $doExplode = yes ]] ; then
+    for file in "${inputs[@]}" ; do
+        explodeLibrary "$file"
+    done
+elif [[ $doSearchSymbol = yes ]] ; then
+    for file in "${inputs[@]}" ; do
+        printf '=== %s\n' "$file"
+        for arch in $(architecturesInFiles "$file") ; do
+            printf '====== %s\n' "$arch"
+            ( nm -arch "$arch" "$file" | fgrep "$symbol" ) || true
+        done
+    done
+else
+    trap '[[ "$keep" = no && ( "${#input_slices[@]}" -gt 0 ||  "${#output_slices[@]}" -gt 0 ) ]] && rm -f "${input_slices[@]}" "${output_slices[@]}"' 0
+    mergeLibrariesByArchitecture "$output" "${inputs[@]}"
+fi

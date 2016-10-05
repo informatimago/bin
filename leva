@@ -1,0 +1,15 @@
+#!/bin/bash
+set -eu
+if [[ "$#" -eq 0 ]] ; then
+   read -p 'Lisp Expression: ' expression
+else
+    expression="$*"
+fi
+echo "before: ${expression}"
+multiWordsWithoutSurroundingParens='/^ *[^( ][^ ]* [^ ]*[^ )] *$/'
+multiWordsWithoutSurroundingParens='^[^( ][^ ]* [^ ]*[^ )]$'
+if [[ "${expression}" =~ $multiWordsWithoutSurroundingParens ]] ; then
+    expression="(${expression})"
+fi
+echo "after:  ${expression}"
+exec clisp -norc -q -x "${expression}"
