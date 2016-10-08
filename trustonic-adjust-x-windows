@@ -1,0 +1,18 @@
+#!/bin/bash
+
+xwinlist | while read id stuff stuff stuff stuff position ; do
+    true "$stuff"
+    echo "$position" \
+        | sed -e 's/\([-+][0-9]\+\)\([-+][0-9]\+\)/\1 \2/' \
+        | (
+        read x y
+        echo "$id $x $y"
+        if [[ "$x" -lt 200 ]] ; then
+            x=200
+        fi
+        if [[ "$y" -lt 1200 ]] ; then
+            y=1200
+        fi
+        xdotool windowmove "${id}=" "$x" "$y"
+    )
+done
