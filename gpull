@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 # TODO: Rewrite it in clisp, it has overflown bash complexity.
 
 pname="$(basename "$0")"

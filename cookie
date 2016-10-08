@@ -66,16 +66,15 @@
         *default-files*
         (remove-duplicates (append
                             (mapcan (lambda (dir)
-                                      (append (set-difference (ignore-errors (directory (merge-pathnames "*" dir)))
+                                      (set-difference (ignore-errors (directory (merge-pathnames "*" dir)))
                                                               (append (ignore-errors (directory (merge-pathnames "*.dat" dir)))
-                                                                      (ignore-errors (directory (merge-pathnames "*.u8" dir))))
-                                                              :test (function equal))
-                                              (ignore-errors (directory (merge-pathnames "*.cookies" dir)))))
+                                                                      (ignore-errors (directory (merge-pathnames "*.u8" dir)))
+                                                                       (ignore-errors (directory (merge-pathnames "*~" dir))))
+                                                              :test (function equal)))
                                     (list "/usr/share/games/fortune/"
-                                          "/opt/local/share/games/fortune/"
-                                          "/data/cookies/"))
-                            (ignore-errors (directory (merge-pathnames "*.cookies"
-                                                                       (user-homedir-pathname)))))
+                                          "/opt/local/share/games/fortune/"))
+                            (ignore-errors (directory "/data/cookies/*.cookies"))
+                            (ignore-errors (directory (merge-pathnames "*.cookies" (user-homedir-pathname)))))
                            :test (function equal))))
 
 (defun load-file-names (table-path)
@@ -164,4 +163,5 @@
                                     do (incf total (car file))
                                     finally (return (cdr file)))))))))
 
+;; (print (configure-cookie-files))
 (main ext:*args*)

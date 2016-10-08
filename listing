@@ -1,0 +1,88 @@
+#!/bin/bash
+set -e
+
+#
+# Dumps the source given in argument,
+# interperced with the error messages
+# provided on the stdin.
+#
+# Usage: gcc $src 2>&1 | listing $src
+#
+
+declare -r caretRegexp='^ *\^'
+declare -r errorFormat='%6d %s\n'
+declare -r listiFormat='%6d    | %s\n'
+declare -r caretFormat='%6d    |%s\n'
+
+
+function quote(){
+    local text="$1"
+    echo "$text"
+}
+
+
+# shellcheck disable=SC2034
+messages_text=()
+# shellcheck disable=SC2034
+messages_lino=()
+
+function saveMessage(){
+    local lino="$1"
+    local text="$2"
+    message_lino+=("${lino}")
+    message_text+=("${text}")
+}
+
+function flushMessages(){
+    local curLino="$1"
+    while [[ ${#message_lino[@]} -gt 0 && "${message_lino[0]}" -lt "${curLino}" ]] ; do
+        printf '%s\n' "${message_text[0]}"
+        message_lino=( "${message_lino[@]:1}" )
+        message_text=( "${message_text[@]:1}" )
+    done
+}
+
+lino=1
+source=()
+
+function advanceToLine(){
+    local curLino="$1"
+    while [[ "${lino}" -le "${curLino}" ]] ; do
+        flushMessages "${lino}"
+        # shellcheck disable=SC2059
+        printf "${listiFormat}" "${lino}" "${source[lino]}"
+        lino=$((lino+1))
+    done
+}
+
+function listing(){
+    local sourceFile="${1?Missing source file path as first argument.}"
+    local messaRegexp="^$(quote "${sourceFile}"):([0-9][0-9]*):([0-9][0-9]*): (.*)$"
+    lino=1
+    source=()
+    mapfile -O 1 -t source < "${sourceFile}"
+    IFS=''
+    while read line ; do
+        if [[ "${line}" =~ $messaRegexp ]] ; then
+            curLino="${BASH_REMATCH[1]}"
+            curMess="${BASH_REMATCH[3]}"
+            advanceToLine "${curLino}"
+            # shellcheck disable=SC2059
+            saveMessage "${curLino}" "$(printf "${errorFormat}" "${curLino}" "${curMess}")"
+        elif [[ "${line}" =~ $caretRegexp ]] ; then
+            # shellcheck disable=SC2059
+            printf "${caretFormat}" "${curLino}" "${line}"
+        else
+            # ignore the line
+            :
+        fi
+    done
+    advanceToLine ${#source[@]}
+}
+
+function main(){
+    listing "$@"
+    exit 0
+}
+
+main "$@"
