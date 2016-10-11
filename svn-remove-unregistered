@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+function svn-remove-unregistered(){
+    local trash
+    trash="${TMPDIR-/tmp}/Trash/$UID/$$"
+    mkdir -p "${trash}"
+    svn status|awk  '/^\?/{print $2}'|while read item ; do mv "${item}" "${trash}" ; done
+}
+
+function main(){
+    svn-remove-unregistered
+    exit 0
+}
+
+main
