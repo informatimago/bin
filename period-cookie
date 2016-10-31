@@ -24,7 +24,7 @@ if [ -n "$COOKIE" ] ; then
 	        (
                 printf "\n%s\n" "$line";
 		        printf "%s\n"   "$text" | sed -e '/^$/d' -e 's/^/|  /' ;
-                printf "\n%s\n" "$line";
+                printf "%s\n" "$line";
             ) > $output
 	    fi
     fi
