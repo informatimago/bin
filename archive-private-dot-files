@@ -1,6 +1,8 @@
 #!/bin/bash -e
 
 private_dot_files=(
+    # private
+    .mailrc
     # private and specific to the host
     .gnupg
     .ssh
