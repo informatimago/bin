@@ -160,6 +160,7 @@
 
 (defun main (argv)
   (setf *random-state* (make-random-state t))
+<<<<<<< HEAD
   (cond
     ((optionp '("--help" "-h") argv)
      (usage)
@@ -199,6 +200,39 @@
                                        while (< (+ total (car file)) arrow)
                                        do (incf total (car file))
                                        finally (return (cdr file)))))))))))
+=======
+  (when (optionp '("--help" "-h") argv) (usage) (ext:exit 0))
+  (let ((file (optionp '("--file" "-f") argv)))
+    (format t "~&")
+    (if file
+        (cookie-from-file (second file))
+        (progn
+          (configure-cookie-files)
+          (let* ((total-size 0)
+                 (files
+                   (mapcan (lambda (file)
+                             (with-open-file (stream file :direction :input
+                                                          :if-does-not-exist nil)
+                               (when stream
+                                 (let ((size (file-length stream)))
+                                   (incf total-size size)
+                                   (list (cons size file))))))
+                           (or (load-file-names
+                                (or (ext:getenv +cookie-environment-variable-name+)
+                                    *default-table-path*))
+                               *default-files*)))
+                 (arrow (if (zerop total-size)
+                            (progn (error "~A: not a good cookie file! ~
+                                       (This is not a cookie).~%"
+                                          *pname*)
+                                   (ext:exit 1))
+                            (random total-size))))
+            (cookie-from-file (loop with total = 0
+                                    for file in files
+                                    while (< (+ total (car file)) arrow)
+                                    do (incf total (car file))
+                                    finally (return (cdr file)))))))))
+>>>>>>> 8c9d2d4fcabdf1b33946bb36b5774214d5062375
 
 ;; (print (configure-cookie-files))
 (main ext:*args*)

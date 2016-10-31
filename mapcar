@@ -4,7 +4,7 @@
 
 function member(){
     local item="$1" ; shift
-    for arg ; do 
+    for arg ; do
         if [ "$item" = "$arg" ] ; then
             return 0
         fi
@@ -24,7 +24,6 @@ if member "--" "$@" ; then
     shift
 fi
 
-for arg ; do 
+for arg ; do
     "${command[@]}" "$arg"
 done
-

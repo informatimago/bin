@@ -1,0 +1,13 @@
+#!/bin/bash
+set -eu
+
+revs=($(svn log .|awk '/^r/{print $1}'))
+current="$(svn ls .| sort)"
+
+for rev in "${revs[@]}" ; do
+    new="$(svn ls . "-${rev}" | sort)"
+    if [[ "${current}" != "${new}" ]] ; then
+        svn log "-${rev}" -v
+        current="${new}"
+    fi
+done
