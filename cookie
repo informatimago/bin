@@ -1,4 +1,4 @@
-#!/usr/local/bin/clisp -ansi -q -E utf-8 -on-error debug
+#!/usr/local/bin/clisp -ansi -q -E utf-8 -on-error abort
 ;;;; -*- mode:lisp; coding:utf-8 -*-
 ;;;;****************************************************************************
 ;;;;FILE:               cookie
@@ -6,9 +6,9 @@
 ;;;;SYSTEM:             Common-Lisp
 ;;;;USER-INTERFACE:     NONE
 ;;;;DESCRIPTION
-;;;;    
+;;;;
 ;;;;    This program search a cookie in the cookie files and print it.
-;;;;    
+;;;;
 ;;;;AUTHORS
 ;;;;    <PJB> Pascal Bourguignon <pjb@informatimago.com>
 ;;;;MODIFICATIONS
@@ -22,19 +22,19 @@
 ;;;;BUGS
 ;;;;LEGAL
 ;;;;    GPL
-;;;;    
+;;;;
 ;;;;    Copyright Pascal Bourguignon 1990 - 2016
-;;;;    
+;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU General Public License
 ;;;;    as published by the Free Software Foundation; either version
 ;;;;    2 of the License, or (at your option) any later version.
-;;;;    
+;;;;
 ;;;;    This program is distributed in the hope that it will be
 ;;;;    useful, but WITHOUT ANY WARRANTY; without even the implied
 ;;;;    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 ;;;;    PURPOSE.  See the GNU General Public License for more details.
-;;;;    
+;;;;
 ;;;;    You should have received a copy of the GNU General Public
 ;;;;    License along with this program; if not, write to the Free
 ;;;;    Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -46,13 +46,13 @@
       (REMOVE (FIND-PACKAGE "COMMON-LISP")
               (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))))
 
-(defparameter *pname* 
+(defparameter *pname*
   (if *load-pathname* (file-namestring *load-pathname*) "cookie"))
 
 (defparameter +cookie-environment-variable-name+ "cookiefiles")
 
 (defparameter *default-table-path* "/data/cookies/ALL.files")
-(defparameter *default-files* 
+(defparameter *default-files*
   '("/data/cookies/fortune.cookies"
     "/data/cookies/mit.cookies"
     "/data/cookies/cmirh.cookies"
@@ -117,6 +117,35 @@
                             (princ line) (terpri))
                           (return-from cookie-from-file))))))))
 
+(defun list-files ()
+  (flet ((explain-value (value name)
+           (format t "~A is ~S~%" name value)
+           value)
+         (explain-load-file-names (path)
+           (if path
+               (progn
+                 (format t "Trying to load cookie file list from file ~A~%" path)
+                 (load-file-names path))
+               (progn
+                 (format t "No file list file.~%")
+                 (load-file-names path))))
+         (explain-cookie-files (files)
+           (if files
+               (progn
+                 (format t "Cookie file list contains:~%")
+                 (dolist (file files)
+                   (format t "~:[Does not exist~;              ~] ~A~%"
+                           (probe-file file) file)))
+               (format t "Cookie file list is empty.~%"))))
+    (explain-cookie-files
+     (or (explain-load-file-names
+          (or (explain-value (ext:getenv +cookie-environment-variable-name+)
+                           (format nil "The environment variable ~A"
+                                   +cookie-environment-variable-name+))
+              (explain-value *default-table-path* '*default-table-path*)))
+         (explain-value *default-files* '*default-files*)))))
+
+
 
 (defun optionp (options arguments)
   (if (atom options)
@@ -124,44 +153,52 @@
     (some (lambda (option) (member option arguments :test (function string-equal)))
           options)))
 
-
 (defun usage ()
   (format t "~A usage:~%~
-             ~&    ~:*~A [-h|--help] [-f|--file cookie-file]~%" *pname*))
+             ~&    ~:*~A [-h|--help|-l|--list-files] \\~%~
+             ~&    ~VA [-f|--file cookie-file]~%" *pname* (length *pname*) ""))
 
 (defun main (argv)
   (setf *random-state* (make-random-state t))
-  (when (optionp '("--help" "-h") argv) (usage) (ext:exit 0))
-  (let ((file (optionp '("--file" "-f") argv)))
-    (format t "~&")
-    (if file
-        (cookie-from-file (second file))
-        (progn
-          (configure-cookie-files)
-          (let* ((total-size 0)
-                 (files
-                   (mapcan (lambda (file)
-                             (with-open-file (stream file :direction :input
-                                                          :if-does-not-exist nil)
-                               (when stream
-                                 (let ((size (file-length stream)))
-                                   (incf total-size size)
-                                   (list (cons size file))))))
-                           (or (load-file-names
-                                (or (ext:getenv +cookie-environment-variable-name+)
-                                    *default-table-path*))
-                               *default-files*)))
-                 (arrow (if (zerop total-size) 
-                            (progn (error "~A: not a good cookie file! ~
+  (cond
+    ((optionp '("--help" "-h") argv)
+     (usage)
+     (ext:exit 0))
+    ((optionp '("--list-files" "-l") argv)
+     (configure-cookie-files)
+     (list-files)
+     (ext:exit 0))
+    (t
+     (let ((file (optionp '("--file" "-f") argv)))
+       (format t "~&")
+       (if file
+           (cookie-from-file (second file))
+           (progn
+             (configure-cookie-files)
+             (let* ((total-size 0)
+                    (files
+                      (mapcan (lambda (file)
+                                (with-open-file (stream file :direction :input
+                                                             :if-does-not-exist nil)
+                                  (when stream
+                                    (let ((size (file-length stream)))
+                                      (incf total-size size)
+                                      (list (cons size file))))))
+                              (or (load-file-names
+                                   (or (ext:getenv +cookie-environment-variable-name+)
+                                       *default-table-path*))
+                                  *default-files*)))
+                    (arrow (if (zerop total-size)
+                               (progn (error "~A: not a good cookie file! ~
                                        (This is not a cookie).~%"
-                                          *pname*)
-                                   (ext:exit 1))
-                            (random total-size))))
-            (cookie-from-file (loop with total = 0 
-                                    for file in files
-                                    while (< (+ total (car file)) arrow)
-                                    do (incf total (car file))
-                                    finally (return (cdr file)))))))))
+                                             *pname*)
+                                      (ext:exit 1))
+                               (random total-size))))
+               (cookie-from-file (loop with total = 0
+                                       for file in files
+                                       while (< (+ total (car file)) arrow)
+                                       do (incf total (car file))
+                                       finally (return (cdr file)))))))))))
 
 ;; (print (configure-cookie-files))
 (main ext:*args*)
