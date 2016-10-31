@@ -1,0 +1,4 @@
+#!/bin/bash
+openssl s_client -showcerts -connect hubble.informatimago.com:imaps       < /dev/null
+openssl s_client -showcerts -connect hubble.informatimago.com:pop3s       < /dev/null
+openssl s_client -showcerts -connect hubble.informatimago.com:submission  < /dev/null
