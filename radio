@@ -49,13 +49,13 @@ Listen to the radio.
 (in-package "COM.INFORMATIMAGO.RADIO")
 
 
-(setf *debug* t)
+(setf *debug* nil)
 
 ;;;---------------------------------------------------------------------
 
 (defparameter *radio-urls*
-  ;; http://www.radiocourtoisie.fr/courtoisie.m3u
-  '(("courtoisie"     "http://radiocourtoisie.scdn.arkena.com/media.mp3")
+  ;; "http://www.radiocourtoisie.fr/courtoisie.m3u"
+  '(("courtoisie"     "http://direct.radiocourtoisie.fr")
     ("esradio"        "mms://streaming.esradio.fm/EsRadio")
     ("reinfo"         "http://www.radiocourtoisie.net/tempo/public/reinformation/reinformation.mp3")
     ("treffpunkt"     "http://www.cibersoft.com.ar/radio/radio.m3u")
