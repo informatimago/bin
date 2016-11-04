@@ -1,6 +1,38 @@
+#!/bin/bash
+sed -n '4,/-----\---------------/p'  "$0"
+exit 0
+
+# on MacOSX:
+sudo nfsd enable
+showmount -e
+
+# on MacOSX:
+find {/System,}/Library/Launch*  \( -name  \*mount\* -o -name  \*nfs\* -o -name \*rpc\* \) -print
+
+sudo launchctl start /System/Library/LaunchDaemons/com.apple.nfsd.plist
+sudo launchctl start /System/Library/LaunchDaemons/com.apple.rpcbind.plist
+sudo launchctl start /System/Library/LaunchDaemons/com.apple.nfsconf.plist
+sudo launchctl start statd.notify
+
+sudo nfsd checkexports
+sudo nfsd restart
+
+sudo netstat -n|grep udp4 | grep -e '.111\|.949\|.2049\|.1001'
+
+# on Linux client:
+rpcinfo -u macbook mountd
+rpcinfo -p macbook|grep  ' 3 '|grep udp
+sudo mount -v  -o ro,vers=3,proto=udp  macbook:/ /mnt/m
+
+sudo mount -v -t nfs -o ro,vers=1,proto=udp,rsize=32768,wsize=32768,intr,noatime  macbook:/ /mnt/m
+
+
+
+
+------------------------------------------------------------------------
 
 Assume we have 2 Macs, Mac1 and Mac2. This document will help you to create a NFS share on Mac1 and access it from Mac2. Mac2 will preserve the mount during reboots.
-1. 	
+1.
 To create an NFS share on Mac1
 
 Open SSH terminal on Mac1
@@ -23,8 +55,8 @@ Verify the mount using the command "showmount -e"
 (You will see the following output on Mac1)
 
 "/Volumes/Macintosh HD Everyone"
-	
-2. 	
+
+2.
 To mount this share from Mac2
 
 Open SSH terminal on Mac2
@@ -88,9 +120,9 @@ Done!
 
 To remove the .plist, type the following:
 Type in "sudo launchctl unload -w /Library/LaunchDaemons/nfsmount.plist"
-	
-3. 	
+
+3.
 Reference
 
 http://seanmcgrath.wordpress.com/2010/07/05/setup-nfs-on-mac-os-x-10-6/
-http://powercycled.wordpress.com/2012/04/25/spoof-mac-address-from-boot-using-launchd/ 
+http://powercycled.wordpress.com/2012/04/25/spoof-mac-address-from-boot-using-launchd/
