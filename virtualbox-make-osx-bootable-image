@@ -1,0 +1,21 @@
+#!/bin/bash
+set -eu
+set +o posix
+
+type -p iesd >/dev/null 2>&1 || sudo gem install iesd
+
+osx11_path='/Applications/Install OS X El Capitan.app'
+osx12_path='/Applications/Install macOS Sierra.app'
+
+# blank="/Volumes/VirtualMachines/blank.dmg"
+osx09_disk="/Volumes/VirtualMachines/osx-10.9-maverick.dmg"
+osx10_disk="/Volumes/VirtualMachines/osx-10.10-yosemite.dmg"
+osx11_disk="/Volumes/VirtualMachines/osx-10.11-el-capitan.dmg"
+osx12_disk="/Volumes/VirtualMachines/osx-10.12-sierra.dmg"
+
+# cp "${blank}" "${osx11_disk}"
+rm -rf "${osx11_disk}"
+iesd -i "${osx11_path}" -o "${osx11_disk}" -t BaseSystem
+
+
+# hdiutil convert /tmp/ElCapitan.sparseimage -format UDTO -o /tmp/ElCapitan

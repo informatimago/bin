@@ -1,0 +1,24 @@
+#!/bin/bash -e
+
+private_dot_files=(
+    # private
+    .mailrc
+    # private and specific to the host
+    .gnupg
+    .ssh
+    .netrc
+    .authinfo
+    # not so private, but not in rc, and specific to the host:
+    .config/gpull-dirs
+    .gitconfig
+    .subversion
+    .moclconfig.lisp .mocluser
+    .newsrc
+)
+hostname=$(hostname)
+user=${USER}
+tarball="${user}@${hostname}-$(date +%Y%m%dT%H%M%S).tar.bz2.gpg"
+cd
+tar jcf - "${private_dot_files[@]}" | gpg -c > "${tarball}"
+echo "${tarball}"
+

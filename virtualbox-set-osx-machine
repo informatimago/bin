@@ -1,0 +1,74 @@
+#!/bin/bash
+set -eu
+set +o posix
+
+function set-osx-machine(){
+    local vmName="${1}"
+    alias vboxmanage=/Applications/VirtualBox.app/Contents/MacOS/VBoxManage
+    case "$(vboxmanage --version)" in
+        (4*) # Code for Virtualbox 4.x.x:
+            vboxmanage modifyvm     "${vmName}" --cpuidset 00000001 000306a9 04100800 7fbae3ff bfebfbff
+            vboxmanage setextradata "${vmName}" "VBoxInternal/Devices/efi/0/Config/DmiSystemProduct" "MacBookPro11,3"
+            vboxmanage setextradata "${vmName}" "VBoxInternal/Devices/efi/0/Config/DmiSystemVersion" "1.0"
+            vboxmanage setextradata "${vmName}" "VBoxInternal/Devices/efi/0/Config/DmiBoardProduct" "Iloveapple"
+            vboxmanage setextradata "${vmName}" "VBoxInternal/Devices/smc/0/Config/DeviceKey" "ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc"
+            vboxmanage setextradata "${vmName}" "VBoxInternal/Devices/smc/0/Config/GetKeyFromRealSMC" 1
+            ;;
+        (5*) # Code for Virtualbox 5.0.x:
+
+            vboxmanage modifyvm     "${vmName}" --cpuidset 00000001 000106e5 00100800 0098e3fd bfebfbff
+            # vboxmanage modifyvm   "${vmName}" --cpuidset 00000001 000306a9 00020800 80000201 178bfbff # for Mac using Intel Haswell CPU (Macs 2013 and later), we need to fake CPU to Ivy Bridge
+            vboxmanage setextradata "${vmName}" "VBoxInternal/Devices/efi/0/Config/DmiSystemProduct" "iMac11,3"
+            vboxmanage setextradata "${vmName}" "VBoxInternal/Devices/efi/0/Config/DmiSystemVersion" "1.0"
+            vboxmanage setextradata "${vmName}" "VBoxInternal/Devices/efi/0/Config/DmiBoardProduct" "Iloveapple"
+            vboxmanage setextradata "${vmName}" "VBoxInternal/Devices/smc/0/Config/DeviceKey" "ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc"
+            vboxmanage setextradata "${vmName}" "VBoxInternal/Devices/smc/0/Config/GetKeyFromRealSMC" 1
+            ;;
+        (*)
+
+            printf "Unknown VirtualBox version %s\n" "$(vboxmanage --version)"
+            ;;
+    esac
+}
+
+
+function usage(){
+    local pname="${1?Missing pname as first argument in $FUNCNAME}"
+    printf "%s usage:\n\n" "${pname}"
+    printf "    %s [-h|--help] [-l|--list-virtual-machines] [vmName…]\n\n" "${pname}"
+}
+
+function main(){
+    local pname;
+    local vmNames=()
+    pname="$(basename "$0")"
+    for arg ; do
+        case "${arg}" in
+            (-h|--help)
+                usage "${pname}"
+                exit 0
+                ;;
+            (-l|--list-virtual-machines)
+                vboxmanage list vms
+                exit 0
+            (-*)
+                printf "%s error: invalid option: %s\n" "${pname}" "${arg}"
+                usage "${pname}"
+                exit 1
+                ;;
+            (*)
+                vmNames+=( "${arg}" )
+                ;;
+        esac
+    done
+    if [[ "${#vmNames[@]}" -eq 0 ]] ; then
+        usage "${pname}"
+        exit 1
+    fi
+    for vmName in "${vmNames[@]}" ; do
+        set-osx-machine "${vmName}"
+    done
+    exit 0
+}
+
+main "$@"
