@@ -34,15 +34,15 @@ case "$repository" in
     true
     ;;
 *)
-    printf "The path of the remote repository directory must be absolute.\n" 
+    printf "The path of the remote repository directory must be absolute.\n"
     printf "'%s' is a relative path.\n"  "$repository"
     exit 2
 esac
 
 if [ -d .git ] ; then
-    true 
+    true
 else
-    printf "The current working directory must be a local git repository.\n" 
+    printf "The current working directory must be a local git repository.\n"
     printf "There is no .git subdirectory in '%s'.\n"  "$(pwd)"
     exit 3
 fi
@@ -59,7 +59,7 @@ remote_is_git="$(ssh "$uhost" bash -c "type -f \"$repository/HEAD\" && echo yes 
 case "$remote_is_git" in
 yes)
      true
-     ;; 
+     ;;
 no)
 
     printf "The remote repository directory %s \ndoesn't seem to be a git repository (lacks a HEAD file)." \
@@ -76,7 +76,6 @@ printf "Will add the remote %s repository on ssh://%s%s\n" "$remote" "$uhost" "$
 printf "Please confirm (RET/%s): " "$intr"
 read line
 
-git remote add "$remote" "ssh://$uhost$repository" 
+git remote add "$remote" "ssh://$uhost$repository"
 
 exit 0
-
