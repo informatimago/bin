@@ -16,17 +16,17 @@ if [ -n "$COOKIE" ] ; then
     last=$(cat ~/.period-cookie 2>/dev/null)
     [ -z "$last" ] && last=0
     now=$(date +%s)
-    if [ 0 -ne $((now-last>period)) ] ; then
+    if [ 0 -ne $(( now - last > period )) ] ; then
         echo "$now" > ~/.period-cookie
-	text="$("$COOKIE" 2>/dev/null)"
-	if [ -n "$text" ] ; then
-	    line=+-----------------------------------------------------------------------
-	    (
+        text="$("$COOKIE" 2>/dev/null)"
+        if [ -n "$text" ] ; then
+            line=+-----------------------------------------------------------------------
+            (
                 printf '\n%s\n' "$line";
-		printf '%s\n'   "$text" | sed -e '/^$/d' -e 's/^/|  /' ;
+                printf '%s\n'   "$text" | sed -e '/^$/d' -e 's/^/|  /' ;
                 printf '%s\n'   "$line";
             ) > $output
-	fi
+        fi
     fi
 fi
 #### THE END ####
