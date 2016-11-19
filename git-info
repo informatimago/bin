@@ -1,0 +1,40 @@
+#!/bin/bash
+set -eu
+
+# author: Duane Johnson
+# email: duane.johnson@gmail.com
+# date: 2008 Jun 12
+# license: MIT
+#
+# Based on discussion at http://kerneltrap.org/mailarchive/git/2007/11/12/406496
+
+
+# Find base of git directory
+while [ ! -d .git -a ! `pwd` = "/" ] ; do cd ..; done
+
+# Show various information about this git directory
+if [ -d .git ]; then
+    printf '== Remote URLs:\n'
+    git remote -v
+    printf '\n'
+
+    printf '== Remote Branches:\n'
+    git branch -r
+    printf '\n'
+
+    printf '== Local Branches:\n'
+    git branch
+    printf '\n'
+
+    printf '== Configuration (.git/config)\n'
+    cat .git/config
+    printf '\n'
+
+    printf '== Most Recent Commit:\n'
+    git log --max-count=1
+    printf '\n'
+
+    # echo "Type 'git log' for more commits, or 'git show' for full commit details."
+else
+    echo "Not a git repository."
+fi

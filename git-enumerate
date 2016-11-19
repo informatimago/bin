@@ -1,0 +1,55 @@
+#!/bin/bash
+
+function lastCommit(){
+    git log --branches -1 --pretty=format:"%H"
+}
+
+function checkoutLatestCommit(){
+    git checkout $(lastCommit)
+}
+
+function gitEnumerate(){
+    trap checkoutLatestCommit EXIT
+    checkoutLatestCommit
+    git log --pretty=%H|while read COMMIT ; do
+        git checkout "${COMMIT}"
+        export COMMIT
+        bash -c "$*"
+    done
+}
+
+function usage(){
+    local pname="$1"
+    printf '%s usage:\n\n' "${pname}"
+    printf '    %s [-h|--help|-l|--last-commit]\n\n' "${pname}"
+    printf '    %s command\n\n' "${pname}"
+    printf '        Executes the command once for each commit.\n'
+    printf '        $COMMIT is the current commit hash.\n\n'
+}
+
+function main(){
+    local pname="$(basename "$0")"
+    if [[ $# -eq 0 ]] ; then
+        usage "${pname}"
+    else
+        case "$1" in
+        (-h|--help)
+            usage "${pname}"
+            ;;
+        (-l|--last-commit)
+            printf '%s\n' "$(lastCommit)"
+            ;;
+        (-*)
+            printf '%s error: invalid option: %s\n' "${pname}" "$1"
+            exit 1
+            ;;
+        (*)
+            gitEnumerate "$@"
+            ;;
+        esac
+    fi
+    exit 0
+}
+
+main "$@"
+
