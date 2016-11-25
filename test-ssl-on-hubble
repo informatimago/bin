@@ -1,4 +1,19 @@
 #!/bin/bash
-openssl s_client -showcerts -connect hubble.informatimago.com:imaps       < /dev/null
-openssl s_client -showcerts -connect hubble.informatimago.com:pop3s       < /dev/null
-openssl s_client -showcerts -connect hubble.informatimago.com:submission  < /dev/null
+authorities=(
+    hubble.informatimago.com:imaps
+    hubble.informatimago.com:pop3s
+    hubble.informatimago.com:submission
+
+    hubble.informatimago.com:https
+    www.informatimago.com:https
+    www.ogamita.com:https
+    www.ogamita.org:https
+    www.parroquias-manga.org:https
+)
+
+for authority in "${authorities[@]}" ; do
+    echo "===="
+    echo "==== ${authority}"
+    echo "===="
+    openssl s_client -showcerts -connect "${authority}" < /dev/null
+done
