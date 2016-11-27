@@ -1,0 +1,12 @@
+#!/bin/bash -e
+
+function main(){
+    local roots=("$@")
+    if [[ $# -eq 0 ]] ; then
+        roots=(.)
+    fi
+    find "${roots[@]}" \( -name '.??*' -prune \) -o \( -type f -print0 \) | xargs -0 sed -i -e 's/  *$//'
+    exit 0
+}
+
+main "$@"
