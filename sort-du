@@ -1,0 +1,28 @@
+#!/bin/bash -e
+
+cleanUpItems=()
+temporaryDirectory='/tmp'
+
+function createTemporaryDirectory(){
+    temporaryDirectory="${TMPDIR:-/tmp}/sort-du-$$"
+    cleanUpItems+=("${temporaryDirectory}")
+    trap 'rm -rf "${cleanUpItems[@]}"' EXIT
+    mkdir -p "${temporaryDirectory}"
+}
+
+function sortDu(){
+    local tmp="${temporaryDirectory}"
+    tee  "${tmp}/k" "${tmp}/m" "${tmp}/g" > "${tmp}/t"
+    grep -e '^[0-9.]*K[ 	]'<"${tmp}/k"|sort -n
+    grep -e '^[0-9.]*M[ 	]'<"${tmp}/m"|sort -n
+    grep -e '^[0-9.]*G[ 	]'<"${tmp}/g"|sort -n
+    grep -e '^[0-9.]*T[ 	]'<"${tmp}/t"|sort -n
+}
+
+function main(){
+    createTemporaryDirectory
+    du -shc ./* | sortDu
+    exit 0
+}
+
+main "$@"
