@@ -1,0 +1,27 @@
+#!/bin/bash -e
+
+
+function indent(){
+    local files=("$@")
+    local script="${TMPDIR-/tmp}/indent.$$.el"
+    cat > "${script}" <<EOF
+(setq-default indent-tabs-mode nil)
+(dolist (file '( "${files[@]}" ))
+    (find-file file)
+    (indent-region (point-min) (point-max))
+    (let ((delete-trailing-lines t))
+       (delete-trailing-whitespace))
+    (save-buffer)
+    (kill-buffer))
+(kill-emacs)
+EOF
+    emacs --batch --script "${script}"
+    rm -f "${script}"
+}
+
+function main(){
+    indent "$@"
+    exit 0
+}
+
+main "$@"
