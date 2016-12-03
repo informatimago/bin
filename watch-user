@@ -6,7 +6,7 @@ else
 	set deltat=5
 endif
 while ( 1 )
-	lastcomm | grep $luser | head -22                  
+	lastcomm | grep $luser | head -22
 	sleep $deltat
 	clear
 end

@@ -10,26 +10,26 @@
 	foreach u ( 0 1 )
 	foreach b ( 0 1 )
 	foreach i ( 0 1 )
-		if ( $h ) then 
+		if ( $h ) then
 			set s="$AHilite"
 			set l="hilite "
 		else
 			set s=""
 			set l="       "
 		endif
-		if ( $u ) then 
+		if ( $u ) then
 			set s="$s$AUnderline"
 			set l="${l}underline  "
 		else
 			set l="${l}           "
 		endif
-		if ( $b ) then 
+		if ( $b ) then
 			set s="$s$ABlink"
 			set l="${l}blink  "
 		else
 			set l="${l}       "
 		endif
-		if ( $i ) then 
+		if ( $i ) then
 			set s="$s$AInvert"
 			set l="${l}invert  "
 		else

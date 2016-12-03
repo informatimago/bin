@@ -18,7 +18,7 @@ function chop(string) {
         if(j<i){
             change=0;
         }
-    } 
+    }
     return(substr(string,1+i,j-i+1));
 }
 
@@ -30,17 +30,17 @@ BEGIN {
     all_level=1; # !=0 => dumps also sub-tables.
     table_num=0;
     do_write=0;
-    
+
 }
 
 
-##DEBUG##{ 
-##DEBUG##    printf("read: %2d %2d %1d  %s\n",table_num,level,do_write,$0); 
-##DEBUG##} 
+##DEBUG##{
+##DEBUG##    printf("read: %2d %2d %1d  %s\n",table_num,level,do_write,$0);
+##DEBUG##}
 
 
 /<table/{
-##DEBUG##    printf("    -> /<table/\n"); 
+##DEBUG##    printf("    -> /<table/\n");
     level++;
     if((all_level!=0)||(level==1)){
         table_num++;
@@ -53,7 +53,7 @@ BEGIN {
 }
 
 /<\/table/{
-##DEBUG##    printf("    -> /</table/\n"); 
+##DEBUG##    printf("    -> /</table/\n");
     level--;
     if(level==0){
         do_write=0;
@@ -63,12 +63,12 @@ BEGIN {
 
 
 /<tr/{
-##DEBUG##    printf("    -> /<tr/\n"); 
+##DEBUG##    printf("    -> /<tr/\n");
     next;
 }
 
 /<\/tr/{
-##DEBUG##    printf("    -> /</tr>/\n"); 
+##DEBUG##    printf("    -> /</tr>/\n");
     if(do_write!=0){
         printf "\n",$0;
     }
@@ -76,12 +76,12 @@ BEGIN {
 }
 
 /<td/{
-##DEBUG##    printf("    -> /<td/\n"); 
+##DEBUG##    printf("    -> /<td/\n");
     next;
 }
 
 /<\/td/{
-##DEBUG##    printf("    -> /</td>/\n"); 
+##DEBUG##    printf("    -> /</td>/\n");
     if(do_write!=0){
         printf("%s",out_FS);
     }
@@ -89,7 +89,7 @@ BEGIN {
 }
 
 /<br>/{
-##DEBUG##    printf("    -> /<br>/\n"); 
+##DEBUG##    printf("    -> /<br>/\n");
     if(do_write!=0){
         printf " ";
     }

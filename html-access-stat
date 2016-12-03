@@ -61,7 +61,7 @@ show_bro=0
 access=/dev/stdin
 
 for arg ; do
-    case "$arg" in 
+    case "$arg" in
     --ref|--show-references)
         show_ref=1
         ;;
@@ -97,7 +97,7 @@ for arg ; do
         ;;
     esac
 done
-        
+
 
 cat "$access" \
 | sed -e 's-\[\([^:]*\):[^]]*\]-\1-' \
@@ -223,8 +223,8 @@ function array_print(name,names,count,array,show_items,sort_key,LOCALS,item,item
         table_split_and_sort(array,sort_key,items,values,sorted);
         for(i=0;i<count;i++){
             printf("%12d times %s\n",values[sorted[i]],items[sorted[i]]);
-        }   
-    } 
+        }
+    }
 }
 
 

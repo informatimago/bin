@@ -3,7 +3,7 @@
 # -ls      login shell
 # -sb      save some scrolled lines
 # -sl N    save N scrolled lines
-# -vb      visual bell 
+# -vb      visual bell
 
 default_font='-*-lucidatypewriter-medium-r-normal-*-12-*-*-*-m-*-*-*'
 dectec_font='-dec-terminal-bold-r-normal-*-14-*-*-*-*-*-dec-dectech'
@@ -98,7 +98,7 @@ case "$name" in
 *)  shift ;;
 esac
 
-case "$name" in 
+case "$name" in
 root|root@*)   fgcolor=( -fg '#d04020' ) ;;
 *)             fgcolor=( -fg '#000000' ) ;;
 esac
@@ -147,7 +147,7 @@ function get_after_e () {
     done
     echo "sh"
 }
-      
+
 
 # ------------------------------------------------------------------------
 # '#AB82FF'
@@ -172,7 +172,7 @@ green*)
     green-[1-5]*) size="${name:6:1}" ;;
     green*) size=1 ;;
     esac
-    if [ $size -eq 5 ] ; then 
+    if [ $size -eq 5 ] ; then
         # led
         options=( ${options[@]} -geometry 68x24 )
     fi

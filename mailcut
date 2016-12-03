@@ -7,7 +7,7 @@ while ( "$line" != "EOF" )
 	echo $n Outputing to $n...
 	@ i++
 	echo "$line" >> $n
-#echo "------$line" 
+#echo "------$line"
 	set line="$<"
 	echo $n Outputing header
 	while ( ( "$line" != "EOF" ) && ( "$line" != "" ) )
@@ -28,7 +28,7 @@ while ( "$line" != "EOF" )
 	endsw
 	while ( ( "$line" != "EOF" ) && ( $from == 0 ) )
 		echo "$line" >> $n
-#echo "------$line" 
+#echo "------$line"
 		set line="$<"
 		switch ( "$line" )
 		case 'From '*:

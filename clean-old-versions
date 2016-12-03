@@ -1,13 +1,13 @@
-#!/bin/bash 
+#!/bin/bash
 dirs=()
 do=
-for arg ; do 
+for arg ; do
     case "$arg" in
     -n) do=echo ;;
     -*) echo "Usage:"
         echo "   $(basename $0) [-n] [directory ...]"
         echo "Remove all backup files that don't have a head."
-        echo "If no directory is specified, then clean the current directory." 
+        echo "If no directory is specified, then clean the current directory."
         echo "-n only shows what would be done."
         exit 1
         ;;
@@ -17,12 +17,12 @@ done
 if [ ${#dirs[@]} -eq 0 ] ; then
     dirs=(.)
 fi
-for dir in "${dirs[@]}" ; do 
+for dir in "${dirs[@]}" ; do
     find "$dir" -maxdepth 1 \( -name \*~ -o -name .\?\*~ \) -print  \
-    |while read file ; do 
+    |while read file ; do
         base="$(echo "$file" | sed -e 's/\.~[0-9][0-9]*~$//')"
         if [ ! -e "$base" ] ; then
-            $do rm -v "$file" 
+            $do rm -v "$file"
         fi
      done
 done

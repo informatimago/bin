@@ -99,7 +99,7 @@ NOTE:       ranges depend on the encoding used. It's probably better to list
    (T
     (LET* ((PATTERN   (FORMAT NIL "[~A]" CHAR-SET))
            (BAD-CHARS (REGEXP:REGEXP-SPLIT PATTERN VALUE)))
-      (IF BAD-CHARS 
+      (IF BAD-CHARS
         (PROGN
          (SCRIPT:PERROR "The value \"~A\"~%
              for ~A~% contains an invalid character '~A' (valid set is ~A).~%"

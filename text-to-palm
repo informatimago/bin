@@ -2,13 +2,13 @@
 
 case "$(uname)" in
 Darwin)
-    for file ; do 
+    for file ; do
         macf="${file/.txt/.mac}"
         /Developer/Tools/SetFile -c CCON -t TEXT "${macf}"
     done
     ;;
 *)
-    for file ; do 
+    for file ; do
         macf="${file/.txt/.mac}"
         [ -f "${macf}" ] && mv "${macf}" "${macf}~"
         cat "${file}" \

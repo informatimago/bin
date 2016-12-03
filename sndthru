@@ -13,7 +13,7 @@ set pid=($liste)
 set pidset=($liste)
 set cnt=($liste)
 @ i=0
-while ( $i < $#pidset ) 
+while ( $i < $#pidset )
 	@ i++
 	set pidset[$i]=0
 	set cnt[$i]=0
@@ -39,7 +39,7 @@ end
 if ( $count > 0 ) then
 
 	@ i=1
-	while ( $pidset[$i] != 0 ) 
+	while ( $pidset[$i] != 0 )
 		if ( $cnt[$i] == 2 ) then
 			set size1=(`ls -l s_$pidset[$i]_1.snd`)
 			if ( $size1[4] == 1458176 ) then

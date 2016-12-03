@@ -10,18 +10,18 @@
 
 (defvar *just-print-p* nil)
 
-(defconstant +max-command-length+ 
-  #+#.(cl:if (cl:find-package :linux) '(and) '(or)) LINUX:ARG_MAX 
+(defconstant +max-command-length+
+  #+#.(cl:if (cl:find-package :linux) '(and) '(or)) LINUX:ARG_MAX
   #-#.(cl:if (cl:find-package :linux) '(and) '(or)) 4096)
 
 
 (defun md5sum-files (flist)
-  (loop 
+  (loop
      :with sumtab = (make-hash-table)   ; sums are interned
      :for chunk = (and flist
-                       (loop 
+                       (loop
                           :for size = (length "md5sum")
-                          :then (+ size 
+                          :then (+ size
                                    (if flist
                                        (length (format nil " ~S" (first flist)))
                                        0))
@@ -31,10 +31,10 @@
      :initially (format *trace-output* "~&  Checksumming...~%")
      :do (format *trace-output* "~&    ~6D files...~%" (length chunk))
      :do (with-open-stream (sums
-                            (EXT:MAKE-PIPE-INPUT-STREAM 
+                            (EXT:MAKE-PIPE-INPUT-STREAM
                              (format nil "md5sum~{ ~S~}"
                                      (mapcar (function namestring) chunk))))
-           (loop 
+           (loop
               :for line = (read-line sums nil nil)
               :for (sum file) = (when line
                                   (with-input-from-string
@@ -46,7 +46,7 @@
                    (push (string-trim " " file) (gethash sum sumtab '()))))
      :finally (format *trace-output* "~&     done.~%")
      :finally (return sumtab)))
- 
+
 (defun delete-duplicate-files-in-directory (dir)
   (let ((sumtab (md5sum-files (directory (make-pathname :name :wild :type :wild
                                                         :defaults dir)))))

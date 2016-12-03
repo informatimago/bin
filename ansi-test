@@ -6,13 +6,13 @@
 ;;;;SYSTEM:             Common-Lisp
 ;;;;USER-INTERFACE:     NONE
 ;;;;DESCRIPTION
-;;;;    
+;;;;
 ;;;;    Prints a test page for ANSI codes (ECMA-048) for text color
 ;;;;    and text rendering on a terminal.
 ;;;;
 ;;;;SYNOPSIS
 ;;;;    ansi-test
-;;;;    xterm -xrm 'xterm*hold: on' -e ansi-test  
+;;;;    xterm -xrm 'xterm*hold: on' -e ansi-test
 ;;;;AUTHORS
 ;;;;    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
 ;;;;MODIFICATIONS
@@ -21,19 +21,19 @@
 ;;;;BUGS
 ;;;;LEGAL
 ;;;;    GPL
-;;;;    
+;;;;
 ;;;;    Copyright Pascal J. Bourguignon 2010 - 2012
-;;;;    
+;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU General Public License
 ;;;;    as published by the Free Software Foundation; either version
 ;;;;    2 of the License, or (at your option) any later version.
-;;;;    
+;;;;
 ;;;;    This program is distributed in the hope that it will be
 ;;;;    useful, but WITHOUT ANY WARRANTY; without even the implied
 ;;;;    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 ;;;;    PURPOSE.  See the GNU General Public License for more details.
-;;;;    
+;;;;
 ;;;;    You should have received a copy of the GNU General Public
 ;;;;    License along with this program; if not, write to the Free
 ;;;;    Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -84,7 +84,7 @@
 
 
 
-(defenum sgr-codes 
+(defenum sgr-codes
   "
     0 normal (reset)
     1 bold or increased intensity
@@ -92,7 +92,7 @@
     3 italicized
     4 singly underlined
     5 slowly blinking (less then 150 per minute)
-    6 rapidly blinking (150 per minute or more) 
+    6 rapidly blinking (150 per minute or more)
     7 negative image
     8 concealed characters
     9 crossed-out (characters still legible but marked as to be deleted)
@@ -103,7 +103,7 @@
     14 fourth alternative font
     15 fifth alternative font
     16 sixth alternative font
-    17 seventh alternative font 
+    17 seventh alternative font
     18 eighth alternative font
     19 ninth alternative font
     20 Fraktur (Gothic)
@@ -111,11 +111,11 @@
     22 normal colour or normal intensity (neither bold nor faint)
     23 not italicized, not fraktur
     24 not underlined (neither singly nor doubly)
-    25 steady (not blinking) 
+    25 steady (not blinking)
     26 (reserved for proportional spacing as specified in CCITT Recommendation
        T.61)
     27 positive image
-    28 revealed characters 
+    28 revealed characters
     29 not crossed out
     30 black display
     31 red display
@@ -133,10 +133,10 @@
     41 red background
     42 green background
     43 yellow background
-    44 blue background 
+    44 blue background
     45 magenta background
     46 cyan background
-    47 white background 
+    47 white background
     48 (reserved for future standardization; intended
        for setting character background colour as specified in ISO 8613-6
        [CCITT Recommendation T.416])
@@ -151,7 +151,7 @@
     56 (reserved for future standardization)
     57 (reserved for future standardization)
     58 (reserved for future standardization)
-    59 (reserved for future standardization) 
+    59 (reserved for future standardization)
     60 ideogram underline or right side line
     61 ideogram double underline or double line on the right side
     62 ideogram overline or left side line
@@ -187,16 +187,16 @@
     (flet ((label (col)
                   (format nil "~8a"
                           (subseq (string (sgr-codes-label col)) 0
-                                  (position (character "-") 
+                                  (position (character "-")
                                             (string (sgr-codes-label col)))))))
-      (dolist (b (list WHITE-background 
-                       CYAN-background MAGENTA-background YELLOW-background 
-                       BLUE-background GREEN-background RED-background 
+      (dolist (b (list WHITE-background
+                       CYAN-background MAGENTA-background YELLOW-background
+                       BLUE-background GREEN-background RED-background
                        BLACK-background))
         (setf bb (label b))
-        (dolist (f (list WHITE-foreground 
-                         CYAN-foreground MAGENTA-foreground YELLOW-foreground 
-                         BLUE-foreground GREEN-foreground RED-foreground 
+        (dolist (f (list WHITE-foreground
+                         CYAN-foreground MAGENTA-foreground YELLOW-foreground
+                         BLUE-foreground GREEN-foreground RED-foreground
                          BLACK-foreground))
           (setf ff (label f))
           (e48:cup y x)
@@ -213,7 +213,7 @@
     (flet ((label (mode)
                   (format nil "~8a"
                           (subseq (string (sgr-codes-label mode)) 0
-                                  (min (length (string (sgr-codes-label mode))) 
+                                  (min (length (string (sgr-codes-label mode)))
                                        8)))))
       (dolist (in (list no-invert invert))
         (setf jin (label in))

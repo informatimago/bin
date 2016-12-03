@@ -29,7 +29,7 @@ fi
 if [ ${#html}  -ne 0 ] ; then
     for file in ${html[@]} ; do
         case "$file" in
-        /*) 
+        /*)
             emacsclient -e "(browse-url \"file://${file}\")"
             ;;
         *)
@@ -45,18 +45,18 @@ if [ ${#sound} -ne 0 ] ; then
      ( xmms -p "${sound[@]}" 2>/dev/null  || mplayer "${sound[@]}" 2>/dev/null  || echo "Do not know how to open $f" ) &
 fi
 if [ ${#video} -ne 0 ] ; then
-    for f in "${video[@]}" ; do 
-        mplayer "$f" 2>/dev/null || aviplay "$f" 2>/dev/null || echo "Do not know how to open $f" 
-    done & 
+    for f in "${video[@]}" ; do
+        mplayer "$f" 2>/dev/null || aviplay "$f" 2>/dev/null || echo "Do not know how to open $f"
+    done &
 fi
 if [ ${#pdf}   -ne 0 ] ; then
      for f in "${pdf[@]}" ; do
-         ( acroread "$f" 2>/dev/null || xpdf "$f" 2>/dev/null || echo "Do not know how to open $f" ) & 
-     done 
+         ( acroread "$f" 2>/dev/null || xpdf "$f" 2>/dev/null || echo "Do not know how to open $f" ) &
+     done
 fi
 if [ ${#ps}    -ne 0 ] ; then
      for f in "${ps[@]}" ; do
-         ( gv "$f" 2>/dev/null || gsview "$f" 2>/dev/null  || echo "Do not know how to open $f" ) & 
+         ( gv "$f" 2>/dev/null || gsview "$f" 2>/dev/null  || echo "Do not know how to open $f" ) &
      done
 fi
 exit 0

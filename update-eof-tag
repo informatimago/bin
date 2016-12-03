@@ -39,7 +39,7 @@ sub fileKind{
            ||($name=~/.*\.make$/i)){
         return($kind_hash_comment);
     }else{
-        ### Here we could work some more to add more kinds of comments. 
+        ### Here we could work some more to add more kinds of comments.
     }
 
     # then, let's see what file(1) think of it.
@@ -52,7 +52,7 @@ sub fileKind{
        ||($kind=~/.*awk.*/)){
         return($kind_hash_comment);
     }else{
-        ### Here we could work some more to add more kinds of comments. 
+        ### Here we could work some more to add more kinds of comments.
     }
 
     # finaly, let's return a default kind.

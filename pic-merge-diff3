@@ -105,5 +105,5 @@ gimp  --no-data  --console-messages  --no-interface  --batch \
     "(pic-merge-diff3-internal RUN-NONINTERACTIVE \"$pic1\" \"$pic2\" \"$pic3\" \"$merge\")" \
     "(gimp-quit 0)"
 
-#   
+#
 #END#

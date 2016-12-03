@@ -58,33 +58,33 @@ management system (hence the need of this tool!).
 (defparameter *usage*
   "
 ~A~:* version
- 
+
     Report the version of this script and the underlying package system.
 
 ~A~:* install     <package-name>
 
-    Install the package named <package-name>.  
-    <package-name> may include some specific version according to the 
+    Install the package named <package-name>.
+    <package-name> may include some specific version according to the
     underlying package system syntax.
 
 
 ~A~:* update      <package-name>
 
-    Updates the package named <package-name>.  
+    Updates the package named <package-name>.
     <package-name> may include some specific version or version constraint
     according to the underlying package system syntax.
 
 
 ~A~:* remove      <package-name>
 
-    Uninstalls the package named <package-name>.  
+    Uninstalls the package named <package-name>.
     <package-name> may include some specific version or version constraint
     according to the underlying package system syntax.
 
 
 ~A~:* [show] info <package-name>
 
-    Displays information about the package named <package-name>.  
+    Displays information about the package named <package-name>.
     <package-name> may include some specific version or version constraint
     according to the underlying package system syntax.
     This package may be installed or not.
@@ -96,7 +96,7 @@ management system (hence the need of this tool!).
     all the packages if omited.   The keywords installed, available,
     all or not installed restrict the listing to the correponding
     package.  available and all are synonyms and the default.
-    
+
 
 ~A~:* [list] files [in] <package-name>
 
@@ -121,8 +121,8 @@ management system (hence the need of this tool!).
 ~A~:* [show] dependencies [of] [package] <package-name>
 
     List the packages on which the package named <package-name> depends.
-    <package-name> may include some specific version according to the 
-    underlying package system syntax.  
+    <package-name> may include some specific version according to the
+    underlying package system syntax.
     [installed|newest]
 
 
@@ -130,8 +130,8 @@ management system (hence the need of this tool!).
 ~A~:* [who] depends [on] [package] <package-name>
 
     List the packages who depend on the package named <package-name>.
-    <package-name> may include some specific version according to the 
-    underlying package system syntax.  
+    <package-name> may include some specific version according to the
+    underlying package system syntax.
 
 
 ~A~:* lowly cleanup
@@ -184,7 +184,7 @@ management system (hence the need of this tool!).
                       (command-aborted-on-signal-signal  condition)))))
 
 (defvar *run-output* :terminal)
-                                   
+
 (defun run (control-string &rest arguments)
   "Runs the specified shell commands.
 Signals an error if they exit with an error status or are killed by a signal."
@@ -271,8 +271,8 @@ Signals an error if they exit with an error status or are killed by a signal."
 
 
 (defgeneric pm-package-designator (pm package-designator)
-  (:documentation 
-   "Return a single package, a list of packages, 
+  (:documentation
+   "Return a single package, a list of packages,
 or an expression such as (= <package>)  (<= <package>) etc."))
 
 ;;;------------------------------------------------------------
@@ -322,7 +322,7 @@ or an expression such as (= <package>)  (<= <package>) etc."))
 
 
 (defmethod pm-version ((self apt))
-  (s "apt-get --version")) 
+  (s "apt-get --version"))
 
 (defmethod pm-install ((self apt) package-designator)
   (s "apt-get install" package-designator))
@@ -458,12 +458,12 @@ or an expression such as (= <package>)  (<= <package>) etc."))
                                            *portage-name-regexp*
                                            *portage-optional-version-regexp*))
 
-(defparameter *portage-cpv-regexp*  (format nil "^~A/~A~A$" 
+(defparameter *portage-cpv-regexp*  (format nil "^~A/~A~A$"
                                            *portage-category-regexp*
                                            *portage-name-regexp*
                                            *portage-optional-version-regexp*))
 
-(defparameter *portage-cppv-regexp* (format nil "^~A/~A/~:*~A~A$" 
+(defparameter *portage-cppv-regexp* (format nil "^~A/~A/~:*~A~A$"
                                            *portage-category-regexp*
                                            *portage-name-regexp*
                                            *portage-optional-version-regexp*))
@@ -473,16 +473,16 @@ or an expression such as (= <package>)  (<= <package>) etc."))
   (let ((designator (princ-to-string package-designator)))
     (if (zerop (length designator))
         '()
-        (labels ((unambiguous (packages) 
+        (labels ((unambiguous (packages)
                    ;; (print `(unambiguous ,packages))
                    (if (= 1 (length packages))
                        (first packages)
-                       (error "Ambiguous package designator: ~S~& could be any of:~{  ~A~^~%~}" 
+                       (error "Ambiguous package designator: ~S~& could be any of:~{  ~A~^~%~}"
                               package-designator packages)))
                  (ambiguous (packages)
                    ;; (print `(ambiguous ,packages))
                    (cond
-                     ((null packages) '()) 
+                     ((null packages) '())
                      ((null (rest packages))
                       (first packages))
                      (t
@@ -496,17 +496,17 @@ or an expression such as (= <package>)  (<= <package>) etc."))
                    (cond
                      ((string= version "")
                       (mapcan (compose ensure-list parse-portage-package-designator)
-                              (directory (make-pathname :directory (list :absolute "usr" "portage" category name) 
+                              (directory (make-pathname :directory (list :absolute "usr" "portage" category name)
                                                         :name (format nil "~A-*" name)
                                                         :type "ebuild"
                                                         :case :local))))
                      ((not version-must-exist-p) ; note: version must not be empty, but it may not exist.
-                      (if (directory (make-pathname :directory (list :absolute "usr" "portage" category name) 
+                      (if (directory (make-pathname :directory (list :absolute "usr" "portage" category name)
                                                     :name (format nil "~A-*" name)
                                                     :type "ebuild"
                                                     :case :local))
                           (list (make-instance 'portage-package
-                                               :category category 
+                                               :category category
                                                :name name
                                                :version (subseq version 1)))
                           (error "There is no such package: ~S" package-designator)))
@@ -527,10 +527,10 @@ or an expression such as (= <package>)  (<= <package>) etc."))
                                (version  (regexp:match-string designator version)))
                            (if (string= name1 name2)
                                  (make-cpv category name1 version)
-                              (error "Invalid package designator, inconsistent package names: ~S" 
+                              (error "Invalid package designator, inconsistent package names: ~S"
                                      package-designator)))
                          (error "Invalid package designator: ~S" package-designator))))
-                 (cpv (designator) 
+                 (cpv (designator)
                    ;; (print `(cpv ,designator))
                    (multiple-value-bind (all category name version)
                        (regexp:match *portage-cpv-regexp* designator)
@@ -550,7 +550,7 @@ or an expression such as (= <package>)  (<= <package>) etc."))
                          (let ((name     (regexp:match-string designator name))
                                (version  (regexp:match-string designator version)))
                            (mapcan (compose ensure-list parse-portage-package-designator)
-                                   (directory (make-pathname :directory (list :absolute "usr" "portage" :wild name) 
+                                   (directory (make-pathname :directory (list :absolute "usr" "portage" :wild name)
                                                              :name (format nil "~A~A" name
                                                                            (if (string= version "")
                                                                                "-*"
@@ -568,7 +568,7 @@ or an expression such as (= <package>)  (<= <package>) etc."))
                        (unambiguous (cpv (subseq designator 2))))
                  (list (intern (subseq designator 0 1))
                        (unambiguous (cpv (subseq designator 1))))))
-            (t 
+            (t
              (ambiguous
               (let ((slashes (count #\/ designator)))
                 (case slashes
@@ -580,7 +580,7 @@ or an expression such as (= <package>)  (<= <package>) etc."))
                             (cppve (subseq designator (length "/usr/portage/"))))
                            ((suffixp ".ebuild" designator)
                             (cppv  (subseq designator 0 (- (length designator) (length ".ebuild")))))
-                           (t 
+                           (t
                             (error "Invalid package designator: ~S" package-designator))))
                   (otherwise
                    (error "Invalid package designator: ~S" package-designator)))))))))))
@@ -811,8 +811,8 @@ or an expression such as (= <package>)  (<= <package>) etc."))
 
 
 (define-option ("install" "-I" "--install") (package-name)
- "Install the package named PACKAGE-NAME.  
-PACKAGE-NAME may include some specific version according to the 
+ "Install the package named PACKAGE-NAME.
+PACKAGE-NAME may include some specific version according to the
 underlying package system syntax."
  (fpm install package-name))
 
@@ -825,7 +825,7 @@ according to the underlying package system syntax."
 
 
 (define-option ("remove" "-R" "--remove" "uninstall" "--uninstall") (package-name)
-  "Uninstalls the package named PACKAGE-NAME.  
+  "Uninstalls the package named PACKAGE-NAME.
 PACKAGE-NAME may include some specific version or version constraint
 according to the underlying package system syntax.
 "
@@ -834,7 +834,7 @@ according to the underlying package system syntax.
 
 (define-option ("show-info" "info" "-i" "--show-info" "--info") (package-name)
   ;; [show] info <package-name>
-  "Displays information about the package named PACKAGE-NAME.  
+  "Displays information about the package named PACKAGE-NAME.
 PACKAGE-NAME may include some specific version or version constraint
 according to the underlying package system syntax.
 This package may be installed or not.
@@ -876,7 +876,7 @@ PACKAGE-NAME may include some specific version or version constraint
 according to the underlying package system syntax.
 This package may be installed or not.
 "
-  (fpm list-files package-name)) 
+  (fpm list-files package-name))
 
 
 (define-option ("package-containing" "package" "-c" "--package-containing"
@@ -886,10 +886,10 @@ This package may be installed or not.
 is not an absolute pathname, then it's taken as a pattern for the
 file paths."
   (fpm find-package-containing-file file-path))
- 
 
 
-(define-option ("search-package-info" "search-package" "search" 
+
+(define-option ("search-package-info" "search-package" "search"
                 "-s"
                 "--search-package-info" "--search-package" "--search") (pattern)
   ;; search [package] [info] <pattern>
@@ -901,19 +901,19 @@ file paths."
 (define-option ("show-dependencies" "dependencies" "-d" "--show-dependencies" "--dependencies") (package-name)
 ;; [show] dependencies [of] [package] <package-name>
   "List the packages on which the package named PACKAGE-NAME depends.
-PACKAGE-NAME may include some specific version according to the 
-underlying package system syntax.  
+PACKAGE-NAME may include some specific version according to the
+underlying package system syntax.
 [installed|newest]
 "
   (fpm dependencies package-name))
 
- 
+
 
 (define-option ("who-depends-on" "depends" "--who-depends-on" "--who-depends" "--depends") (package-name)
   ;; [who] depends [on] [package] <package-name>
   "List the packages who depend on the package named PACKAGE-NAME.
-PACKAGE-NAME may include some specific version according to the 
-underlying package system syntax.  
+PACKAGE-NAME may include some specific version according to the
+underlying package system syntax.
 "
   (fpm dependants package-name))
 
@@ -921,11 +921,11 @@ underlying package system syntax.
 
 
 ;;  "
-;; 
+;;
 ;; ~A~:* lowly cleanup
-;; 
+;;
 ;;     Some package managers need some cleanup.
-;; 
+;;
 ;; "
 
 ;; (trace run)

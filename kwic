@@ -39,7 +39,7 @@
   (assert (wl-lessp '("aaa" "bbb") '("bbb" "aaa")))
   (assert (not (wl-lessp '("bbb" "ccc")  '("aaa" "bbb"))))
   (assert (not (wl-lessp '("bbb" "aaa")  '("aaa" "bbb"))))
-  
+
   (assert (not (wl-lessp '("zzz" ) '("zzz" ))))
   (assert (wl-lessp '("zzz" ) '("zzz" "abc")))
   (assert (not (wl-lessp '("zzz" "abc") '("zzz" ))))

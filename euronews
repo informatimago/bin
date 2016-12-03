@@ -63,10 +63,10 @@
      ((member lang +available-languages+ :test 'string-equal) lang)
      (t nil)));;language-to-euronews
 
-  
+
 (dolist (arg (if (boundp 'ext:*args*) ext:*args* nil))
   (setq language (language-to-euronews arg))
-  (unless language 
+  (unless language
     (format t "~%usage:~%")
     (format t "   euronews  [de|fr|en|it|es|po|ru]~%")
     (ext:exit ex-usage)))
@@ -94,7 +94,7 @@
         (loop for item in (sort
                            (loop for page in '( "accueil_info" "acceuil_eco" "euro" "lemag" "hitech" )
                                  for new-urls = (stream-to-string-list
-                                                 (ext:run-shell-command 
+                                                 (ext:run-shell-command
                                                   (format nil "{ lynx -source 'http://www.euronews.net/create_html.php?page=~A&langue=~A'|tr '<' '\\012'|grep ramgen|sed -e 's/.*lien=\\(.*hostname\\).*/http:\\/\\/\\1/' ;}" page language)
                                                   :input     nil
                                                   :output    :stream))
@@ -142,7 +142,7 @@
       (setq menu-items
             (loop for index = 0 then (1+ index)
             for url in urls
-            collect (format nil "~2D ~1A~1A ~34A" 
+            collect (format nil "~2D ~1A~1A ~34A"
                        (1+ index)
                        (played-indicator        index)
                        (played-last-indicator   index)
@@ -181,7 +181,7 @@
        (t
         (format t "Invalid option!")
         (setq last-index (- 0 last-index))))
-      
+
       (when (< 0 last-index)
         (ext::shell (format nil "/local/apps/RealPlayer8/realplay '~A' &"
                              (elt urls (1- last-index))))

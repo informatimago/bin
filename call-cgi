@@ -61,4 +61,4 @@ export HTTP_COOKIE=user='listmaster@localhost:b0fd0b88'
 
 env|sort
 
-"$1" 
+"$1"

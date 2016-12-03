@@ -31,11 +31,11 @@ BEGIN {
         cnt[i]++;
     }
 }
-    
+
 
 END {
     printf "nbrecs %16f \n",NR;
-   
+
     printf "minima ";
     for(i in columns){
         printf "%16f ",min[i];

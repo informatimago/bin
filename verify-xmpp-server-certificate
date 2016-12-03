@@ -8,5 +8,5 @@ openssl x509 -in sca.server1.crt -text
 wget http://aia.startssl.com/certs/ca.crt
 openssl x509 -in ca.crt -text -inform der
 cat sca.server1.crt ca.crt > ca.pem
-openssl verify -verbose                          -CAfile ca.pem  trustchat.cert 
-openssl verify -verbose -crl_download -crl_check -CAfile ca.pem  trustchat.cert 
+openssl verify -verbose                          -CAfile ca.pem  trustchat.cert
+openssl verify -verbose -crl_download -crl_check -CAfile ca.pem  trustchat.cert

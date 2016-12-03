@@ -6,7 +6,7 @@ exit 1
 #to attach your remote repo with the name 'origin' (like cloning would do)
 git remote add origin [URL From Step 1]
 
-# Execute 
+# Execute
 git pull origin master
 # to pull the remote branch so that they are in sync.
 

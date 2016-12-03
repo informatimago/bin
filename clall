@@ -6,7 +6,7 @@
 #SYSTEM:             POSIX
 #USER-INTERFACE:     NONE
 #DESCRIPTION
-#    
+#
 #    Executes a form in various Common Lisp implementations.
 #
 #    Note: we can run in cygwin, calling cygwin CL implementations
@@ -15,11 +15,11 @@
 #    into MS-Windows path.  For convenience, MS-Windows CL
 #    implementations are called thru scripts in /usr/local/bin whose
 #    name starts with "win".
-#    
+#
 #AUTHORS
 #    <PJB> Pascal Bourguignon <pjb@informatimago.com>
 #MODIFICATIONS
-#    2010-11-01 <PJB> Improved.  
+#    2010-11-01 <PJB> Improved.
 #                     Added the -r option to just print the results.
 #                     Added abcl.
 #    2007-07-05 <PJB> Added this header.
@@ -28,19 +28,19 @@
 #    (defun f () (let z 42) (print z))
 #LEGAL
 #    GPL
-#    
+#
 #    Copyright Pascal Bourguignon 2007 - 2010
-#    
+#
 #    This program is free software; you can redistribute it and/or
 #    modify it under the terms of the GNU General Public License
 #    as published by the Free Software Foundation; either version
 #    2 of the License, or (at your option) any later version.
-#    
+#
 #    This program is distributed in the hope that it will be
 #    useful, but WITHOUT ANY WARRANTY; without even the implied
 #    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 #    PURPOSE.  See the GNU General Public License for more details.
-#    
+#
 #    You should have received a copy of the GNU General Public
 #    License along with this program; if not, write to the Free
 #    Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -130,7 +130,7 @@ Return:  input
           (unless (= (length input) remains-to-read)
             (warn "~A byte~:*~P unread."  (- (length input) remains-to-read )))
           (let (trace error output)
-            (setf output (with-output-to-string (*standard-output*) 
+            (setf output (with-output-to-string (*standard-output*)
                            (setf error (with-output-to-string (*error-output*)
                                          (setf trace (with-output-to-string (*trace-output*)
                                                        (multiple-value-setq (vals condi)
@@ -206,7 +206,7 @@ Return:  input
                            :direction :output
                            :if-does-not-exist :create
                            :if-exists :supersede)
-     ,@(mapcar (lambda (input) 
+     ,@(mapcar (lambda (input)
                  `(multiple-value-call (function report-only-result) report (read-eval ,input)))
                expressions)
      (values)))
@@ -217,7 +217,7 @@ Return:  input
                            :direction :output
                            :if-does-not-exist :create
                            :if-exists :supersede)
-     ,@(mapcar (lambda (input) 
+     ,@(mapcar (lambda (input)
                  `(multiple-value-call (function report-full-result) report (read-eval ,input)))
                expressions)
      (values)))
@@ -228,7 +228,7 @@ Return:  input
                            :direction :output
                            :if-does-not-exist :create
                            :if-exists :supersede)
-     ,@(mapcar (lambda (input) 
+     ,@(mapcar (lambda (input)
                  `(multiple-value-call (function report-short-result) report (read-eval ,input)))
                expressions)
      (values)))
@@ -255,10 +255,10 @@ winquote(){
     local quote
     for arg ; do
         case "$arg" in
-        /*) 
+        /*)
             slash="${arg//\//\\\\}"
             ;;
-        *) 
+        *)
             arg="$(pwd -P)/$arg"
             slash="${arg//\//\\\\}"
             ;;
@@ -272,16 +272,16 @@ winquote(){
 
 ( echo "$clall_lisp"
     if [ ${#sexps[@]} -gt 0 ] ; then
-        echo "($command $(quote "$output")" 
-        for sexp in "${sexps[@]}" ; do echo "$(quote "$sexp")" ; done 
-        echo ")" 
+        echo "($command $(quote "$output")"
+        for sexp in "${sexps[@]}" ; do echo "$(quote "$sexp")" ; done
+        echo ")"
     fi ) >> "$script"
 
 ( echo "$clall_lisp"
     if [ ${#sexps[@]} -gt 0 ] ; then
-        echo "($command \"$(winquote "$output")\"" 
-        for sexp in "${sexps[@]}" ; do echo "$(quote "$sexp")" ; done 
-        echo ")" 
+        echo "($command \"$(winquote "$output")\""
+        for sexp in "${sexps[@]}" ; do echo "$(quote "$sexp")" ; done
+        echo ")"
     fi ) >> "$winscript"
 
 echo > "$epilog"
@@ -315,16 +315,16 @@ printf '\n'
 
 runcl abcl     --batch --noinform --noinit --eval '(setq *load-verbose* nil)'  --load  "$script"
 runcl alisp     -batch -qq                                                      -L     "$script" -kill
-runcl ccl      --batch --no-init                                               --load  "$script"      
-runcl clisp     -ansi  -q  -norc                                                       "$script"      
+runcl ccl      --batch --no-init                                               --load  "$script"
+runcl clisp     -ansi  -q  -norc                                                       "$script"
 # debian calls cmucl cmucl instead of lisp.
-runcl cmucl     -noinit          -eval '(setq *load-verbose* nil)'              -load  "$script"      
-runcl lisp      -noinit          -eval '(setq *load-verbose* nil)'              -load  "$script"      
-runcl ecl                  -norc                                                -load  "$script"      
+runcl cmucl     -noinit          -eval '(setq *load-verbose* nil)'              -load  "$script"
+runcl lisp      -noinit          -eval '(setq *load-verbose* nil)'              -load  "$script"
+runcl ecl                  -norc                                                -load  "$script"
 # we can't run gcl, because it can't handle errors. (ignore-errors, handler-case).
-# runcl gcl       -batch                                                          -load  "$script"      
+# runcl gcl       -batch                                                          -load  "$script"
 # runcl mocl       repl --verbose --android /tmp/  < "$script"
-runcl sbcl     --noinform --no-userinit                                        --load  "$script"      
+runcl sbcl     --noinform --no-userinit                                        --load  "$script"
 
 runcl winccl   --batch --no-init                                               --load  $(winquote $winscript)
 runcl winsbcl  --noinform --no-userinit                                        --load  $(winquote $winscript)

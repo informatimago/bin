@@ -1,4 +1,4 @@
-#!/usr/local/bin/clisp -ansi -q -E utf-8 
+#!/usr/local/bin/clisp -ansi -q -E utf-8
 ;;;; -*- mode:lisp; coding:utf-8 -*-
 ;;;;*****************************************************************************
 ;;;;FILE:               clean-paths
@@ -10,15 +10,15 @@
 ;;;;    This scripts builds an isomorphe directory hierarchy with the names
 ;;;;    cleaned up (removing most special and non ASCII characters).
 ;;;;
-;;;;    A second entry point issues mkdir & ln commands to reproduce 
-;;;;    a target directory hierarchy from a source directory hierarchy 
+;;;;    A second entry point issues mkdir & ln commands to reproduce
+;;;;    a target directory hierarchy from a source directory hierarchy
 ;;;;    on the same file system (using the inode as file identification).
 ;;;;
 ;;;;    Entry points: clean-paths
 ;;;;                  reproduce-changes
 ;;;;
 ;;;;AUTHORS
-;;;;    <PJB> Pascal J. Bourguignon 
+;;;;    <PJB> Pascal J. Bourguignon
 ;;;;MODIFICATIONS
 ;;;;    2003-03-28 <PJB> Converted from elisp to Common-Lisp.
 ;;;;    2003-02-08 <PJB> Merged bash script in here and use emacs-script.
@@ -139,7 +139,7 @@ Otherwise, list elements are:
  8. File modes, as a string of ten letters or dashes as in ls -l.
  9. t iff file's gid would change if file were deleted and recreated.
 10. inode number.
-11. Device number. 
+11. Device number.
 
 IMPLEMENTATION: Field 9 is not implemented and always T.
                 Symbolic link handling is not implemented.
@@ -173,9 +173,9 @@ IMPLEMENTATION: Field 9 is not implemented and always T.
        ;;  9. t iff file's gid would change if file were deleted and recreated.
        ;; TODO: iff file's gid would change if file were deleted and recreated.
        t
-       ;; 10. inode number.  
+       ;; 10. inode number.
        (susv3:stat-ino sbuf)
-       ;; 11. Device number.  
+       ;; 11. Device number.
        (susv3:stat-dev sbuf)  ))))
 
 
@@ -271,7 +271,7 @@ RETURN: The path to a file found under `directory' whose inode is `inode',
     script:*program-name* (length script:*program-name*)))
 
 
-(defvar *print-commands* nil 
+(defvar *print-commands* nil
   "Whether commands should be printed instead of executed.")
 
 (defvar cp-paths (make-hash-table :size 127)
@@ -292,7 +292,7 @@ DOES:    add an hard link from the item at src-path to dst-path.
 "
   (cp-path-register dst-path)
   (if *print-commands*
-    (format t "/bin/ln ~A ~A~%" 
+    (format t "/bin/ln ~A ~A~%"
             (script:shell-quote-argument src-path)
             (script:shell-quote-argument dst-path))
     (script:execute  "/bin/ln"  src-path dst-path)))
@@ -304,7 +304,7 @@ DOES:    add a symbolic link from the item at src-path to dst-path.
 "
   (cp-path-register dst-path)
   (if *print-commands*
-    (format t "/bin/ln -s ~A ~A~%" 
+    (format t "/bin/ln -s ~A ~A~%"
             (script:shell-quote-argument src-path)
             (script:shell-quote-argument dst-path))
     (script:make-symbolic-link src-path dst-path)))
@@ -429,7 +429,7 @@ DOES:    scan dstdir and issue commands.
         (cond
          ((file-directory-p fitem)
           ;; a subdirectory
-          (reproduce-changes-directory 
+          (reproduce-changes-directory
            srcdir (concatenate 'string dstdir "/" item) copy-action))
          ((file-symlink-p fitem)
           ;; a symbolic-link
@@ -468,7 +468,7 @@ keys:    may contain one of:
                        ((memq :file-copy keys)     'cp-copy-file)
                        (t                          'cp-symbolic-link)))
         (*print-commands* t))
-    (reproduce-changes-directory srcdir dstdir copy-action))) 
+    (reproduce-changes-directory srcdir dstdir copy-action)))
 
 
 
@@ -524,7 +524,7 @@ keys:    may contain one of:
           (print-usage)
           (script:exit script:ex-dataerr))
         (reproduce-changes src dst options))
-      (progn 
+      (progn
         ;; actually produce a cleaned-up $dst from $src
         ;; (or just output a script to this effect
         ;;  if --print-commands  is given).

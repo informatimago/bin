@@ -7,7 +7,7 @@ out=/d7/movies/futurama-1-
 cd $tmp
 i=1
 for slice in 00:00:00.0-01:36:32.0 01:36:32.0-03:13:05.0 ; do
-    name=${out}-${i}--de.avi 
+    name=${out}-${i}--de.avi
     rm -f $name
     (sleep 3 ; printf "\n%s\n" $name)&
     transcode \

@@ -1,4 +1,4 @@
-#!/usr/local/bin/clisp -ansi -q -E utf-8 
+#!/usr/local/bin/clisp -ansi -q -E utf-8
 ;;;; -*- mode:lisp; coding:utf-8 -*-
 ;;;;****************************************************************************
 ;;;;FILE:              check-surface
@@ -61,7 +61,7 @@
   (with-open-file (dirs (make-pathname :name "DIRECTORIES" :type "TXT"
                                        :version nil :case :common
                                        :defaults (user-homedir-pathname)))
-    (setf *directories* 
+    (setf *directories*
           (loop
              :with result = '()
              :for k = (read dirs nil dirs)
@@ -73,7 +73,7 @@
 
 (load-directories)
 
-;;; 
+;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (load (compile-file
@@ -118,8 +118,8 @@
                           "check-surface"))
 
 (defun usage ()
-  (format 
-   t (concatenate 
+  (format
+   t (concatenate
          'string
        "~%"
        "~a usage:~%"
@@ -145,7 +145,7 @@
 
 
 (defun report-error (message &optional print-usage-p (status nil statusp))
-  (format *error-output* 
+  (format *error-output*
           "~%~a: ~A~:[~; Aborting.~]~%"
           *pname* message (and statusp (not (zerop status))))
   (when print-usage-p
@@ -313,7 +313,7 @@ RESULTS:          The number of failed blocks;
                                            fpos size-read buffer)))))
                  (progn
                    (incf failed-seeks)
-                   (funcall reporter fpos 
+                   (funcall reporter fpos
                             (format nil "FILE-POSITION failed~:[~;~:*~%~A~]"
                                     error))))))
     (values (- total-number-of-blocks valid-blocks)
@@ -533,7 +533,7 @@ RESULTS:          The number of failed blocks;
                   (map 'vector (function char-code)
                        (format nil "*** BLOCK AT POSITION: ~8,'0X ***" fpos))
                   :start1 128)
-         buffer) 
+         buffer)
 
        (lambda (fpos size-read buffer)       ; BLOCK-CHECKER
          (block checker

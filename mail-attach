@@ -34,7 +34,7 @@ for file ; do
     cmd[$i]="$mimetype"           ; i=$(( $i + 1 ))
     cmd[$i]="-f"                  ; i=$(( $i + 1 ))
     cmd[$i]="$attachment"         ; i=$(( $i + 1 ))
-    
+
 done
 
 "${cmd[@]}"

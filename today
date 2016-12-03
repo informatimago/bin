@@ -51,8 +51,8 @@ rm -f index.html
 ### wget -q $imgurl
 ### xv `basename $imgurl`  &
 ### rm -f index.html
-### 
-### 
+###
+###
 ### echo 'Getting Rudy Park cartoon...'
 ### cd $tmpdir
 ### imgurl=http://www.rudypark.com/cartoons/rudypark.jpg

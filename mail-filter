@@ -27,7 +27,7 @@ EX_UNAVAILABLE=69
 state=init
 sender=''
 recipients=()
-for arg ; do 
+for arg ; do
     case $state in
     init)
         case $arg in
@@ -38,11 +38,11 @@ for arg ; do
         esac
         ;;
     sender)
-        sender="$arg" 
+        sender="$arg"
         state=init
         ;;
     recipient)
-        recipients[${#recipients}]="$arg" 
+        recipients[${#recipients}]="$arg"
         ;;
     esac
 done

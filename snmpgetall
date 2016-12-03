@@ -7,7 +7,7 @@ fi
 while true ; do
     answ=`snmpgetnext $host public $next`
     echo "$answ"
-    next=`echo "$answ" | sed  -e 's/ .*//'` 
+    next=`echo "$answ" | sed  -e 's/ .*//'`
     case "$next" in
     Timeout:|sub-identifier|Error)
         exit 0

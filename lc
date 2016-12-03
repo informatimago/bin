@@ -63,7 +63,7 @@ DO:     Copy the contents of the file at path SRC to the file at path DST.
   (labels ((ef (line-terminator)
              (ext:make-encoding :charset charset:iso-8859-1
                                 :line-terminator line-terminator))
-           
+
            (usage ()
              (format *standard-output*
                      "~A usage:~

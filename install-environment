@@ -2,7 +2,7 @@
 # Fetch and install my environment.
 # pjb@informatimago.com
 
-# git config --global user.name "Pascal J. Bourguignon" 
+# git config --global user.name "Pascal J. Bourguignon"
 # git config --global user.email pjb@informatimago.com
 
 # git repository to clone in ~/emacs
@@ -10,7 +10,7 @@ emacs_gitrepos=(
     git://github.com/remvee/android-mode.git
     git://github.com/capitaomorte/yasnippet.git
     git://github.com/emacs-java/auto-java-complete.git
-    git://github.com/hayamiz/twittering-mode.git 
+    git://github.com/hayamiz/twittering-mode.git
 )
 
 # emacs lisp packages installed with elpa
@@ -86,14 +86,14 @@ function git-clone-or-pull(){
     local giturl="$1"
     local dir="$(basename "$1" .git)"
     if [ -d "$dir" ] ; then
-        ( cd "$dir" ; git pull ) 
+        ( cd "$dir" ; git pull )
     else
         git clone "$giturl"
     fi
 }
 
 for repo in "${emacs_gitrepos[@]}" ; do
-    git-clone-or-pull "$repo"       
+    git-clone-or-pull "$repo"
 done
 
 
@@ -139,4 +139,3 @@ exit 0
    69  cd
    70  rsynch 192.168.1.151:~/quicklisp quicklisp
    71  rsynch 192.168.1.151:~/emacs emacs
-

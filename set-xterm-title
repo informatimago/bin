@@ -8,7 +8,7 @@ while [ $# -ge 1 ] ; do
         else
         title="$title $1"
         fi
-        shift 
+        shift
         ;;
     esac
 done

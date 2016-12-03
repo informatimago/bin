@@ -28,8 +28,8 @@ trap "exit" SIGINT SIGTERM
 
 symbols=`echo "$symbols"|sed -e 's/^|//'`
 
-for f in `locate /lib` ; do 
-    nm $f | egrep $symbols && echo $f 
+for f in `locate /lib` ; do
+    nm $f | egrep $symbols && echo $f
 done 2> /dev/null
 exit 0
 

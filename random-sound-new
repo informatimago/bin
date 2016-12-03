@@ -26,7 +26,7 @@ if ( -d $startdir ) then
 set filelist=( `find "$startdir" -type f -name '*.snd' -depth -print | grep .snd` )
 endif
 if ( -d $scoredir ) then
-set filelist=( $filelist `find "$scoredir" -type f -name '*.playscore' -depth -print | grep .playscore` ) 
+set filelist=( $filelist `find "$scoredir" -type f -name '*.playscore' -depth -print | grep .playscore` )
 endif
 
 set sortedlist=($filelist)
@@ -54,7 +54,7 @@ while ( $c > 0 )
 	echo "$f" >> /tmp/random_sound_play.$$
 	@ s = ${s} + 1
 	@ c = ${c} - 1
-end 
+end
 #echo $sortedlist
 #set echo
 @ s=1

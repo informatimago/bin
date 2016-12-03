@@ -6,7 +6,7 @@ echo "This is shell $SHELL"
 
 # eventually, we switch to clisp:
 
-exec clisp "$0" "$@" 
+exec clisp "$0" "$@"
 
 # and end the Common Lisp comment:
 |#

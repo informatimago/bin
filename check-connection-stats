@@ -3,10 +3,10 @@ do_upload=1
 for arg ; do
     case "$arg" in
     --no-upload)
-        do_upload=0 
+        do_upload=0
         ;;
-    *) 
-        printf "%s error: invalid argument: %s\n" "$(basename "$0")" "$arg" 
+    *)
+        printf "%s error: invalid argument: %s\n" "$(basename "$0")" "$arg"
         exit 1
         ;;
     esac

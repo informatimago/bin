@@ -30,7 +30,7 @@ NOTE:   current implementation only accepts as separators
 
 
 (defparameter *character-foldings*
-  '(("A" "ÀÁÂÃÄÅ") ("AE" "Æ") ("C" "Ç") ("E" "ÈÉÊË") ("I" "ÌÍÎÏ") 
+  '(("A" "ÀÁÂÃÄÅ") ("AE" "Æ") ("C" "Ç") ("E" "ÈÉÊË") ("I" "ÌÍÎÏ")
     ("ETH" "Ğ") ("N" "Ñ") ("O" "ÒÓÔÕÖØ") ("U" "ÙÚÛÜ") ("Y" "İ")
     ("TH" "Ş") ("ss" "ß") ("a" "àáâãäå") ("ae" "æ") ("c" "ç")
     ("e" "èéêë") ("i" "ìíîï") ("eth" "ğ") ("n" "ñ") ("o" "òóôõöø")
@@ -42,7 +42,7 @@ NOTE:   current implementation only accepts as separators
 
 (defun character-fold (character)
   "
-RETURN: A string containing the character without accent 
+RETURN: A string containing the character without accent
         (for accented characters), or a pure ASCII form of the character.
 "
   (car (character-folding character)))
@@ -99,7 +99,7 @@ RETURN: A string containing the character without accent
                                      (setf state :escaped)
                                      (vector-push ch out)))
                       ((:escaped) (let ((diacritic (cdr (assoc (char-code ch) *diacritics*))))
-                                    (when diacritic 
+                                    (when diacritic
                                       (setf (aref out (1- (length out)))
                                             (combine-diacritic (aref out (1- (length out))) diacritic)))
                                     (setf state :normal)))))

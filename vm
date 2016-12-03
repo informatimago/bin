@@ -6,7 +6,7 @@ vboxmanage list vms|sed -e '/^"\([^"]*\)" {[-0-9a-fA-F]*}$/d'
 vms=( $(vboxmanage list vms|sed -n -e 's/^"\([^"]*\)" {[-0-9a-fA-F]*}$/\1/p'|sort) )
 
 function error(){
-    printf "%s error: " "$pname" 
+    printf "%s error: " "$pname"
     printf "$@"
     printf "\n"
     usage
@@ -18,7 +18,7 @@ function vmlist(){
     i=0
     while [ $i -lt ${#vms[@]} ] ; do
         printf "  %d) %s\n" "$i" "${vms[$i]}"
-        i=$(( $i + 1 )) 
+        i=$(( $i + 1 ))
     done
 }
 
@@ -29,7 +29,7 @@ function usage(){
 
 function member(){
     local item="$1" ; shift
-    for arg ; do 
+    for arg ; do
         if [ "$item" = "$arg" ] ; then
             echo T
             return 0
@@ -77,13 +77,13 @@ fi
 
 
 if [ -z "$vm" ] ; then
-    error "please give a vm name or index" 
+    error "please give a vm name or index"
 elif $(member "$vm" "${vms[@]}" >/dev/null) ; then
     true
 else
     vm="${vms[$vm]}"
     if [ -z "$vm" ] ; then
-        error "no such vm '%s'" "$vm" 
+        error "no such vm '%s'" "$vm"
     fi
 fi
 

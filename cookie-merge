@@ -1,4 +1,4 @@
-#!/usr/local/bin/clisp -ansi -q -E utf-8 
+#!/usr/local/bin/clisp -ansi -q -E utf-8
 ;;;; -*- mode:lisp;coding:utf-8 -*-
 (in-package "COMMON-LISP-USER")
 ;; (load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common :defaults *load-pathname*))
@@ -81,7 +81,7 @@ RETURN:  the list of lines collected from the file.
     (write-line "%" stream)
     (maphash (lambda (k c)
                (dolist (l c)
-                 (write-line l stream))               
+                 (write-line l stream))
                (write-line "%" stream))
              cookies)))
 

@@ -5,9 +5,9 @@ while [ $eof -eq 0 ] ; do
     i=0
     while [ $i -lt $HEIGHT -a $eof -eq 0 ] ; do
         line=''
-        read line 
+        read line
         if [ $? -eq 0 ] ; then
-            printf "%s\n" "$line" 
+            printf "%s\n" "$line"
         else
             eof=1
         fi

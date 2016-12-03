@@ -7,12 +7,12 @@
 #
 clear=0
 once=''
-while [ $# -gt 0 ] ; do 
+while [ $# -gt 0 ] ; do
    case "$1" in
    -e) clear=1 ; shift ;;
    -n) once=$2 ; shift ; shift ;;
-   -h|--help) 
-       printf "Usage: %s [-e] [-1] [-h|--help]\n" "$0" 
+   -h|--help)
+       printf "Usage: %s [-e] [-1] [-h|--help]\n" "$0"
        exit 0 ;;
    *)  printf "Error: Invalid argument: '%s'.\n" "$arg"
        printf "Usage: %s [-e] [-1] [-h|--help]\n" "$0"
@@ -42,7 +42,7 @@ function background(color){return(sgr(color+40));}
 function clear_screen () {return(sprintf("%cc",27));}
 function colorize(x){
     if(do_invert){
-        if(x>10.0){ 
+        if(x>10.0){
             return(sprintf("%s%s%9s",background(yellow),foreground(black),x));}
         else{
             return(sprintf("%s%s%9s",background(black),foreground(white),x));}}
@@ -60,13 +60,13 @@ function colorize(x){
   }else{
     if($10==""){avr="";}
     else if($10=="avgrq-sz"){avr=$10;}
-    else if($9>20000000.00){avr=sprintf("%9.2f",$9-42949672.96);} 
-    else{avr=sprintf("%9.2f",$9);} 
+    else if($9>20000000.00){avr=sprintf("%9.2f",$9-42949672.96);}
+    else{avr=sprintf("%9.2f",$9);}
 
     if($11==""){avq="";}
     else if($11=="avgqu-sz"){avq=$10;}
-    else if($10>20000000.00){avq=sprintf("%9.2f",$10-42949672.96);} 
-    else{avq=sprintf("%9.2f",$10);} 
+    else if($10>20000000.00){avq=sprintf("%9.2f",$10-42949672.96);}
+    else{avq=sprintf("%9.2f",$10);}
 
     if($1=="Device:"){one="Dev";}
     else if(substr($1,1,5)=="/dev/"){

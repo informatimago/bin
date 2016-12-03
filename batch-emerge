@@ -7,7 +7,7 @@
 (setf (readtable-case *rt*)  :preserve)
 (with-open-file (f "/home/pjb/portage-packages.txt")
   (let ((*read-table* *rt*))
-    (loop 
+    (loop
        :for p = (read f nil nil)
        :while p
        :do (with-open-stream (b (ext:run-program "batch" :input :stream))

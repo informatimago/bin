@@ -18,8 +18,8 @@ function usage () {
     echo "   775 / 664    --group     -g "
 }
 
-for arg ; do 
-    case "$arg" in 
+for arg ; do
+    case "$arg" in
     --read-only|-ro)
         fchmod=a+r,a-w
         dchmod=a+rx,a-w

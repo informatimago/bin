@@ -50,14 +50,14 @@ while [ $# -ge 1 ] ; do
             --camera Monterrey-2       --display $host-21 \
             --camera NuevoLaredo       --display $host-22 \
             --camera Reynosa           --display $host-23
-            --camera Veracruz          --display $host-24 
+            --camera Veracruz          --display $host-24
         ;;
     mexico-few)
         get-cams --delay 60 \
             --camera Acapulco-2        --display $host-tl \
             --camera Chihuahua-2       --display $host-bl \
             --camera LaPaz             --display $host-tr \
-            --camera Mexico-Poniente-1 --display $host-br 
+            --camera Mexico-Poniente-1 --display $host-br
         ;;
     24)
         get-cams $delay \

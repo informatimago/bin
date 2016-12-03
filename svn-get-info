@@ -11,7 +11,7 @@
 # root Repository Root:         https://svn.trustonic.internal/svn/tbase
 # checkout_dir                                                           branches/dev_kinibi_wb_sdk
 # compile_dir                                                                                       dev/components/Apps/iOS/TrustChat/Locals/Code/TrustChat
-# 
+#
 # compile_dir = pwd - wcrp
 # checkout_dir = url - compile_dir - root
 
@@ -26,7 +26,7 @@ current_dir="$(pwd -L)"
 cd "$current_dir"
 
 eval $(svn info | awk '
-          function quote(x){ gsub("[\\\"\\\\]","\\\\&",x); return "\"" x "\""; } 
+          function quote(x){ gsub("[\\\"\\\\]","\\\\&",x); return "\"" x "\""; }
           /^Working Copy Root Path:/{printf("wcrp=%s\n",quote($5));} \
           /^Repository Root/{printf("root=%s\n",quote($3));} \
           /^URL: /{printf("url=%s\n",quote($2));}\

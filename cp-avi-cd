@@ -73,7 +73,7 @@ function check_path () {
         echo -n ''
     fi
 }
-        
+
 
 
 function usage () {

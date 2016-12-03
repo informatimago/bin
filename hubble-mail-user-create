@@ -11,12 +11,12 @@ function error(){
 function check_email(){
     local email="$1" ; shift
     case "$email" in
-	*@*.*) 
+	*@*.*)
 	    return 0
 	    ;;
-	*) 
+	*)
 	    error "Invalid email: %s" "$email"
-	    return 1 
+	    return 1
 	    ;;
     esac
 }
@@ -25,12 +25,12 @@ function check_email(){
 function check_name(){
     local name="$1" ; shift
     case "$name" in
-	*' '*) 
+	*' '*)
 	    return 0
 	    ;;
-	*) 
+	*)
 	    error "Invalid name: %s" "$name"
-	    return 1 
+	    return 1
 	    ;;
     esac
 }
@@ -51,7 +51,7 @@ function ask(){
     local good=0
     local answer
     case "$secret" in
-	1|secret|password) 
+	1|secret|password)
 	    secret=(-r -s)
 	    ;;
 	*)
@@ -82,7 +82,7 @@ function valid_domain_p(){
     local domain="$1";shift
     sudo -u postfix \
         psql --pset pager -q -1 -t -c 'select domain from domain where domain='"$(quote "${domain}")"';' \
-        | grep -q -s "${domain}" 
+        | grep -q -s "${domain}"
 }
 
 

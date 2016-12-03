@@ -39,7 +39,7 @@ sub fileKind{
            ||($name=~/.*\.make$/i)){
         return($kind_hash_comment);
     }else{
-        ### Here we could work some more to add more kinds of comments. 
+        ### Here we could work some more to add more kinds of comments.
     }
 
     # then, let's see what file(1) think of it.
@@ -52,7 +52,7 @@ sub fileKind{
        ||($kind=~/.*awk.*/)){
         return($kind_hash_comment);
     }else{
-        ### Here we could work some more to add more kinds of comments. 
+        ### Here we could work some more to add more kinds of comments.
     }
 
     # finaly, let's return a default kind.
@@ -90,7 +90,7 @@ sub usage{
     printf STDERR "%s usage:\n"
         ."    %s options... files...\n",
         $pname,$pname;
-    printf STDERR 
+    printf STDERR
         "        --help                                             \n"
        ."        --language=LANGUAGE                             NIY\n"
        ."        --system=SYSTEM                                 NIY\n"
@@ -111,7 +111,7 @@ sub processArguments{
     my(@argv)=@_;
     my $fname;
     if($#argv<0){
-        printf STDERR 
+        printf STDERR
             "$pname error: Missing parameters.\n"
            ."$pblan        At least one option and at least one file \n"
            ."$pblan        should be specified.\n\n";
@@ -224,7 +224,7 @@ sub pretty_format_blocks        {
 sub pretty_format_paragraphs_justify{
     my(@lines)=@_;
     # SEE: Let's justify the paragraphs here.
-    # We could write a file and run fmt on it, then read back 
+    # We could write a file and run fmt on it, then read back
     # the result into the result array.
     return @lines;
 }#pretty_format_paragraphs_justify;
@@ -312,7 +312,7 @@ sub parseHeader{
     my $LEGAL='';
     seek THEAD,0,0;
     while(<THEAD>){
-        if(/^FILE:[ 	]*([A-Za-z].*)/                ){ $FILE=$1; 
+        if(/^FILE:[ 	]*([A-Za-z].*)/                ){ $FILE=$1;
         }elsif(/^LANGUAGE:[ 	]*([A-Za-z].*)/        ){ $LANGUAGE=$1;
         }elsif(/^SYSTEM:[ 	]*([A-Za-z].*)/            ){ $SYSTEM=$1;
         }elsif(/^USER-INTERFACE:[ 	]*([A-Za-z].*)/    ){ $USER_INTERFACE=$1;
@@ -381,7 +381,7 @@ sub processSourceFile{
     &parseInput;
 
     seek SOURCE,0,0;
-    
+
     my ($FILE,$LANGUAGE,$SYSTEM,$USER_INTERFACE,
         $DESCRIPTION,$AUTHORS,$MODIFICATIONS,$BUGS,$LEGAL)=&parseHeader;
 

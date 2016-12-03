@@ -138,7 +138,7 @@
             (first (memo-lines memo))
             (rest  (memo-lines memo)))))
 
-                 
+
 (defun show-memos ()
   (dolist (memo (sort
                  (let ((today (get-universal-time)))
@@ -213,4 +213,4 @@
 
 
 (main ext:*args*)
-        
+

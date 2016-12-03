@@ -17,7 +17,7 @@ function process () {
     | sed -n \
       -e 's/^< *\<[Aa]\>.*[Hh][Rr][Ee][Ff]=\(['\''"]\)\([^'\''"]*\)\1.*/\2/p' \
       -e 's/^< *\<[Aa]\>.*[Hh][Rr][Ee][Ff]=\([^'\''" ]\+\).*/\1/p' \
-    | cat 
+    | cat
 #     | sort -u
 }
 
@@ -29,7 +29,7 @@ else
 
         case "$arg" in
         --help)
-            usage 
+            usage
             exit 0
             ;;
         -*)

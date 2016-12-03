@@ -15,12 +15,12 @@ fi
 
 
 if [ -d .git ] ; then
-    true 
+    true
 else
-    printf "The current working directory must be a local git repository.\n" 
+    printf "The current working directory must be a local git repository.\n"
     printf "There is no .git subdirectory in '%s'.\n"  "$(pwd)"
     exit 3
-    
+
 fi
 
 remote=origin
@@ -48,7 +48,7 @@ function remote(){
     printf "$@" | ssh "$uhost" bash -c "cat > $temp ; source $temp ; rm $temp"
 }
 
-# set -x 
+# set -x
 remote "mv \"%s\"  \"%s\" && mkdir -p \"%s\" && cd \"%s\" && git --bare init" \
     "$repository" "$old_repository" "$repository" "$repository" \
 && git push "$remote" master \

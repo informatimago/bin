@@ -1,7 +1,7 @@
 #!/bin/bash
 
 for f in "$@" ; do
-    
+
 echo "Processing $f..."
 mv "$f" "$f~"
 sed \
@@ -13,4 +13,4 @@ done
 echo "Complete."
 exit
 
-    
+

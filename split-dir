@@ -6,11 +6,11 @@
 ;;;;SYSTEM:             Common-Lisp
 ;;;;USER-INTERFACE:     NONE
 ;;;;DESCRIPTION
-;;;;    
+;;;;
 ;;;;    Make hard-links from a source directory to a sequence of destination
 ;;;;    directories such as the disk usage of each destination directory is
 ;;;;    less than a maximum size.
-;;;;    
+;;;;
 ;;;;AUTHORS
 ;;;;    <PJB> Pascal Bourguignon <pjb@informatimago.com>
 ;;;;MODIFICATIONS
@@ -21,19 +21,19 @@
 ;;;;    Lack an option to use symbolic links, or to copy instead of hard links.
 ;;;;LEGAL
 ;;;;    GPL
-;;;;    
+;;;;
 ;;;;    Copyright Pascal Bourguignon 2004 - 2004
-;;;;    
+;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU General Public License
 ;;;;    as published by the Free Software Foundation; either version
 ;;;;    2 of the License, or (at your option) any later version.
-;;;;    
+;;;;
 ;;;;    This program is distributed in the hope that it will be
 ;;;;    useful, but WITHOUT ANY WARRANTY; without even the implied
 ;;;;    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 ;;;;    PURPOSE.  See the GNU General Public License for more details.
-;;;;    
+;;;;
 ;;;;    You should have received a copy of the GNU General Public
 ;;;;    License along with this program; if not, write to the Free
 ;;;;    Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -62,11 +62,11 @@
                  (directory (concatenate 'string dir-upath "/*/")))))
     (unless directories
       (error "Cannot find files or directories in ~A/" dir-upath))
-    (with-open-stream 
-        (in (ext:run-program 
+    (with-open-stream
+        (in (ext:run-program
                 "du"
               :arguments (list* "-s" "-k" directories)
-              :input nil 
+              :input nil
               :output :stream))
       (loop
          with result = '()
@@ -87,9 +87,9 @@
 
 
 (defun mantissa (string)
-  (parse-integer 
+  (parse-integer
    string
-   :junk-allowed nil 
+   :junk-allowed nil
    :end  (when (position (char string (1- (length string))) "KMGkmg")
            (1- (length string)))));;mantissa
 
@@ -114,7 +114,7 @@
         (error () (setf m :error f :error)))
       (if (eq :error (second test))
           (assert (eq :error m))
-          (assert (and (= m (second test)) 
+          (assert (and (= m (second test))
                        (= f (third test))))))));;test-mantissa-factor
 
 
@@ -208,26 +208,26 @@
 ;;;           (ensure-directories-exist (format nil "~A/toto" (car dir-list)))
 ;;;           (hardlink (car file-list) (car dir-list))) )))
 ;;;   );;spread-files
-;;; 
-;;; 
+;;;
+;;;
 ;;; (when nil
-;;; 
+;;;
 ;;; (setq file-list
 ;;;       (directory
 ;;;        "/data/mirrors/publications.ai.mit.edu/ai-publications/0-499/*.gz")
 ;;;       dummy nil)
-;;; 
+;;;
 ;;; (setq file-list
 ;;;       (directory
 ;;;        "/data/mirrors/publications.ai.mit.edu/ai-publications/1000-1499/*.gz")
 ;;;       dummy nil)
-;;; 
+;;;
 ;;; (setq file-list
 ;;;       (directory
 ;;;        "/data/mirrors/publications.ai.mit.edu/ai-publications/500-999/*.gz")
 ;;;       dummy nil)
-;;; 
-;;; 
+;;;
+;;;
 ;;; (setq sorted-file-list
 ;;;       (sort file-list
 ;;;             (lambda (a b)
@@ -235,8 +235,8 @@
 ;;;                (subseq (namestring a) (position (character "-") (namestring a) :from-end t))
 ;;;                (subseq (namestring b) (position (character "-") (namestring b) :from-end t)))))
 ;;;       dummy nil)
-;;; 
-;;; 
+;;;
+;;;
 ;;; (spread-files (* 680 1024 1024)
 ;;;               sorted-file-list
 ;;;               '( "/data/mirrors/publications.ai.mit.edu/ai-publications/a"
@@ -246,5 +246,5 @@
 ;;;                  "/data/mirrors/publications.ai.mit.edu/ai-publications/e"
 ;;;                  "/data/mirrors/publications.ai.mit.edu/ai-publications/f"
 ;;;                  ))
-;;; 
+;;;
 ;;; )

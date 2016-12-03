@@ -9,7 +9,7 @@
 
 	set script=/tmp/ftp.$$
 	foreach arg ( $* )
-		switch ( $arg ) 
+		switch ( $arg )
 		case -s*:
 			set system="`echo "$arg" | sed -e 's/^-s//'`"
 			breaksw

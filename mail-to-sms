@@ -5,10 +5,10 @@
 #SYSTEM:			UNIX
 #USER-INTERFACE:	None
 #DESCRIPTION
-#	This perl script will convert an email to a SMS. 
-#	It currently works 
+#	This perl script will convert an email to a SMS.
+#	It currently works
 #   for the French providers France Télécom,
-#	for the Spanish operator MoviStar/ActivaJoven, 
+#	for the Spanish operator MoviStar/ActivaJoven,
 #	for the Austria operators MobilKom and MaxMobil,
 #   for the Swedish operator Comviq,
 #   for the Ukranian operator KyivStar.
@@ -26,17 +26,17 @@
 #	<PJB> Pascal J. Bourguignon
 #MODIFICATIONS
 #	1999-07-02 <PJB> Added Austria operators. Added options.
-#   1999-08-13 <PJB> Added Swedish Comviq operator, 
+#   1999-08-13 <PJB> Added Swedish Comviq operator,
 #                          thanks to Daniel Hedberg.
-#   2000-01-16 <PJB> Added Ukranian KyivStar operator, 
+#   2000-01-16 <PJB> Added Ukranian KyivStar operator,
 #                          thanks to Konstantyn Kharchenko.
 #                    Added --original-from option.
 #BUGS
 #LEGAL
 #	Copyright Pascal J. Bourguignon 1999 - 2000
 #	All right reserved
-#	This program may not be included in any commercial product without the 
-#	author written permission. It may be used freely for any non-commercial 
+#	This program may not be included in any commercial product without the
+#	author written permission. It may be used freely for any non-commercial
 #	purpose, provided that this header is always included.
 #******************************************************************************
 
@@ -74,37 +74,37 @@ mail-to-sms phone-numbe optional_parameters... < message
 The parameters may be:
 
   phone-number    (mandatory)
-                  This must be a GSM phone number, in international 
+                  This must be a GSM phone number, in international
                   format (+<country-code>...).
 
-  --multiple      (optional) 
+  --multiple      (optional)
                   Send big email in several SMS.
 
-  --no-multiple   (optional,default) 
+  --no-multiple   (optional,default)
                   Send only the head of the email.
 
 
-  --compact       (optional,default) 
+  --compact       (optional,default)
                   Remove spaces from the email.
 
-  --no-compact    (optional) 
+  --no-compact    (optional)
                   Send the email as is.
 
 
-  --short-from    (optional) 
-                  Include in the SMS only the email address, 
+  --short-from    (optional)
+                  Include in the SMS only the email address,
                   not the full From:.
 
-  --long-from     (optional,default) 
+  --long-from     (optional,default)
                   Include in the SMS the full From: field.
 
-  --no-from       (optional) 
+  --no-from       (optional)
                   Don't include in the SMS the From: field.
 
                   --short-from, --long-from and --no-fromm are exclusive.
 
 
-  --original-from (optional) 
+  --original-from (optional)
                   Try to send the message keeping the original From: as
                   sender address on the envelop. This is imply using
                   sendmail directly.
@@ -336,7 +336,7 @@ printf "message=------------------\n%s\n--------------------------\n",$message;
 	chop($hostname = `hostname`);
 
 	($name, $aliases, $proto) = getprotobyname('tcp');
-	($name, $aliases, $port) = getservbyname($port, 'tcp') 
+	($name, $aliases, $port) = getservbyname($port, 'tcp')
 				unless $port =~ /^\d+$/;
 	($name, $aliases, $type, $len, $thisaddr) = gethostbyname($hostname);
 	($name, $aliases, $type, $len, $thataddr) = gethostbyname($them);
@@ -385,18 +385,18 @@ sub sendToSFR{
 	$message=&encodeForHtml($message);
 	#DEBUG#printf "apres encodeForHtml message=%s\n",$message;
 	
-	$content='Recipient=' . $smsaddress . '&Content=' . $message . 
-		'&JourDelivery=&MoisDelivery=&AnneeDelivery=&HeureDelivery=' . 
+	$content='Recipient=' . $smsaddress . '&Content=' . $message .
+		'&JourDelivery=&MoisDelivery=&AnneeDelivery=&HeureDelivery=' .
 		'&MinuteDelivery=&ValidityPeriod=4&DeferredDelivery=';
 	$contentlength=length($content);
-	$post='POST ' . $postcgi .' HTTP/1.0' . $nl 
+	$post='POST ' . $postcgi .' HTTP/1.0' . $nl
 		. 'Accept: www/source' . $nl
 		. 'Accept: text/html' . $nl
 		. 'User-Agent:  ' . $useragent . $nl
 		. 'From: ' . $fromemail . $nl
 		. 'Content-type: application/x-www-form-urlencoded' . $nl
-		. 'Content-length: ' . $contentlength . $nl 
-		. $nl 
+		. 'Content-length: ' . $contentlength . $nl
+		. $nl
 		. $content;
 	
 	if($test){
@@ -425,11 +425,11 @@ sub sendToEMail{
 		$message=substr($message,$maxChunkSize);
 		open(smsmail,">>/tmp/smsmail".$$);
         if($originalFrom){
-            printf smsmail 
+            printf smsmail
                    "%s -f '%s' '%s' << EOF\nFrom: %s\nTo: %s\n\n%s\nEOF\n",
                    $sendmailProgram,$from,$email,$from,$email,$chunk;
         }else{
-            printf smsmail 
+            printf smsmail
                    "%s '%s' << EOF\n%s\nEOF\n",
                    $mailProgram,$email,$chunk;
         }
@@ -505,13 +505,13 @@ if(($smsaddress =~ /\+33603.*/)
 
 #}elsif(($smsaddress =~ /\+33667.*/)    # Bouygues Télécom Nomad
 #     ||($smsaddress =~ /\+33668.*/)    # Bouygues Télécom Nomad
-#     ||($smsaddress =~ /\+33660.*/)    # Bouygues Télécom 
-#     ||($smsaddress =~ /\+33661.*/)    # Bouygues Télécom 
-#     ||($smsaddress =~ /\+33662.*/)    # Bouygues Télécom 
-#     ||($smsaddress =~ /\+33663.*/)){  # Bouygues Télécom 
+#     ||($smsaddress =~ /\+33660.*/)    # Bouygues Télécom
+#     ||($smsaddress =~ /\+33661.*/)    # Bouygues Télécom
+#     ||($smsaddress =~ /\+33662.*/)    # Bouygues Télécom
+#     ||($smsaddress =~ /\+33663.*/)){  # Bouygues Télécom
 
     ## France - Bouygues Télécom Nomad ##
-    ## France - Bouygues Télécom 
+    ## France - Bouygues Télécom
 
 
 }elsif(($smsaddress =~ /\+33607.*/)

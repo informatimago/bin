@@ -25,14 +25,14 @@
 	set offset=28
 	set sndsize=0
 	@ sndsize = $randomsize * 8 + $offset
-	/usr/bin/sndrecord -s $sndsize ${filename}.snd 
+	/usr/bin/sndrecord -s $sndsize ${filename}.snd
 									#file size is rounded to upper 256.
 	/bin/cat ${filename}.snd  \
 		| /local/bin/${uname}/binskip $offset \
 		| /users/pascal/bin/${uname}/extractbit1 \
 		> ${filename}
-	/bin/rm -f ${filename}.snd 
-	/local/bin/${uname}/truncate -${randomsize} ${filename} 
+	/bin/rm -f ${filename}.snd
+	/local/bin/${uname}/truncate -${randomsize} ${filename}
 	
 	/usr/bin/uuencode $name < ${filename} | mail -s "$subject" $destination
 	

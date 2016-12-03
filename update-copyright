@@ -1,4 +1,4 @@
-#!/bin/csh -f 
+#!/bin/csh -f
 echo 'See emacs M-x pjb-update-copyright'
 exit 0
 

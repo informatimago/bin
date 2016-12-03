@@ -48,10 +48,10 @@ report)
     printf "${format}" "--------" "-----------------------------------" "------------------------------"
     printf "${format}" "status" "host" "job"
     printf "${format}" "--------" "-----------------------------------" "------------------------------"
-    find "${jobdir}/${target}"*/ -name \*.job | sort | while read job ; do 
+    find "${jobdir}/${target}"*/ -name \*.job | sort | while read job ; do
         printf "${format}" "Will Run" "$(basename "$(dirname "${job}")")" $(basename "${job}")
     done
-    find "${jobdir}/${target}"*/ -name \*.done | sort | while read job ; do 
+    find "${jobdir}/${target}"*/ -name \*.done | sort | while read job ; do
         status="$(echo "${job}"|sed -e 's/\.done$/.status/')"
         if [ -r "${status}" ] ; then
             status=$(sed -n 's/(status *\(.*\))/\1/p' < "${status}"|tail -1)
@@ -73,7 +73,7 @@ rerun)
     done
     ;;
 clean)
-    find "${jobdir}" \( -name \*.out -o -name \*.err -o -name \*.status \) -exec rm -f {} \; 
+    find "${jobdir}" \( -name \*.out -o -name \*.err -o -name \*.status \) -exec rm -f {} \;
     ;;
 erase)
     find "${jobdir}" \( -name \*.out -o -name \*.err -o -name \*.status -o -name \*.done \) -exec rm -f {} \;
@@ -99,18 +99,18 @@ run)
         echo "(hostname \"$(hostname)\")" >> "${status}"
         interpreter=( $(head -1 "${job}" | sed -n '1s/^#!//p') ) # quotes?
         if [ ${#interpreter} -gt 0 ] ; then
-            "${interpreter[@]}" "${job}"  > "${out}" 2> "${err}" 
+            "${interpreter[@]}" "${job}"  > "${out}" 2> "${err}"
         elif cp "${job}" "${rundir}" ; then
             script="${rundir}/$(basename "${job}")"
-            "${script}" > "${out}" 2> "${err}" 
+            "${script}" > "${out}" 2> "${err}"
         else
-            "${SHELL}" "${script}" > "${out}" 2> "${err}" 
+            "${SHELL}" "${script}" > "${out}" 2> "${err}"
         fi
         echo "(status $?)" >> "${status}"
         echo "(finished \"$(date +%Y%m%dT%H%M%S)\")" >> "${status}"
         case "${job}" in
         *.persistent.job) true ;;
-        *) mv "${job}" "${done}" ;; 
+        *) mv "${job}" "${done}" ;;
         esac
         done
     else

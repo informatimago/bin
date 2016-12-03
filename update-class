@@ -1,6 +1,6 @@
 #!/bin/csh -f
 
-cat > /tmp/updateclass.$$.sed << EOF 
+cat > /tmp/updateclass.$$.sed << EOF
 /METHOD([A-Za-z0-9_]*,className,(void),const char\*)/,/\/\/className/{
 s/METHOD(\([A-Za-z0-9_]*\),className,(void),const char\*)/METHOD(\1,makeBrother,(void),BpObject*)/
 s/return("\([A-Za-z0-9_]*\)");/return(NEW(\1));/

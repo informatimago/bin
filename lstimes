@@ -16,7 +16,7 @@ ls -lu $arguments \
 | sed -e 's/...............................\(............\) \(.*\)/\1	\2/' \
 > /tmp/lstime.$$.a
 lcat -T  /tmp/lstime.$$.c /tmp/lstime.$$.m /tmp/lstime.$$.a
-rm /tmp/lstime.$$.[cma] 
+rm /tmp/lstime.$$.[cma]
 
 #end
 

@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 if [ $(read -p 'Did you start the network? (y/n) ' r ; echo -n $r) != y ] ; then
     exit 0
 fi

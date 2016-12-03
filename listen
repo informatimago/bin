@@ -11,7 +11,7 @@ get am.snd
 quit
 EOF_FTP
 rsh $HOST_TO_LISTEN rm -f am.snd
-sndplay am.snd 
+sndplay am.snd
 
 exit 0
 #END

@@ -30,7 +30,7 @@ function usage(){
     printf "  gpull [gset] [--all-remotes]\n"
     printf "  gpush [gset] [--all-remotes]\n"
     printf "\n"
-    printf "gset should be one of: \n" 
+    printf "gset should be one of: \n"
     printf "             %s\n" ${gsets[@]}
     printf "\n"
 }
@@ -71,7 +71,7 @@ clone)
                   | while read name url ; do
                         dstdir="$(homedir $(dirname ${dir}))"
                         if [ $first -eq 0 ] ; then
-                            
+
                             echo mkdir -p ${dstdir}
                             echo cd ${dstdir}
                             echo git clone -o $name $url $(basename $dir)
@@ -94,7 +94,7 @@ for arg ; do
     *)
         gset="$arg"
         gotit=0
-        for e in ${gsets[@]} ; do 
+        for e in ${gsets[@]} ; do
             if [ "$gset" = "$e" ] ; then
                 gotit=1
                 break
@@ -116,7 +116,7 @@ gpull)    op=(pull) ;;
 gpush)    op=(push) ;;
 gstat)    op=(status --untracked-files=no) ;;
 gremotes) op=(remote) ;;
-*) 
+*)
     error "it should be named gpull, gpush or gstat\nuse:\n\t gpull link \nto make the symlinks.\n"
     ;;
 esac
