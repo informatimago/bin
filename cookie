@@ -1,4 +1,4 @@
-#!/usr/local/bin/clisp -ansi -q -E utf-8 -on-error abort
+#!/usr/local/bin/clisp -ansi -q -E utf-8 -on-error debug
 ;;;; -*- mode:lisp; coding:utf-8 -*-
 ;;;;****************************************************************************
 ;;;;FILE:               cookie
@@ -82,8 +82,10 @@
        (with-open-file (input table-path :direction :input :if-does-not-exist nil)
          (when input
            (loop for line = (read-line input nil nil)
+                 for path = (and line (string-trim " " line))
                  while line
-                 collect (string-trim " " line))))))
+                 when (plusp (length path))
+                   collect path)))))
 
 
 (defun cookie-separator-p (ch)
