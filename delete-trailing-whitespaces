@@ -1,11 +1,52 @@
 #!/bin/bash -e
 
+declare -r Tab=$'\t'
+declare TabWidth=8
+
+function expandTabs(){
+    local file="$1"
+    case "${file}" in
+    (*akefile*)
+        true
+        ;;
+    (*)
+        if grep -q -s "${Tab}" "${file}" >/dev/null ; then
+            cp "${file}" "${file}.with-tabs"
+            LC_ALL=C LC_CTYPE=C expand "-${TabWidth}" <"${file}.with-tabs" >"${file}"
+            rm -f "${file}.with-tabs"
+        fi
+        ;;
+    esac
+}
+
+function deleteTrailingWhitespaces(){
+    local file="$1"
+    cp "${file}" "${file}.with-trailing-whitespaces"
+    sed -e 's/  *$//' <"${file}.with-trailing-whitespaces" >"${file}"
+    rm "${file}.with-trailing-whitespaces"
+}
+
+function convertToLinefeed(){
+    local file="$1"
+
+    lc -u "${file}"
+}
+
+function cleanFile(){
+    for file ; do
+        convertToLinefeed "${file}"
+        expandTabs "${file}"
+        deleteTrailingWhitespaces "${file}"
+    done
+}
+
+
 function main(){
     local roots=("$@")
     if [[ $# -eq 0 ]] ; then
         roots=(.)
     fi
-    find "${roots[@]}" \( -name '.??*' -prune \) -o \( -type f -print0 \) | xargs -0 sed -i -e 's/  *$//'
+    find "${roots[@]}" \( -name '.??*' -prune \) -o \( -type f -print \) | while read file ; do cleanFile "${file}" ; done
     exit 0
 }
 
