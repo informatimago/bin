@@ -34,7 +34,8 @@ DO:     Copy the contents of the file at path SRC to the file at path DST.
 
 
 (defun process-file (encoding file)
-  (let ((file.bak (merge-pathnames (make-pathname :type "BAK" :case :common) file)))
+  (let* ((file (truename file))
+         (file.bak (merge-pathnames (make-pathname :type "BAK" :case :common) file)))
     (ignore-errors (delete-file file.bak))
     (handler-case (rename-file file file.bak)
       (error (err)
@@ -102,4 +103,3 @@ DO:     Copy the contents of the file at path SRC to the file at path DST.
 (WHEN (BOUNDP 'EXT:*ARGS*)
   (EXT:EXIT (MAIN  EXT:*ARGS*)))
 ;;otherwise, we're not in a script!
-
