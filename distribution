@@ -395,8 +395,10 @@ declareDarwinVersion "14.5.0"  "Yosemite"        "2015"                "OS X v10
 declareDarwinVersion "15.0.0"  "El Capitan"      "September 15, 2015"  "OS X v10.11.0"                          ""
 declareDarwinVersion "15.6.0"  "El Capitan"      "July 18, 2016"       "OS X v10.11.6"                          ""
 # We filter on "OS X" so keep "OS X", not "macOS":
-declareDarwinVersion "16.0.0"  "Sierra"          "September 13, 2016"  "OS X v10.12.0"                          ""
-declareDarwinVersion "16.1.0"  "Sierra"          "October, 2016"       "OS X v10.12.1"                          ""
+declareDarwinVersion "16.0.0"  "Sierra"          "September 13, 2016"  "OS X v10.12.0"                          "build 16A323"
+declareDarwinVersion "16.1.0"  "Sierra"          "October 24, 2016"    "OS X v10.12.1"                          "build 16B2555 16B2657"
+declareDarwinVersion "16.3.0"  "Sierra"          "December 13, 2016"   "OS X v10.12.2"                          "build 16C67 16C68"
+declareDarwinVersion "16.4.0"  "Sierra"          "December 20, 2016"   "OS X v10.12.3 Beta 2"                   "build 16D17a"
 
 # http://en.wikipedia.org/wiki/Darwin_%28operating_system%29#Release_history
 
