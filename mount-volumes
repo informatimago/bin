@@ -7,7 +7,7 @@ options=( -o nolockd  )
 hostname=$(hostname)
 
 function usage(){
-    printf "\n%s usage:\n    %s [-s|--server server] [-m|--mountdir mountdir] [-u|--unmount|unmount]\n\n" "$pname" "$pname" 
+    printf "\n%s usage:\n    %s [-s|--server server] [-m|--mountdir mountdir] [-u|--unmount|unmount]\n\n" "$pname" "$pname"
 }
 
 server=""
@@ -48,7 +48,7 @@ if [ $umount -eq 1 ] ; then
         true
         ;;
     *)
-        true 
+        true
         ;;
     esac
 else
@@ -56,16 +56,13 @@ else
     mount "${options[@]}" "${server}":/local/home    "${mountdir}"/home
     mount "${options[@]}" "${server}":/local/srv     "${mountdir}"/srv
     case "${hostname}" in
-    larissa*)
+    (larissa*|despina*)
         mount "${options[@]}" "${server}":/movies    "${mountdir}"/movies
         ;;
     galatea*)
         mount "${options[@]}" "${server}":/movies    "${mountdir}"/movies
-        ;; 
-    triton*)
-        true
         ;;
-    despina*)
+    triton*)
         true
         ;;
     *)

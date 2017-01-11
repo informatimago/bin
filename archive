@@ -1,13 +1,13 @@
-#!/bin/csh -f 
+#!/bin/csh -f
 #*****************************************************************************
 #FILE
 #	archive, unarchive, viewarchive, rezip
 #							!! SYMBOLIC LINKS ON archive ==> Edit archive !!
 #DESCRIPTION
 #	When named archive,     this script runs tar and compress on directories.
-#	When named unarchive,   this script runs uncompress, tar -x on 
+#	When named unarchive,   this script runs uncompress, tar -x on
 #													directory.tar.Z files.
-#	When named viewarchive, this script runs uncompress, tar -t on 
+#	When named viewarchive, this script runs uncompress, tar -t on
 #													directory.tar.Z files.
 #	Run it without argument for help.
 #AUTHORS
@@ -140,7 +140,7 @@ if ( $error == 0 ) then
 				echo "${message} '${dir}' ..."
 			endif
 			$TAR ${quiet}${options} - "./${dir}" \
-				| $ZIP ${gziplevel} > "${dir}${date}.tar.${ZIPEXT}" 
+				| $ZIP ${gziplevel} > "${dir}${date}.tar.${ZIPEXT}"
 		end
 		breaksw
 	case unarchive:
@@ -214,7 +214,7 @@ if ( $error == 0 ) then
 #	case list:
 #		set lnlist=()
 #		@ i=0
-#		while ( $i < $#list ) 
+#		while ( $i < $#list )
 #			@ i++
 #			switch ( $list[$i] )
 #			case *.tgz:
@@ -258,7 +258,7 @@ if ( $error == 0 ) then
 #				if ( $quiet == 'v') then
 #					echo "${message} '${dir}' ..."
 #				endif
-#				$ZIP -d < "${dir}" | $TAR ${quiet}${options} - 
+#				$ZIP -d < "${dir}" | $TAR ${quiet}${options} -
 #			endif
 #		end
 #		if ( $#lnlist != 0 ) then
@@ -294,11 +294,11 @@ if ( $error == 0 ) then
 				endif
 				$ZIP -d < "${dir}" | $ZIP ${gziplevel} > "${dir}.gz"
 				if ( $quiet == 'v') then
-					/bin/ls -l "${dir}" 
+					/bin/ls -l "${dir}"
 				endif
 				mv "${dir}.gz" "${dir:r}.gz"
 				if ( $quiet == 'v') then
-					/bin/ls -l "${dir:r}.gz" 
+					/bin/ls -l "${dir:r}.gz"
 				endif
 			endif
 		end

@@ -85,7 +85,7 @@ foreach dir ( $matchedirectories )
 	set newroot="`echo $basename:q | sed -e 's/\./-/g'`"
 	set newname=$newroot:q
 	set i=0
-	while ( -e "$dirname/$newname" ) 
+	while ( -e "$dirname/$newname" )
 		set newname=$newroot:q-$i
 		@ i++
 	end

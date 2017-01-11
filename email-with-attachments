@@ -8,7 +8,7 @@
 #
 #    This script builds a MIME email with the given files as attachments.
 #    A first text/plain section is inserted.
-#   
+#
 #USAGE
 #    email-with-attachments files... > message
 #
@@ -64,7 +64,7 @@ That's all folks!
 
 EOF
 
-function clean { 
+function clean {
     rm -f /tmp/ewa.$$.*
 }
 
@@ -88,7 +88,7 @@ for arg ; do
         ;;
     *)
         files="${files} ${arg:q}"
-        echo $arg >> /tmp/ewa.$$.head   
+        echo $arg >> /tmp/ewa.$$.head
         ;;
     esac
 done

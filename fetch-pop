@@ -6,7 +6,7 @@
 ;;;;SYSTEM:             Common-Lisp
 ;;;;USER-INTERFACE:     NONE
 ;;;;DESCRIPTION
-;;;;    
+;;;;
 ;;;;    A POP-3 downloader for emacs.
 ;;;;    emacs 22.1 can't parse correctly unix mailboxes.  In 2007!
 ;;;;    So we download our POP-3 messages and write a unix mailbox as
@@ -17,19 +17,19 @@
 ;;;;        -t file
 ;;;;              The name of the file the mail is to be moved to.  This
 ;;;;              must always be included in this string.
-;;;;        
+;;;;
 ;;;;        -s server
 ;;;;              The name of the server.
-;;;;        
+;;;;
 ;;;;        -P port
 ;;;;              The port number of the server.
-;;;;        
+;;;;
 ;;;;        -u user
 ;;;;              The user name to use.
-;;;;        
+;;;;
 ;;;;        -p password
 ;;;;              The password to use.
-;;;;    
+;;;;
 ;;;;AUTHORS
 ;;;;    <PJB> Pascal Bourguignon <pjb@informatimago.com>
 ;;;;MODIFICATIONS
@@ -37,19 +37,19 @@
 ;;;;BUGS
 ;;;;LEGAL
 ;;;;    GPL
-;;;;    
+;;;;
 ;;;;    Copyright Pascal Bourguignon 2007 - 2007
-;;;;    
+;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU General Public License
 ;;;;    as published by the Free Software Foundation; either version
 ;;;;    2 of the License, or (at your option) any later version.
-;;;;    
+;;;;
 ;;;;    This program is distributed in the hope that it will be
 ;;;;    useful, but WITHOUT ANY WARRANTY; without even the implied
 ;;;;    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 ;;;;    PURPOSE.  See the GNU General Public License for more details.
-;;;;    
+;;;;
 ;;;;    You should have received a copy of the GNU General Public
 ;;;;    License along with this program; if not, write to the Free
 ;;;;    Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -514,7 +514,7 @@ bounded by start and end, which must be numeric bounding-indices."
 by processing any remaining input in its buffer, with suitable padding
 and appended bit-length, as specified by the MD5 standard.
 
-The resulting MD5 message-digest is returned as an array of 
+The resulting MD5 message-digest is returned as an array of
 sixteen(unsigned-byte 8) values.  Calling `update-md5-state' after a call to
 `finalize-md5-state' results in unspecified behaviour."
   (declare (type md5-state state)
@@ -815,7 +815,7 @@ DO:         A CASE, but for string keys. That is, it uses STRING= as test
 
 
 (defun apop-encode (stamp password)
-  (format nil "~(~{~2,'0X~}~)" 
+  (format nil "~(~{~2,'0X~}~)"
           (coerce
            (DE.PMSF.MD5:MD5SUM-SEQUENCE
             (coerce
@@ -836,7 +836,7 @@ DO:         A CASE, but for string keys. That is, it uses STRING= as test
 
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  
+
   (defvar *ascii-characters*
     " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~")
 
@@ -849,7 +849,7 @@ DO:         A CASE, but for string keys. That is, it uses STRING= as test
         (if pos
           (+ 32 pos)
           (error "~C is not a character encodable into ASCII" character))))))
-  
+
 
 
   (defun code-ascii (code)
@@ -923,7 +923,7 @@ DO:         A CASE, but for string keys. That is, it uses STRING= as test
                  (return buffer))
                 (eof-error-p
                  (error 'end-of-file :stream stream))
-                (t 
+                (t
                  (return eof-value)))))
 
 

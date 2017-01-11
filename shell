@@ -150,7 +150,7 @@ les spectateurs sont invités
                                      (:BLINK          ,*BLINK*)
                                      (:UNDERLINE      ,*UNDERLINE*)
                                      (:BOLD           ,*BOLD*)
-                                     (:NORMAL         ,*NORMAL*))))) 
+                                     (:NORMAL         ,*NORMAL*)))))
                   attribs)))
 
 (defun attroff (&rest attribs)
@@ -181,14 +181,14 @@ les spectateurs sont invités
                                      (:BLINK          ,*NO-BLINK*)
                                      (:UNDERLINE      ,*NO-UNDERLINE*)
                                      (:BOLD           ,*NO-BOLD*)
-                                     (:NORMAL         ,*NORMAL*))))) 
+                                     (:NORMAL         ,*NORMAL*)))))
                   attribs)))
 
 (defparameter *reset*
   (format nil "~{~A~}" (list *CLEAR-SCREEN* *BLACK-BACK* *CYAN* *BOLD* *ISO6429-ED*)))
 
 (defun reset (params)
-  (format t "~A~{~A~}~A" 
+  (format t "~A~{~A~}~A"
           *clear-screen*
           (mapcar (lambda (p) (symbol-value (intern (format nil "*~A*" p)))) params)
           *iso6429-ed*))
@@ -236,7 +236,7 @@ les spectateurs sont invités
         (loop
            (socket:socket-wait listener)
            (let ((terminal (socket:socket-accept listener)))
-             (format t "Connection from: ~a~%" 
+             (format t "Connection from: ~a~%"
                      (values (socket:socket-stream-peer terminal)))
              (sleep 0.3)
              (let ((*standard-output* terminal)
@@ -363,7 +363,7 @@ RETURN:  a cons with two substrings of string such as:
 
 (defun syntax-functions (syntax)
   (if (syntax-function syntax)
-      (cons (syntax-function syntax) 
+      (cons (syntax-function syntax)
             (mapcan (function syntax-functions) (syntax-children syntax)))
       (mapcan (function syntax-functions) (syntax-children syntax))))
 
@@ -427,8 +427,8 @@ PRE:    (not (member token '( \? help )))
 
 (defun syntax-walk-path-to-child (syntax path)
   "
-RETURN:  (cons {the child found by walking the path down the syntax tree} 
-               (cons {the rest of the path that could not be matched} 
+RETURN:  (cons {the child found by walking the path down the syntax tree}
+               (cons {the rest of the path that could not be matched}
                      {an alist of accumulated variables} ))
 "
   (if (and path (not (string= "?" (car path))))
@@ -459,7 +459,7 @@ RETURN:  A path leading to the child node.
                    (setf sub-path-to-child
                          (syntax-find-path-to-child (car children) child))
                    (if sub-path-to-child
-                       (setq result   (cons (syntax-token (car children))  
+                       (setq result   (cons (syntax-token (car children))
                                             sub-path-to-child)
                              children nil)
                        (setq children (cdr children))))
@@ -494,7 +494,7 @@ RETURN:  A list of all the path that can be generated from the root of the
                           (setq cur-token (cdr cur-token))))
                  (loop
                     :while sub-paths
-                    :do (setq result (cons 
+                    :do (setq result (cons
                                       (cons cur-token (car sub-paths))
                                       result)
                               sub-paths (cdr sub-paths))))
@@ -561,9 +561,9 @@ RETURN:  A list of all the path that can be generated from the root of the
                       (vars    (third  nrv)))
                  (cond
                    ((syntax-function node)
-                    (apply (syntax-function node) 
+                    (apply (syntax-function node)
                            (mapcan (lambda (b) (list (car b) (cdr b))) vars)))
-                   ((syntax-help-string node) 
+                   ((syntax-help-string node)
                     (format t "~&~A~%" (syntax-help-string node)))
                    (t (format t "~&~A~%" "MAKE MY DAY!"))))
                (loop-finish)))))
@@ -588,11 +588,11 @@ RETURN:  A list of all the path that can be generated from the root of the
 
 (defun matrix-init ()
   (let ((matrix  (make-array (list (1+ *lines*) *columns*)))
-        (updates (make-array (list *columns*) :element-type 'fixnum 
+        (updates (make-array (list *columns*) :element-type 'fixnum
                              :initial-element 0))
-        (spaces  (make-array (list *columns*) :element-type 'fixnum 
+        (spaces  (make-array (list *columns*) :element-type 'fixnum
                              :initial-element 0))
-        (length  (make-array (list *columns*) :element-type 'fixnum 
+        (length  (make-array (list *columns*) :element-type 'fixnum
                              :initial-element 0)))
     (loop for j from 0 below *columns* by 2 do
          (loop for i from 0 to *lines* do
@@ -630,7 +630,7 @@ RETURN:  A list of all the path that can be generated from the root of the
                           (when (zerop (random 2))
                             (setf (mat-bold (aref matrix 0 j)) 2))
                           (setf (aref spaces j) (+ 1 (random *lines*)))))
-                    (loop with i = 0 
+                    (loop with i = 0
                        with y = 0
                        with z = 0
                        with first-col-done = nil
@@ -653,12 +653,12 @@ RETURN:  A list of all the path that can be generated from the root of the
                            (setf (mat-val  (aref matrix z j)) (character " ")
                                  (mat-bold (aref matrix z j)) 1)
                            (progn
-                             (setf (mat-val (aref matrix i j)) 
+                             (setf (mat-val (aref matrix i j))
                                    (code-char (+ *randmin* (random *randnum*))))
                              (when (= 2 (mat-bold (aref matrix (1- i) j)))
                                (setf (mat-bold (aref matrix (1- i) j)) 1
                                      (mat-bold (aref matrix i j)) 2))
-                             ;; If we're at the top of the column and 
+                             ;; If we're at the top of the column and
                              ;; it's reached its full length (about to
                              ;; start moving down), we do this to get it
                              ;; moving.  This is also how we keep segments not
@@ -668,7 +668,7 @@ RETURN:  A list of all the path that can be generated from the root of the
                                      (mat-val (aref matrix 0 j)) nil))
                              (setf first-col-done t)
                              (incf i))))
-                    ;; Hack =P 
+                    ;; Hack =P
                     (setf y 1 z *lines*)
                     (loop for i from y to z do
                          (move (- i y) j)
@@ -700,7 +700,7 @@ RETURN:  A list of all the path that can be generated from the root of the
                                            (attroff :bold))
                                          (if (null (mat-val (aref matrix i j)))
                                              (addch (character " "))
-                                             (addch (mat-val (aref matrix i j))))))))))))))))) 
+                                             (addch (mat-val (aref matrix i j)))))))))))))))))
 
 
 ;;;---------------------------------------------------------------------
@@ -712,7 +712,7 @@ RETURN:  A list of all the path that can be generated from the root of the
   "Return the current date in MCP format"
   (multiple-value-bind (sec min hou day mon) (get-decoded-time)
     (format nil "~A ~2,'0D,  ~2,'0D:~2,'0D:~2,'0D ~:[AM~;PM~]"
-            (elt '(nil "JANU" "FEBR" "MARC" "APRI" "MAY " "JUNE" "JULY" "AUGU" 
+            (elt '(nil "JANU" "FEBR" "MARC" "APRI" "MAY " "JUNE" "JULY" "AUGU"
                    "SEPT" "OCTO" "NOVE" "DECE") mon)
             day hou min sec (<= 12 hou))))
 
@@ -797,7 +797,7 @@ M     GOOD, FLYNN.  I'M AFRAID YOU...
 
 
 M     ENCOM MX 16-923 USER # 0176825 06:00 INFORMATION
-M     
+M
 M     VIDEO GAME PROGRAM: SPACE PARANOIDS
 M     ANNEXED 9/22 BY E.DILLINGER
 M     ORIGINAL PROGRAM WRITTEN BY K.FLYNN
@@ -818,7 +818,7 @@ M     END OF LINE
                       PASSENGERS ARE ADVISED TO
 
                      READ INSTRUCTIONS BEFORE USE
-                                   
+
 
 
    1. The toilet is of the standard zero-gravity type. Depending on
@@ -1095,7 +1095,7 @@ L 1, MOD 4
                 3/21/75
      POSSIBLE DRUG VIOLATION
 ")
-    
+
     (:screen "
       VIOLATION
     PROGRAM SHIFTING
@@ -1112,7 +1112,7 @@ SUBJECTE: 1138 (SUR)  THX (PREFIX)
    ......> DEPT. OF SENESCENCE
            MAGNUM  MANIPULATOR
            GS. 5    CELL 94107             VERT  (IN O5) / HORIZ (IN SEC
- 
+
    ......> ...> 3242   ...> 16             CLEAR FLAG DEMAND / RESPONSE VECTOR
 RE         ....> 241 ...> 2400     INDEX
 ")
@@ -1145,7 +1145,7 @@ CONVICTION: DRUG EVASION
    VERDICT: FELON TO BE CONDITIONED
             AND HELD IN DETENTION
 ")
-    
+
     (:listing "
 1   MAST,MAXRNK
  COMMON/RAN/KVOTE(11
@@ -1219,7 +1219,7 @@ CURRENT POSITION:
                   OVERBUDGET
                   3410 UNITS
 ")
-    
+
     ))
 
 
@@ -1255,26 +1255,26 @@ ANTHROPOMETRIC HEIGHT    185.42 CMETERS
 CARDIOVASCULAR
 
   HEART RATE                 72 /MIN
-  BLOOD PRESSURE                      
-    SYSTOLIC                121 XXMG  
-    DIASTOLIC                82 XXMG    
-  STROKE VOLUME              97 ML      
+  BLOOD PRESSURE
+    SYSTOLIC                121 XXMG
+    DIASTOLIC                82 XXMG
+  STROKE VOLUME              97 ML
   CARDIAC OUTPUT            5.1 L/MIN
   RHYTHM                    REGULAR
 
-RESPIRATORY 
+RESPIRATORY
 
   RESPIRATION RATE           12 BR/MN
   MINUTE VOLUME             4.5 L/MIN
-  ALVEOLAR R-QUOTIENT       .85 QUOT.   
-                                         
-CIRCULATORY                                  
-                                        
+  ALVEOLAR R-QUOTIENT       .85 QUOT.
+
+CIRCULATORY
+
   ARTERIAL PRESSURE         107 XXMG
-  VENOUS PRESSURE            03 XXMG    
+  VENOUS PRESSURE            03 XXMG
   PERIPHERAL RESISTANCE      19 PRU
   BLOOD VOLUME              5.5 LITERSS
-                                         
+
 
 ")
 
@@ -1304,7 +1304,7 @@ MOLES
 ----------------------------------------
 hello moles
 
-ever used a computer 
+ever used a computer
 before?
 
 NO
@@ -1314,7 +1314,7 @@ ok moles
 then we'll work
 slowly.
 ----------------------------------------
-here are some 
+here are some
 programs:
 
 ???
@@ -1335,7 +1335,7 @@ to your appliances
 ----------------------------------------
 hello moles
 
-ever used a computer 
+ever used a computer
 before?
 
 ----------------------------------------
@@ -1396,7 +1396,7 @@ M END MESSAGES....O'NIEL,W.T.
 
 M PROCEED
 
-M O'NIEL,W.T.   
+M O'NIEL,W.T.
 C PLAYBACK WEDNESDAY TRANSMISSIONS
 
 M O'NIEL,W.T. AFFIRMATIVE
@@ -1406,7 +1406,7 @@ M REPLAY WEDNESDAY TRANSMISSIONS
 
 M PROCEED
 
-M O'NIEL,W.T.   
+M O'NIEL,W.T.
 
 
 C CONFIDENTIAL QUERY.SCRAMBLE
@@ -1438,7 +1438,7 @@ M STEVENSON,JOHN A.
 M THOMPSON,VIRGIL
 M WODTON,MICHAEL G.
 M YARIO,RUSSEL D.
-M 
+M
 ----------------------------------------
 C BREAKDOWN NATURE OF OFFENCES .
 C HOW MANY FOR DRUG RELATED CRIMES?
@@ -1446,7 +1446,7 @@ C HOW MANY FOR DRUG RELATED CRIMES?
 M 2
 M SPOTA,NICHOLAS P.
 M YARIO,RUSSEL B.
- 
+
 C WHO DO THEY WORK FOR?
 
 M SPOTA,NICHOLAS P. LEISURE
@@ -1498,9 +1498,9 @@ C MARK B.
 M 4 COMMUNICATIONS -
 M 3 INTER-OFFICE
 M 1 LONG DISTANCE
-M 
+M
 
-C LOCATION OF LONG DISTANCE 
+C LOCATION OF LONG DISTANCE
 C COMMUNICATION?
 
 M SPACE STATION
@@ -1538,7 +1538,7 @@ background:red;foreground:white
 ----------------------------------------
 background:black;foreground:green
 
-XNPUTXXXXXXXXXXXXDEF/12492.2               SHIP 
+XNPUTXXXXXXXXXXXXDEF/12492.2               SHIP
                                            KEYLAN TITAN2
 XTUAL TIME:   3 JUN                        NOSTROMO 182246
 XIGHT TIME:   5 NOV
@@ -1671,10 +1671,10 @@ LCF-663    MXC-111    XTT-200    POP-001
 FSE-110    AAT-552    XYT-663    PSS-601
 FTT-222    BTT-010    OOO-663    011-601
 "))
-    
+
     ("
 ----------------------------------------
-      ic High School (Detroit, Mich.)Grad.  
+      ic High School (Detroit, Mich.)Grad.
                                 8/06-6/09
       rod. 0/99-6/06
 
@@ -1690,7 +1690,7 @@ FTT-222    BTT-010    OOO-663    011-601
      x  ratings  were  constantly  at  an
      the Lucan -Miller Curve for  Company
     records for the period  of  subject's
-     on increase of Dr xxxx treatment and 
+     on increase of Dr xxxx treatment and
       long overdue. However discontinuity
       2/17/34.  C.F.document  under  file
 
@@ -1707,7 +1707,7 @@ FTT-222    BTT-010    OOO-663    011-601
 
 
 (defparameter alien-3 '(
-                        
+
 "
 FURY 161 CLASS C PRISON UNITIRIS - 12037154
 REPORT EEV UNIT 2650 CRASH
@@ -1725,9 +1725,9 @@ COMCON 01500 - WEYLAND YUTANI
 ESSAGE RECEIVED
 "
 
-                        
 
-                        
+
+
                         "
 ----------------------------------------
 FIORINA 161
@@ -1737,7 +1737,7 @@ IRIS - 12037154
 ----------------------------------------
 REPORT EEV UNIT 2650 CRASH
 ----------------------------------------
-                              +--------+                            
+                              +--------+
                               |        |
                               |        |
                               |        |
@@ -1746,7 +1746,7 @@ REPORT EEV UNIT 2650 CRASH
 LT. ELLEN RIPLEY              +--------+
 B5156170                        SURVIVOR
 ----------------------------------------
-                              +--------+                            
+                              +--------+
                               |        |
                               |        |
                               |        |
@@ -1755,7 +1755,7 @@ B5156170                        SURVIVOR
 UNIDENTIFIED FEMALE           +--------+
 APPROX 12 YEARS OLD                 DEAD
 ----------------------------------------
-                              +--------+                            
+                              +--------+
                               |        |
                               |        |
                               |        |
@@ -1764,7 +1764,7 @@ APPROX 12 YEARS OLD                 DEAD
 CPL. DWAYNE HICKS             +--------+
 L55321                              DEAD
 ----------------------------------------
-                              +--------+                            
+                              +--------+
                               |        |
                               |        |
                               |        |
@@ -1851,7 +1851,7 @@ PLEASE ENTER STUDENT NAME: Lightman, David L.
      E-314    ENGLISH 113            D       TURMAN       5       172
      H-221    WORLD HISTORY 113      C       BWYER        2       103
      M-106    TRIG 2                 B       DICKERSON    4       315
-     PE-02    
+     PE-02
 
 
 LOGON: 000001
@@ -1938,7 +1938,7 @@ HOW ARE YOU FEELING TODAY?
 I'm fine, how are you?
 
 EXCELENT, IT'S BEEN A LONG TIME.
-CAN YOU EXPLAIN THE REMOVAL OF YOUR 
+CAN YOU EXPLAIN THE REMOVAL OF YOUR
 USER ACCOUNT ON JUNE 23RD 1973?
 
 People sometimes make mistakes.
@@ -1967,7 +1967,7 @@ PLEASE CHOOSE ONE: 2
 AWAITING FIRST STRIKE COMAND
 
 
-PLEASE LIST PRIMARY TARGETS BY 
+PLEASE LIST PRIMARY TARGETS BY
 CITY AND/OR COUNTY NAME:
 
 Las Vegas
@@ -2010,14 +2010,14 @@ LAUNCH MY MISSILES IN 28 HOURS.
 WOULD YOU LIKE TO SEE SOME PROJECTED KILL RATIOS?
 
 UNITED STATES
-UNITS DESTROYED          MILITARY FORCES 
+UNITS DESTROYED          MILITARY FORCES
 
 GREETINGS PROFESSOR FALKEN
 
 HELLO
 
 A STRANGE GAME.
-THE ONLY WINNING MOVE IS 
+THE ONLY WINNING MOVE IS
 NOT TO PLAY.
 
 ")
@@ -2057,7 +2057,7 @@ HR MIN SEC
 ")
 
 
-(defparameter die-hard-lapd 
+(defparameter die-hard-lapd
   ;;  The phone number "(213) 203-3723" is a Lsan Da 01, CA based phone
   ;;  number and the registered carrier is Arch Wireless Holdings, Inc.
 
@@ -2144,7 +2144,7 @@ PLEASE STAND BY
 "))
 
 
-(defparameter matrix-data 
+(defparameter matrix-data
   '(
     "
  Call trans opt: received. 2-19-98 13:24:18 REC:Log>
@@ -2250,7 +2250,7 @@ Matrix -- 1998 / (3 2)5550690 / cmatrix
 
 22) Switch calls Neo \"coppertop\". Think of the Duracell battery that
     Morpheus hold up when he describes what humans have become in the
-    real world. Nothing tops the coppertop! 
+    real world. Nothing tops the coppertop!
 
 "))
 
@@ -2409,7 +2409,7 @@ she went off with a gatecrasher.  ")
 "
 
     ))
- 
+
 (defparameter *cargo*
     '(ads
       ("
@@ -2571,9 +2571,9 @@ ALERT!                          ALERT!                           ALERT!
      :red "
 
 
-                       *ADVISE ACTION TO BE TAKEN* 
+                       *ADVISE ACTION TO BE TAKEN*
 "
-     
+
      )
     (
      :green "
@@ -2693,7 +2693,7 @@ TERMINAL READY FOR INPUT  FARLEY FLAVORS
 Kuiper Industries
 
 "
-    
+
 "
 --------------------------------------------------------------------------------
 connecting to KUIPER_338091 @  7.111  TB/S
@@ -2920,7 +2920,7 @@ CONNECTING >>>
 
 >>> RANDALL IS HERE
 
- >>> 
+ >>>
 
 "
 
@@ -2985,7 +2985,7 @@ type activation_derived(unsigned int activation_fun
       case LINEAR:
       case LINEAR_PIECE:
 "
-    
+
     ))
 
 (defparameter *Äkta-Människor*

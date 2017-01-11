@@ -480,7 +480,7 @@ bounded by start and end, which must be numeric bounding-indices."
 by processing any remaining input in its buffer, with suitable padding
 and appended bit-length, as specified by the MD5 standard.
 
-The resulting MD5 message-digest is returned as an array of 
+The resulting MD5 message-digest is returned as an array of
 sixteen(unsigned-byte 8) values.  Calling `update-md5-state' after a call to
 `finalize-md5-state' results in unspecified behaviour."
   (declare (type md5-state state)
@@ -822,31 +822,31 @@ RETURN:  the list of lines collected from the file.
                            (file-path rfile)
                            (line-text line)))
                (setf num (line-number line)))))))
-   
+
 ;; (in-package "COMMON-LISP-USER")
 ;; (load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common :defaults *load-pathname*))
 ;; (use-package "SCRIPT")
 ;; (defparameter *program-version* "0.0.0")
-;; 
-;; 
-;; 
-;; 
-;; 
-;; 
-;;  
-;; 
+;;
+;;
+;;
+;;
+;;
+;;
+;;
+;;
 ;; (define-option ("who-depends-on" "depends" "--who-depends-on" "--who-depends" "--depends") (package-name)
 ;;   ;; [who] depends [on] [package] <package-name>
 ;;   "List the packages who depend on the package named PACKAGE-NAME.
-;; PACKAGE-NAME may include some specific version according to the 
-;; underlying package system syntax.  
+;; PACKAGE-NAME may include some specific version according to the
+;; underlying package system syntax.
 ;; "
 ;;   (fpm dependants package-name))
-;; 
-;; 
-;; 
-;; 
-;; 
+;;
+;;
+;;
+;;
+;;
 ;; (parse-options ext:*args*)
 
 

@@ -7,7 +7,7 @@
 #         Only the later is used by ucd snmp tools.
 #
 
-export PREFIX=.iso.org.dod.internet.private.enterprises 
+export PREFIX=.iso.org.dod.internet.private.enterprises
 snmpwalk router public > /tmp/router-a.snmp
 snmpwalk router public DI206-MIB::dlink | sed -e 's/gratis/XXXXXXXX/g' -e 's/y4y96cet/XXXXXXXX/g' -e 's/05058913/XXXXXXXX/g'  -e 's/gaiagaia/XXXXXXXX/g' > /tmp/router-b.snmp
 cat /tmp/router-a.snmp /tmp/router-b.snmp > /tmp/router.snmp

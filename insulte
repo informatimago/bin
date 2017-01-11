@@ -247,7 +247,7 @@
 
 (defparameter ad (remove-if-not (lambda (x) (member 'a (second x)))
                                 insults))
- 
+
 
 (setf *random-state* (make-random-state t))
 
@@ -268,7 +268,7 @@
                     ((string= "eur" ga :start2 (- (length ga) 3))
                      (setf ga (concatenate 'string
                                 (subseq ga 0 (1- (length ga))) "se")))
-                    (t 
+                    (t
                      (setf ga (concatenate 'string ga "e")))))
                  (first (elt nm n)))))
          (conj (if (position (aref gn 0) "aeiouyh") "d'" "de "))

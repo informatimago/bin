@@ -43,7 +43,7 @@
       (REMOVE (FIND-PACKAGE "COMMON-LISP")
               (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))))
 
-;; (SETQ *ARGS* '( "-t" "-c" "noumea" "-d" "thalassa-tl" "-c" "acapulco-2" "-d" "thalassa-bl" "-d" "galatea-tl" "-o" )) 
+;; (SETQ *ARGS* '( "-t" "-c" "noumea" "-d" "thalassa-tl" "-c" "acapulco-2" "-d" "thalassa-bl" "-d" "galatea-tl" "-o" ))
 
 (DEFUN DEF-LP-TRANS (HOST PATH &OPTIONAL (SUBPATH ""))
   ;; (PUSHNEW HOST *LOGICAL-HOSTS* :TEST (FUNCTION STRING-EQUAL))
@@ -106,14 +106,14 @@ RETURN:     A substring of PATH without the extension.
 
 
 (EVAL-WHEN (COMPILE LOAD EVAL)
-  
+
   (DEFMACRO MEMQ (ITEM LIST)
     `(MEMBER ,ITEM ,LIST :TEST (FUNCTION EQ)))
 
   (DEFMACRO WHILE (CONDITION &BODY BODY)
     `(DO () ((NOT ,CONDITION) NIL) ,@BODY))
 
-  
+
   (DEFCONSTANT CL-SIMPLE-FUNCS
     '(CAR CDR NTH AREF ELT IF AND OR + - 1+ 1- MIN MAX
           CAR-SAFE CDR-SAFE PROGN PROG1 PROG2))
@@ -121,7 +121,7 @@ RETURN:     A substring of PATH without the extension.
   (DEFCONSTANT CL-SAFE-FUNCS
     '(* / % LENGTH MEMQ LIST VECTOR VECTORP < > <= >= = /= ERROR))
 
-  
+
   ;; Things that are side-effect-free.
   (MAPCAR (FUNCTION (LAMBDA (Y) (SETF (GET Y 'SIDE-EFFECT-FREE) T)))
           '(FIRST SECOND THIRD FOURTH FIFTH SIXTH SEVENTH EIGHTH NINTH
@@ -233,241 +233,241 @@ Key values are compared by `string='."
                              (SCRIPT:SHELL (FORMAT NIL "pngtopnm < ~A > ~A"
                                                    IN-PATH OUT-PATH)))
                            OUT-PATH)))
-    (NOUMEA              
-     +12  60  768  512  
+    (NOUMEA
+     +12  60  768  512
      "http://webcam.kaori.nc/webcam.jpg")
-    (SIDNEY              
-     +10  60  480  360  
+    (SIDNEY
+     +10  60  480  360
      "http://www.lss.com.au/webcam/webcaml.jpg")
-    (KYOTO                
-     +9  60  320  240  
+    (KYOTO
+     +9  60  320  240
      "http://www3.kyoto-kcg.ac.jp/daimon/current.jpg")
-    (SETO-BRIDGE          
-     +9  60  320  240  
+    (SETO-BRIDGE
+     +9  60  320  240
      "http://info-bridge.santec.co.jp/setobridge/setob.jpg")
-    (PERTH-1              
-     +8  60  320  240  
+    (PERTH-1
+     +8  60  320  240
      "http://www.aceonline.com.au/~livecam/cam1/livecam.jpg")
-    (PERTH-2              
-     +8  60  320  240  
+    (PERTH-2
+     +8  60  320  240
      "http://www.aceonline.com.au/~livecam/cam2/livecam.jpg")
-    (PERTH-3              
-     +8  60  320  240  
+    (PERTH-3
+     +8  60  320  240
      "http://www.aceonline.com.au/~livecam/cam3/livecam.jpg")
-    (BANGKOK              
-     +7  60  320  240  
+    (BANGKOK
+     +7  60  320  240
      "http://www.cyberworksconsulting.com/images/webcam/capture.jpg")
-    (NOVOSIBIRSK          
-     +5  60  320  240  
+    (NOVOSIBIRSK
+     +5  60  320  240
      "http://webcam.telefun.ru/cgi-bin/w3cam.cgi")
-    (MOSCOW               
-     +3  60  512  384  
+    (MOSCOW
+     +3  60  512  384
      "http://cards.mnc.ru/image/512/mos32.jpg")
-    (GDANSK               
-     +2  60  320  240  
+    (GDANSK
+     +2  60  320  240
      "http://www.gdansk.gda.pl/um_green/k_kamera/cam2.jpg")
-    (JERUSALEM            
-     +2  60  320  240  
+    (JERUSALEM
+     +2  60  320  240
      "http://aish1.com/wall/thewall92.jpg")
-    (OXFORD-CIRCUS        
-     +0  60  320  240  
+    (OXFORD-CIRCUS
+     +0  60  320  240
      "http://www.fujiint.co.uk/street/FIP.jpg")
-    (LA-MANGA             
-     +0  30  352  288  
+    (LA-MANGA
+     +0  30  352  288
      "http://www.informatimago.com/webcams/webcam.jpeg")
-    (GRAN-CANARIAS        
-     -1  60  640  472  
+    (GRAN-CANARIAS
+     -1  60  640  472
      "http://www.condor.de/common/webcams/CF150312.jpg")
-    (ISAFJORDUR           
-     -1  60  352  288  
+    (ISAFJORDUR
+     -1  60  352  288
      "http://www.snerpa.is/vedur/isafjord.jpg")
-    (ISUMERIT             
-     -2  60  320  240  
+    (ISUMERIT
+     -2  60  320  240
      "http://iserit.greennet.gl/sajare/isummeritwebcam/webcam.jpg")
-    (RIO-DE-JANEIRO       
-     -3  60  352  288  
+    (RIO-DE-JANEIRO
+     -3  60  352  288
      "http://www.uol.com.br/aliwebcam2/pao_de_acucar.jpg")
-    (BUENOS-AIRES         
-     -4  60  352  288  
+    (BUENOS-AIRES
+     -4  60  352  288
      "http://www.offspring.com.ar/webcam/buenos_aires01.jpg")
-    (NEW-YORK             
-     -5  60  320  240  
+    (NEW-YORK
+     -5  60  320  240
      "http://www.abc45online.com/skycpk.jpg")
     (MEXICO-PONIENTE-1
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg1.jpg" 
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg1.jpg"
       :TITLE "Periférico Norte, Paseo de las Palmas y Presidente Masarik"
       :LOCATION "Col. Chapultepec Morales(Zona Poniente)" )
     (MEXICO-SUR-1
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg5.jpg" 
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg5.jpg"
       :TITLE "Av. Patriotismo, pasando Extremadura (Eje 7 Sur)"
       :LOCATION "Col. Mixcoac(Zona Sur)" )
     (MEXICO-SUR-2
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg7.jpg" 
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg7.jpg"
       :TITLE "Periférico Sur, antes de Paseo de la Magdalena"
       :LOCATION "Col. Jardínes Pedregal(Zona Sur)" )
-    (MEXICO-ORIENTE-1   
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg8.jpg" 
+    (MEXICO-ORIENTE-1
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg8.jpg"
       :TITLE "Viaducto Miguel Alemán, entre Eje 3 Oriente y Añil"
       :LOCATION "Col. Granjas México(Zona Oriente)" )
-    (MEXICO-SUR-3   
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg9.jpg" 
+    (MEXICO-SUR-3
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg9.jpg"
       :TITLE "Av. Universidad y Av. Coyoacan"
       :LOCATION "Col. del Valle(Zona Sur)" )
-    (MEXICO-SUR-4  
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg10.jpg" 
+    (MEXICO-SUR-4
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg10.jpg"
       :TITLE "Av. Revolución y Dr. Zamora y Duque (antes de Viaducto)"
       :LOCATION "Col. Escandón(Zona Sur)" )
-    (GUADALAJARA-1  
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg11.jpg" 
+    (GUADALAJARA-1
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg11.jpg"
       :TITLE "Cruce de Av.Vallarta y Av. Chapultepec"
       :LOCATION "Col. Americana(Guadalajara, Jalisco)" )
     (GUADALAJARA-2
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg12.jpg" 
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg12.jpg"
       :TITLE "Federalismo Norte y Circunvalación"
       :LOCATION "Federalismo(Guadalajara, Jalisco)" )
-    (MAZATLAN        
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg13.jpg" 
+    (MAZATLAN
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg13.jpg"
       :TITLE "21 de marzo 14 y 16 Pte."
       :LOCATION "(Mazatlán, Sinaloa)" )
     (LAPAZ
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg14.jpg" 
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg14.jpg"
       :TITLE "Clima"
       :LOCATION "Ocampo y Altamirano(La Paz, Baja California Sur)" )
-    (MONTERREY-1   
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg15.jpg" 
+    (MONTERREY-1
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg15.jpg"
       :TITLE "Av. Constitución, Centro"
       :LOCATION "(Monterrey, Nuevo León)" )
     (MONTERREY-2
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg16.jpg" 
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg16.jpg"
       :TITLE "Av. Gonzalitos y Nevado de Toluca Col. Urdiales"
       :LOCATION "Col. Urdiales(Monterrey, Nuevo León)" )
-    (MEXICO-PONIENTE-2    
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg17.jpg" 
+    (MEXICO-PONIENTE-2
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg17.jpg"
       :TITLE "Carretera México-Toluca km. 14.5"
       :LOCATION "Col. Lomas de Bezares(Zona Poniente)" )
-    (MEXICO-SUR-5  
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg19.jpg" 
+    (MEXICO-SUR-5
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg19.jpg"
       :TITLE "Av. Insurgentes Sur"
       :LOCATION "Col. Copilco el Bajo(Zona Sur)" )
-    (MEXICO-ORIENTE-2     
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg20.jpg" 
+    (MEXICO-ORIENTE-2
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg20.jpg"
       :TITLE "Calzada Ignacio Zaragoza y Av.Telecomunicaciones"
       :LOCATION "U.H. Rotaria(Zona Oriente)" )
-    (MEXICO-ORIENTE-3     
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg21.jpg" 
+    (MEXICO-ORIENTE-3
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg21.jpg"
       :TITLE "Calzada Ermita Iztapalapa 1628"
       :LOCATION "Col. San Miguel(Zona Oriente)" )
-    (ACAPULCO-1           
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg22.jpg" 
+    (ACAPULCO-1
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg22.jpg"
       :TITLE "Av. farallón del Obispo #2"
       :LOCATION "Frente a la Costera(Acapulco, Guerrero)" )
-    (ACAPULCO-2           
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg23.jpg" 
+    (ACAPULCO-2
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg23.jpg"
       :TITLE "Costera Miguel Alemán y Av. del Mar"
       :LOCATION "Fracc. Club Deportivo(Acapulco, Guerrero)" )
-    (CANCUN-1             
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg24.jpg" 
+    (CANCUN-1
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg24.jpg"
       :TITLE "Boulevard Kukulkan Km.10 Zona Hotelera, Frente al Centro de Convenciones"
       :LOCATION "(Cancún, Quintana Roo)" )
     (CANCUN-2
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg25.jpg" 
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg25.jpg"
       :TITLE "Boulevard Kukulkan Km.10 Zona Hotelera, Frente al Centro de Convenciones"
       :LOCATION "(Cancún, Quintana Roo)" )
-    (NUEVOLAREDO          
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg26.jpg" 
+    (NUEVOLAREDO
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg26.jpg"
       :TITLE "Avenida González y Benito Juárez Centro (Puente Internacional 1)"
       :LOCATION "(Nuevo Laredo, Tamaulipas)" )
-    (MEXICO-SUR-6         
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg27.jpg" 
+    (MEXICO-SUR-6
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg27.jpg"
       :TITLE "Río Churubusco pasando Av. Universidad"
       :LOCATION "Col. del Valle(Zona Sur)" )
-    (REYNOSA              
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg28.jpg" 
+    (REYNOSA
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg28.jpg"
       :TITLE "Boulevard Hidalgo"
       :LOCATION "Col. Simón Rodríguez(Reynosa, Tamaulipas)" )
-    (VERACRUZ             
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg29.jpg" 
+    (VERACRUZ
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg29.jpg"
       :TITLE "Zamora y Rayón"
       :LOCATION "Centro(Veracruz, Veracruz)" )
-    (CHIHUAHUA-1          
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg30.jpg" 
+    (CHIHUAHUA-1
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg30.jpg"
       :TITLE "Av. Universidad No. 2731"
       :LOCATION "Col. Universidad(Chihuahua, Chihuahua)" )
-    (MEXICO-SUR-7         
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg32.jpg" 
+    (MEXICO-SUR-7
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg32.jpg"
       :TITLE "Periférico Sur 3585"
       :LOCATION "(Zona Sur)" )
-    (CHIHUAHUA-2          
-      -7  60  704  576 
-      "http://www.vialidad.telmex.net/fotos/fg33.jpg" 
+    (CHIHUAHUA-2
+      -7  60  704  576
+      "http://www.vialidad.telmex.net/fotos/fg33.jpg"
       :TITLE "El Paso Texas"
       :LOCATION "(Cd. Juárez, Chihuahua)" )
     ;; returns HTML instead of JPG.
-;;     (VALLARTA             
-;;      -8  60  352  288  
+;;     (VALLARTA
+;;      -8  60  352  288
 ;;      "http://images.earthcam.com/affiliates/cheeseburger/puertovallarta.jpg")
-    (SAN-FRANCISCO-BAY    
-     -8  60  400  300  
+    (SAN-FRANCISCO-BAY
+     -8  60  400  300
      "http://webmarin.com/images/wc/Camera.jpg")
-    (SAN-FRANCISCO-GOLDEN 
-     -8  60  320  240  
+    (SAN-FRANCISCO-GOLDEN
+     -8  60  320  240
      "http://www.mapwest.com/webcam/ggbridgecam.jpg")
-    (VANCOUVER-ISLAND     
-     -9  60  352  288  
+    (VANCOUVER-ISLAND
+     -9  60  352  288
      "http://www.shawniganlakecondo.com/webcam/webcam32.jpg")
-    (RUBY                
-     -10  60  640  480  
+    (RUBY
+     -10  60  640  480
      "http://akweathercams.faa.gov/wxdata/Ruby/images/current/hugecam2.jpg")
-    (KODIAK              
-     -10  60  640  480  
+    (KODIAK
+     -10  60  640  480
      "http://akweathercams.faa.gov/wxdata/kodiak/images/current/hugecam4.jpg")
     ;; returns HTML instead of JPG.
-;;     (HONOLULU-SMALL      
-;;      -11  60  128   96  
+;;     (HONOLULU-SMALL
+;;      -11  60  128   96
 ;;      "http://www.hawaii-malinda.com/live/s1.jpg")
-;;     (HONOLULU-BIG        
-;;      -11  60  640  480  
+;;     (HONOLULU-BIG
+;;      -11  60  640  480
 ;;      "http://www.hawaii-malinda.com/live/1.jpg")
-    (HONOLULU-HARBOR     
-     -11  60  640  480  
+    (HONOLULU-HARBOR
+     -11  60  640  480
      "http://www.hawaiiocean.com/oceanonline/Channel.jpg")
-    (CANCUN-NORTE-SMALL   
-     -6  60  352  288  
+    (CANCUN-NORTE-SMALL
+     -6  60  352  288
      "http://www.vialidad.telmex.net/fotos/f24.jpg")
-    (CANCUN-SUR-SMALL     
-     -6  60  352  288  
+    (CANCUN-SUR-SMALL
+     -6  60  352  288
      "http://www.vialidad.telmex.net/fotos/f25.jpg")
-    (ACAPULCO-1-SMALL     
-     -7  60  352  288  
+    (ACAPULCO-1-SMALL
+     -7  60  352  288
      "http://www.vialidad.telmex.net/fotos/f22.jpg")
-    (ACAPULCO-2-SMALL     
-     -7  60  352  288  
+    (ACAPULCO-2-SMALL
+     -7  60  352  288
      "http://www.vialidad.telmex.net/fotos/f23.jpg")
     ));;CAMERAS
 
@@ -480,7 +480,7 @@ Key values are compared by `string='."
          (vincrem (/ height vtiles)) )
     (for j 0 (1- vtiles)
          (for i 0 (1- htiles)
-              (printf "    \"%-14s%-8s%5d%5d  %s\" \\\n" 
+              (printf "    \"%-14s%-8s%5d%5d  %s\" \\\n"
                       (format "%s-%02d" name (+ i (* j htiles)))
                       (format "%d,%d" (* i hincrem) (* j vincrem))
                       hincrem vincrem display)
@@ -497,7 +497,7 @@ Key values are compared by `string='."
     ("-------------" "--------" "----" "----"
      "---------------------------------------")
     "~13A ~8A ~4A ~4A ~39A~%"));;DISTITLE
-     
+
 (DEFPARAMETER DISPLAYS
   '(
     (PROTEUS-TL    "0,0"      400  300  "192.168.166.2:0.0")
@@ -593,7 +593,7 @@ Key values are compared by `string='."
     (APPLY 'FORMAT T FORM  (ELT TITLE 1))
     (FORMAT T "~%")
     ));;TABLE-DISPLAY
-    
+
 
 ;; Line accessors:
 
@@ -604,7 +604,7 @@ Key values are compared by `string='."
 (DEFUN CAM-HEIGHT  (CAM) (ELT CAM 4))
 (DEFUN CAM-URL     (CAM) (ELT CAM 5))
 (DEFUN CAM-OPTIONS (CAM) (CDDR (CDDDDR CAM)))
-                          
+
 (DEFUN DIS-NAME    (DIS) (ELT DIS 0))
 (DEFUN DIS-OFFSET  (DIS) (ELT DIS 1))
 (DEFUN DIS-WIDTH   (DIS) (ELT DIS 2))
@@ -739,7 +739,7 @@ POST:           (STATE SELF) ==> (MAX NOW (= (NEXT-TIME SELF)
   );;COMPUTE-SCHEDULE
 
 
- 
+
 (DEFUN ACTIVITY-DEQUEUE (ACTIVITY)
   "
 POST:           (NOT (MEMBER ACTIVITY *ACTIVITY-QUEUE*))
@@ -854,7 +854,7 @@ DO:             Periodically run the activities in *ACTIVITY-QUEUE*.
 (DEFPARAMETER H-DISPLAYS NIL)
 (DEFPARAMETER H-CAMERAS  NIL)
 
-        
+
 ;; Global options:
 (DEFPARAMETER TMPDIR   (FORMAT NIL "/tmp/~A.~D/"  SCRIPT:*NAME* (SCRIPT:PID)))
 (DEFPARAMETER TICK     0)
@@ -924,7 +924,7 @@ DO:             Periodically run the activities in *ACTIVITY-QUEUE*.
            (SCRIPT:SHELL (FORMAT NIL "ps ax | egrep '~A' | grep -v ' -p'"
                                  (BRACKET SCRIPT:*NAME*)))
            (SCRIPT:EXIT 0))
-        
+
           ((--KILL)
            (SCRIPT:SHELL
             (FORMAT NIL "kill `ps ax | egrep '~A' | awk '{print $1}'`"
@@ -941,7 +941,7 @@ DO:             Periodically run the activities in *ACTIVITY-QUEUE*.
                      SCRIPT:*NAME* CAME)
              (SCRIPT:EXIT SCRIPT:EX-DATAERR))
            (PUSH CAME CAMES))
-        
+
           ((-K -KEEP --KEEP)
            (WHEN (NULL CAME)
              (FORMAT *ERROR-OUTPUT*
@@ -954,11 +954,11 @@ DO:             Periodically run the activities in *ACTIVITY-QUEUE*.
            (PUSH KEEP KEEPS)
            ;; We store the keep into the camera because keeps are PATHS.
            (SPUT CAME 'KEEP KEEP))
-        
+
           ((-D -DIS -DISP -DISPLAY --DISPLAY)
            (WHEN (NULL CAME)
              (FORMAT *ERROR-OUTPUT*
-                     "~A: Syntax error: --display before any --camera." 
+                     "~A: Syntax error: --display before any --camera."
                      SCRIPT:*NAME*)
              (PRINT-USAGE)
              (SCRIPT:EXIT SCRIPT:EX-USAGE))
@@ -1117,7 +1117,7 @@ DO:             Periodically run the activities in *ACTIVITY-QUEUE*.
                                 (IF (PLIST-GET OPTIONS :DO-NOT-ZOOM)
                                   (LIST "-xzoom" "100.0" "-yzoom" "100.0")
                                   (LIST
-                                   "-smooth" "-smooth" 
+                                   "-smooth" "-smooth"
                                    "-xzoom" (FORMAT NIL "~,3F" X-ZOOM)
                                    "-yzoom" (FORMAT NIL "~,3F" Y-ZOOM))))
                          (NCONC XLIARGS (LIST PICTURE-FILE))))
@@ -1130,9 +1130,9 @@ DO:             Periodically run the activities in *ACTIVITY-QUEUE*.
             ((NULL SAS))
           (WHEN (MEMBER :GET-DISPLAY DEBUG)
             (FORMAT *TRACE-OUTPUT* "~&DISPLAYING ~A~%"
-                    (LIST  "xli" "-display" XSCREEN "-quiet" 
+                    (LIST  "xli" "-display" XSCREEN "-quiet"
                            "-onroot" "-border" BGCOLOR XLIARGS) ))
-          (APPLY 'CMD "xli" "-display" XSCREEN "-quiet" 
+          (APPLY 'CMD "xli" "-display" XSCREEN "-quiet"
                  "-onroot" "-border" BGCOLOR XLIARGS)
           ))
       (WHEN (NOTANY (LAMBDA (ACTIVITY) (EQ :GET (KIND ACTIVITY)))

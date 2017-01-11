@@ -15,7 +15,7 @@ for t in \
     pascal@naiad \
     pascal@hyacinte.dyndns.org
 do
-    pjb-xterm $t -e ssh $t 
+    pjb-xterm $t -e ssh $t
 done
 
 #### xterms                           -- 2004-01-24 01:19:08 -- pascal   ####

@@ -19,7 +19,7 @@ function process () {
     | tr 'ÿ' '\012' \
     | html-accents-to-isolatin1 \
     | tr '\240'  ' '  \
-    | awk -f "$dname/html-get-tables.awk" 
+    | awk -f "$dname/html-get-tables.awk"
 }
 
 if [ $# -eq 0 ] ; then
@@ -29,7 +29,7 @@ else
 
         case "$arg" in
         --help)
-            usage 
+            usage
             exit 0
             ;;
         -*)
@@ -44,7 +44,7 @@ else
     done
 fi
 exit 0
-    
+
 
 
 

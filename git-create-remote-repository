@@ -13,7 +13,7 @@ repository=''
 
 case "$1" in
 -a|--add)
-    shift 
+    shift
     if [ $# -ne 3 ] ; then
         usage
         exit 1
@@ -37,18 +37,18 @@ case "$repository" in
     true
     ;;
 *)
-    printf "The path of the remote repository directory must be absolute.\n" 
+    printf "The path of the remote repository directory must be absolute.\n"
     printf "'%s' is a relative path.\n"  "$repository"
     exit 2
 esac
 
 if [ -d .git ] ; then
-    true 
+    true
 else
-    printf "The current working directory must be a local git repository.\n" 
+    printf "The current working directory must be a local git repository.\n"
     printf "There is no .git subdirectory in '%s'.\n"  "$(pwd)"
     exit 3
-    
+
 fi
 
 intr="$(stty -a|tr ';' '\012'|awk '/intr/{print $3}')"

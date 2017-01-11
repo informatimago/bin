@@ -5,7 +5,7 @@
 #SYSTEM:            UNIX
 #USER-INTERFACE:    X window
 #DESCRIPTION
-#    This script fetches all the comic strips of the day 
+#    This script fetches all the comic strips of the day
 #    from http://www.unitedmedia.com/, and displays them at once.
 #USAGE
 #    get-bd
@@ -65,7 +65,7 @@ if [ "$1" != "--clean" ] ; then
             | tr '<>' '\012\012' \
             | egrep -i -e 'img  *src.*archive/images' \
             | sed -e 's-[Ii][Mm][Gg]  *[Ss][Rr][Cc]="/-http://www.unitedmedia.com/-' \
-            -e 's-".*--' 
+            -e 's-".*--'
     done \
         | sort \
         | while read gifurl ; do wget "$gifurl" ; $delay ; done
@@ -82,7 +82,7 @@ if [ "$1" != "--clean" ] ; then
     fi
     rm -f *.1 %du.txt
     date=$(date "+%Y-%m-%d")
-    for f in * ; do 
+    for f in * ; do
         g=$(echo "$f"|sed -e "s/[0-9][0-9][0-9]*\(\.[a-z]*\)$/-${date}\1/")
         mv "${f}" "${g}"
     done
@@ -93,10 +93,10 @@ elif [ -r %du.txt ] ; then
 else
     rm -f *.1
     date=$(ls -lt *|awk '{print $6;exit(0);}')
-fi 
+fi
 #copy away the files to the archive directory:
 if [ -n "$archive_dir" ] ; then
-   for f in * ; do 
+   for f in * ; do
        d="$archive_dir/$(echo "$f"|sed -e 's/[^a-z].*//')"
        mkdir -p "$d"
        cp "$f" "$d/"
@@ -109,7 +109,7 @@ exit 0
 #move away the files to the archive directory:
 archive_dir=/d6/pjb/bd-archive
 if [ -n "$archive_dir" ] ; then
-   for f in * ; do 
+   for f in * ; do
        d="$archive_dir/$(echo "$f"|sed -e 's/[^a-z].*//')"
        mkdir -p "$d"
        mv "$f" "$d/"

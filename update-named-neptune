@@ -13,11 +13,11 @@ MAKE_NCFTPPUT='
 BEGIN{
     h="";
     u="";
-    p=""; 
+    p="";
     s=0;
 }
 
-/^machine/{ 
+/^machine/{
     if($2==host){
         h=host;
         s=1;
@@ -70,5 +70,5 @@ if [ -r token.key ] ; then
     fi
 fi
 
-   
+
 

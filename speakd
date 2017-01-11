@@ -29,7 +29,7 @@ if [ "$#" -gt 0 ] ; then
 fi
 
 rm -f "$fifo"
-mknod "$fifo" p 
+mknod "$fifo" p
 
 (
     trap "rm -f $fifo $oufile" 0
@@ -47,9 +47,9 @@ mknod "$fifo" p
             espeak -f "$infile"  -b 1  ${voice_options[@]}  -w "$oufile" \
                 && mplayer -slave -nojoystick "$oufile" < /dev/null > /dev/null 2>&1
             rm -f "$infile" "$oufile"
-            ;; 
+            ;;
         esac
-    done 
+    done
 ) & disown
 
 exit 0

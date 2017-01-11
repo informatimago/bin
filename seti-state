@@ -51,7 +51,7 @@ BEGIN{ apostrophe=39; space=32; }
 /^HOST /{ host=$2; indi=""; seti_num=0; next; }
 /^INDI /{ host=$2; indi=$3; seti_num=0; next; }
 /^SETI /{ setis[seti_num++]=$2; next; }
-/^SSH */{ 
+/^SSH */{
     if(seti_num>1){
         seti_option="{";
         for(i=0;i<seti_num-1;i++){
@@ -102,7 +102,7 @@ EOF
 # INDI hermes.afaa.asso.fr sirius.intra.afaa.asso.fr
 # SETI $HOME/.kernel
 # SSH
-# INDI hermes.afaa.asso.fr socrate.intra.afaa.asso.fr 
+# INDI hermes.afaa.asso.fr socrate.intra.afaa.asso.fr
 # SETI $HOME/.kernel
 # SSH
 #
@@ -123,7 +123,7 @@ EOF
 # cat ${cmd} ; exit 0
 
 # Step 2:
-# We run the commands in parallel to gather the results, 
+# We run the commands in parallel to gather the results,
 # and wait for them to finish.
 . ${cmd} > ${sta}
 wait

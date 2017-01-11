@@ -13,7 +13,7 @@ VAR=
 squeak=/usr/local/languages/squeak-2.0
 
 if [ $# -eq 0 ] ; then
-    # SqueakVM-2.0-$ARCH$VAR 
+    # SqueakVM-2.0-$ARCH$VAR
 	exec $squeak/bin/squeak \
 		-display $DISPLAY $XSHM -lazy -memory 16m \
         $squeak/image/Squeak2.0.image
@@ -22,7 +22,7 @@ else
 	exec $squeak/bin/squeak $*
 fi
 
-exit 
+exit
 
 <options> are:
 -display <dpy>       display on <dpy> (default: $DISPLAY)

@@ -38,9 +38,9 @@ find `find * -type d -prune -print` -type f -name \*.html -print \
         <$f~ > $f
 done
 
-find . -type d -exec chmod 755 {} \; 
+find . -type d -exec chmod 755 {} \;
 find . -type f -exec chmod 644 {} \;
-find . -name \*~ -exec rm -f {} \; 
+find . -name \*~ -exec rm -f {} \;
 
 [ $UID -eq 0 ] && chown -R  gdr.web .
 exit 0
@@ -50,7 +50,7 @@ exit 0
   (interactive "r")
   (let ((str (buffer-substring start end)))
     (delete-region start end)
-    (insert 
+    (insert
      (do* ((i   0            (1+ i))
            (ch) (chd) (chu)
            (any ""))
@@ -58,8 +58,8 @@ exit 0
        (setq ch  (aref str i))
        (setq chd (downcase ch)
              chu (upcase ch))
-       (setq any (concat any (if (or (/= ch chd) (/= ch chu)) 
-                                 (format "[%c%c]" chu chd) 
+       (setq any (concat any (if (or (/= ch chd) (/= ch chu))
+                                 (format "[%c%c]" chu chd)
                                (format "%c" ch))))))))
 
 
@@ -67,5 +67,5 @@ html-clean-intergruas /Users/guillermo/Intergruas/Public/Intergruas/
 rsync -e ssh '/Users/guillermo/Intergruas/Public/Intergruas/' gdr:jpbmat@www.intergruas.com:/local/html/intergruas
 
 
-           
+
 #### html-clean-intergruas            -- 2004-03-16 19:31:02 -- pascal   ####

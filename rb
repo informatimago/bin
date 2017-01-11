@@ -60,12 +60,12 @@ if [ ! -d $dir ] ; then
     exit 1
 fi
 if [ $url_only -ne 0 ] ; then
-    echo http://www.rocketboom.net/video/rb_${yy}_${mmm}_${dd}.wmv 
+    echo http://www.rocketboom.net/video/rb_${yy}_${mmm}_${dd}.wmv
 elif [ -s $dir/rb-${yyyy}-${mm}-${dd}.wmv ] ; then
-    mplayer -ontop -af volume=+9db $dir/rb-${yyyy}-${mm}-${dd}.wmv 
+    mplayer -ontop -af volume=+9db $dir/rb-${yyyy}-${mm}-${dd}.wmv
 else
     wget http://www.rocketboom.net/video/rb_${yy}_${mmm}_${dd}.wmv \
         -O $dir/rb-${yyyy}-${mm}-${dd}.wmv \
     && [ $download_only -eq 0 ] \
-    && mplayer -ontop -af volume=+9db $dir/rb-${yyyy}-${mm}-${dd}.wmv 
+    && mplayer -ontop -af volume=+9db $dir/rb-${yyyy}-${mm}-${dd}.wmv
 fi

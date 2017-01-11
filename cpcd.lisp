@@ -102,7 +102,7 @@ if [ "$start" != '' ] ; then
         ;;
     esac
     index=$start
-    while true ; do 
+    while true ; do
         cpcd "$(printf "$format" "$index")"
         start=$(( $index + 1 ))
     done

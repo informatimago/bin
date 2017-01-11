@@ -1,6 +1,6 @@
 #!/bin/bash
 cd /var/spool/mail-filter
-d=$(date %+Y-%+m yesterday) 
+d=$(date %+Y-%+m yesterday)
 mv virus virus-$d ; mkdir virus ; chmod amavis:amavis virus
 mv spam  spam-$d  ; mkdir spam  ; chmod amavis:amavis spam
 v=$(find virus-$d -type f -print | wc -l)

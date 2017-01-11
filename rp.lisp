@@ -12,7 +12,7 @@ RETURN:     A vector containing the elements read from the STREAM.
   (let* ((busize (or length (ignore-errors (file-length stream)) min-size))
          (eltype (stream-ELEMENT-TYPE stream))
          (initel (if (subtypep eltype (quote integer)) 0 #\Space))
-         (buffer (make-ARRAY busize 
+         (buffer (make-ARRAY busize
                              :ELEMENT-TYPE eltype
                              :INITIAL-ELEMENT initel
                              :adjustable t :fill-pointer t))
@@ -66,7 +66,7 @@ DO:     Store the NEW-CONTENTS into the file at PATH.  By default,
 
 
 (defvar *absent* (cons (quote *absent*) nil))
-(defmacro define-plist-field (name field &optional (offset (quote identity))) 
+(defmacro define-plist-field (name field &optional (offset (quote identity)))
  "
 OFFSET: must be a symbol naming an accessor to find the plist in the record.
 "
@@ -126,10 +126,10 @@ First frame should be sized with right and bottom margins.
             (frame-x      (bottom frames)) 0
             (frame-y      (bottom frames)) (- screen-height bottom)
             (frame-width  (bottom frames)) (- screen-width right)
-            (frame-height (bottom frames)) screen-height 
+            (frame-height (bottom frames)) screen-height
             (frame-x      (right frames)) (- screen-width right)
             (frame-y      (right frames)) 0
-            (frame-width  (right frames)) screen-width 
+            (frame-width  (right frames)) screen-width
             (frame-height (right frames)) screen-height)
       frames)))
 

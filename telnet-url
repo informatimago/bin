@@ -1,6 +1,6 @@
 #!/bin/sh
-IFS=: 
-echo "$1" | ( 
+IFS=:
+echo "$1" | (
      read telnet host port
      host="$(echo "$host"|sed -e 's-^//--')"
      port="$(echo "$port"|sed -e 's-/.*--')"

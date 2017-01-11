@@ -18,8 +18,8 @@ else
                 echo wan_interface $wan_interface
 
                 ps ax | grep -e 'nat[d]'
-                ifconfig ${wan_interface} 
-                ifconfig ${lan_interface} 
+                ifconfig ${wan_interface}
+                ifconfig ${lan_interface}
                 ipfw list
                 sysctl net.inet.ip.forwarding
                 sysctl net.inet.ip.fw.enable
@@ -42,7 +42,7 @@ else
                 ipfw list
 
                 sysctl -w net.inet.ip.fw.enable=1
-                
+
                 ;;
 
             lan-ip)

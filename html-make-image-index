@@ -10,18 +10,18 @@
 
 
 ;;; (SETQ *LOAD-VERBOSE* t)
-;;; 
+;;;
 ;;; ;; clean the imported packages:
 ;;; (MAPC (LAMBDA (USED) (UNUSE-PACKAGE USED "COMMON-LISP-USER"))
-;;;       (REMOVE (FIND-PACKAGE "COMMON-LISP") 
+;;;       (REMOVE (FIND-PACKAGE "COMMON-LISP")
 ;;;               (COPY-SEQ (PACKAGE-USE-LIST "COMMON-LISP-USER"))))
-;;; 
+;;;
 ;;; ;; Load COM.INFORMATIMAGO.COMMON-LISP.PACKAGE:
 ;;; (let ((+common+    "/local/share/lisp/packages/com/informatimago/common-lisp/"))
 ;;;   (macrolet ((SCONC (&REST ARGS) `(CONCATENATE 'STRING  ,@ARGS)))
 ;;;     (HANDLER-CASE (LOAD (SCONC +common+ "package"))
 ;;;       (ERROR ()   (LOAD (SCONC +common+ "package.lisp")))) ))
-;;; 
+;;;
 ;;; ;; Import DEFINE-PACKAGE, and add translations:
 ;;; (let ((+SHARE+     "/local/share/lisp/"))
 ;;;   (macrolet ((SCONC (&REST ARGS) `(CONCATENATE 'STRING  ,@ARGS)))

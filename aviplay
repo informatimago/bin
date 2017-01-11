@@ -12,9 +12,9 @@ exit 1
 
 if [ $# -eq 1 ] ; then
     echo ONE
-    exec $AVIPLAY "$1" /dev/null  ${args[@]} -fn "$fn"  
+    exec $AVIPLAY "$1" /dev/null  ${args[@]} -fn "$fn"
 else
     echo SEVERAL
-    exec $AVIPLAY  "$@"           ${args[@]} -fn "$fn"  
+    exec $AVIPLAY  "$@"           ${args[@]} -fn "$fn"
 fi
 #### aviplay                          --                     --          ####

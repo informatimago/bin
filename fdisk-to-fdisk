@@ -15,8 +15,8 @@ fi
 fdisk -l "$1" \
 |sed -e '1,/Device Boot/d' -e 's/[+*]//g'\
 |awk '
-BEGIN { 
-    np=0; 
+BEGIN {
+    np=0;
 }
 
 {

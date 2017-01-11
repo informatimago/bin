@@ -44,7 +44,7 @@ function hostheader(){
     2)
         printf "### %-16s\n" "${h/\.*/}"
         ;;
-    esac 
+    esac
 }
 
 
@@ -90,12 +90,12 @@ if [ -n "$script" ] ; then
         printf "%s error: cannot read %s.\n" "$pname" "$script"
         usage
         exit 1
-    fi  
+    fi
 fi
 
 
 # AHOSTS=
-# for h in $HOSTS ; do 
+# for h in $HOSTS ; do
 #     ping -q -c 1 -w 4 $h >/dev/null 2>&1 \
 #         && AHOSTS="$AHOSTS $h"
 # done

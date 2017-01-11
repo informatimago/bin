@@ -12,11 +12,11 @@ Linux)
     read width height depth <<<$( xwininfo -root|awk '/^ *Width:/{printf "%s ",$2} /^ *Height:/{printf "%s ",$2} /^ *Depth:/{printf "%s\n",$2}' )
 
     case "${width}x${depth}" in
-    640×480)   efigopmode="0" ;; 
-    800×600)   efigopmode="1" ;; 
-    1024×768)  efigopmode="2" ;; 
-    1280×1024) efigopmode="3" ;; 
-    1440×900)  efigopmode="4" ;; 
+    640×480)   efigopmode="0" ;;
+    800×600)   efigopmode="1" ;;
+    1024×768)  efigopmode="2" ;;
+    1280×1024) efigopmode="3" ;;
+    1440×900)  efigopmode="4" ;;
     *)         true ;;
     esac
 
@@ -31,7 +31,7 @@ Linux)
         VBoxManage setextradata "${vm}" "VBoxInternal2/EfiGopMode"
         VBoxManage setextradata "${vm}" "VBoxInternal2/SmcDeviceKey"
     else
-        VBoxManage setextradata "${vm}" "CustomVideoMode1"            
+        VBoxManage setextradata "${vm}" "CustomVideoMode1"
         VBoxManage setextradata "${vm}" "VBoxInternal2/EfiGopMode"     "${efigopmode}"
         VBoxManage setextradata "${vm}" "VBoxInternal2/SmcDeviceKey"   "ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc"
     fi
@@ -43,11 +43,11 @@ Linux)
     VBoxManage getextradata "${vm}" enumerate
 
     case "${efigopmode}" in
-    0) wh="640×480"   ;; 
-    1) wh="800×600"   ;; 
-    2) wh="1024×768"  ;; 
-    3) wh="1280×1024" ;; 
-    4) wh="1440×900"  ;; 
+    0) wh="640×480"   ;;
+    1) wh="800×600"   ;;
+    2) wh="1024×768"  ;;
+    3) wh="1280×1024" ;;
+    4) wh="1440×900"  ;;
     *) wh="${width}x${height}" ;;
     esac
 
@@ -76,7 +76,7 @@ exit 0
 # space. Plist files are easier to edit when the Property List Editor is
 # installed from Xcode. Otherwise, you will have to hand edit these
 # files with TextEdit.
-# 
+#
 # Also note that the /Extra folder is at the root of the Hard Drive
 # volume.  It is not inside your local user profile folder.  You will
 # also note that after a default install, Mac OS X doesn’t show hard
@@ -88,36 +88,36 @@ exit 0
 # Nawcom ModCD.  If MyHack hasn’t been installed, there won’t be an
 # /Extra folder there.  The Extra folder gets installed as a result of
 # installing MyHack.
-# 
+#
 # Also, there can only be one available resolution in Virtualbox and on
 # the Mac at a given time. I wish it supported more resolutions at once,
 # but it doesn’t. Note also that because VirtualBox doesn’t support Mac
 # OS X fully, there are no machine additions. To enable the resolution,
 # on the PC side of VirtualBox (on the VirtualBox host), you will need
 # to run the following command from a command shell (cmd):
-# 
+#
 # VBoxManage setextradata "Mac OS X" "CustomVideoMode1" "1920x1080x32"
-# 
+#
 # The “Mac OS X’ label is the exact machine name in VirtualBox. The
 # “1920x1080x32″ setting is customizable to your needs (and video card
 # capabilities). However, both this setting and com.apple.boot.plist (on
 # the Mac) must match for the screen resolution to take effect.
-# 
+#
 # The ‘VBoxManage’ command is located in the Program
 # Files\Oracle\VirtualBox folder or wherever you installed
 # VirtualBox. You can add this location to your PATH variable so you can
 # use this command without typing in the full path each time.
-# 
+#
 # In the com.apple.Boot.plist file, you will need to add the following
 # properties (if not already there):
-# 
-# Graphics Mode - String - 1920x1080x32 
+#
+# Graphics Mode - String - 1920x1080x32
 # GraphicsEnabler - String - y
-# 
+#
 # (The resolution value should match the above VboxManage command). If
 # you want to change resolutions later, you will need to edit both
 # places again and reboot your Mac.
-# 
+#
 # If you reboot and the screen hasn’t changed or has changed to
 # 1280×1024 and not the resolution you expected, double check that both
 # com.apple.boot.plist and the CustomVideoMode1 setting match and are

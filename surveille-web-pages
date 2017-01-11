@@ -6,7 +6,7 @@
 ;;;;SYSTEM:             Common-Lisp
 ;;;;USER-INTERFACE:     NONE
 ;;;;DESCRIPTION
-;;;;    
+;;;;
 ;;;;    Send email notifications when the checksum on web pages change.
 ;;;;
 ;;;;    Put a line such as:
@@ -32,19 +32,19 @@
 ;;;;BUGS
 ;;;;LEGAL
 ;;;;    GPL
-;;;;    
+;;;;
 ;;;;    Copyright Pascal Bourguignon 2005 - 2005
-;;;;    
+;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU General Public License
 ;;;;    as published by the Free Software Foundation; either version
 ;;;;    2 of the License, or (at your option) any later version.
-;;;;    
+;;;;
 ;;;;    This program is distributed in the hope that it will be
 ;;;;    useful, but WITHOUT ANY WARRANTY; without even the implied
 ;;;;    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 ;;;;    PURPOSE.  See the GNU General Public License for more details.
-;;;;    
+;;;;
 ;;;;    You should have received a copy of the GNU General Public
 ;;;;    License along with this program; if not, write to the Free
 ;;;;    Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -513,7 +513,7 @@ bounded by start and end, which must be numeric bounding-indices."
 by processing any remaining input in its buffer, with suitable padding
 and appended bit-length, as specified by the MD5 standard.
 
-The resulting MD5 message-digest is returned as an array of 
+The resulting MD5 message-digest is returned as an array of
 sixteen(unsigned-byte 8) values.  Calling `update-md5-state' after a call to
 `finalize-md5-state' results in unspecified behaviour."
   (declare (type md5-state state)
@@ -815,7 +815,7 @@ according to my additional test suite") ;;+other-testsuite+
 
 (defun write-base64-sequence (sequence
                               &optional (*standard-output* *standard-output*))
-  ;; aaaaaa aa bbbb bbbb cc cccccc 
+  ;; aaaaaa aa bbbb bbbb cc cccccc
   ;; uuuuuu dd dddd tttt tt qqqqqq
   (let ((index 0))
     (flet ((get-byte ()

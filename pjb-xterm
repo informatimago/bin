@@ -3,7 +3,7 @@
 # -ls      login shell
 # -sb      save some scrolled lines
 # -sl N    save N scrolled lines
-# -vb      visual bell 
+# -vb      visual bell
 
 default_font='-*-lucidatypewriter-medium-r-normal-*-12-*-*-*-m-*-*-*'
 dectec_font='-dec-terminal-bold-r-normal-*-14-*-*-*-*-*-dec-dectech'
@@ -55,9 +55,9 @@ selected_font="$green_3_fo"
 
 coding=UTF-8
 unset LC_ALL
-unset LC_MONETARY 
+unset LC_MONETARY
 unset LC_MESSAGES
-unset LC_NUMERIC 
+unset LC_NUMERIC
 unset LC_TIME
 unset LC_COLLATE
 unset LC_CTYPE
@@ -81,9 +81,9 @@ esac
 
 cmd_xterm=xterm
 for c in /usr/bin/xterm /usr/X11R6/bin/xterm $(which xterm) xterm ; do
-    if [ $c = xterm -o -x $c ] ; then 
+    if [ $c = xterm -o -x $c ] ; then
 	    cmd_xterm=$c
-	    break 
+	    break
     fi
 done
 
@@ -94,28 +94,28 @@ function xterm () {
 xterm=$cmd_xterm
 
 
-oldopts=( 
-    +mb +aw +rw +ah -cn -j -ls 
-    -s  -sb -si -sk -sl  2000  +t  +vb -name xterm 
+oldopts=(
+    +mb +aw +rw +ah -cn -j -ls
+    -s  -sb -si -sk -sl  2000  +t  +vb -name xterm
 )
 
-options=( 
-    -ie 
-    +ah -aw -rw -cn 
-    -tn xterm-256color 
-    -bc -bcf 200 -bcn 500 
-    -bdc 
-    +cm +dc 
-    +mb -j +l -ls 
-    +nul 
-    -s  +sb -si -sk -sl 14400  +t  +vb -name xterm 
+options=(
+    -ie
+    +ah -aw -rw -cn
+    -tn xterm-256color
+    -bc -bcf 200 -bcn 500
+    -bdc
+    +cm +dc
+    +mb -j +l -ls
+    +nul
+    -s  +sb -si -sk -sl 14400  +t  +vb -name xterm
     +sp
 )
 
 version=$(xterm -version | sed -e 's/.*(\([0-9]+\))$/\1/')
 case "$version" in
-[0-9]*) 
-    if [ $version -gt 165 ]  ; then options[${#options}]="-sm" ; fi 
+[0-9]*)
+    if [ $version -gt 165 ]  ; then options[${#options}]="-sm" ; fi
     if [ $version -gt 200 ]  ; then options[${#options}]="-lc" ; fi # encodings from LC_*
     ;;
 esac
@@ -127,7 +127,7 @@ case "$name" in
 *)  shift ;;
 esac
 
-case "$name" in 
+case "$name" in
 root|root@*)   fgcolor=( -fg '#d04020' ) ;;
 *)             fgcolor=( -fg '#000000' ) ;;
 esac
@@ -206,7 +206,7 @@ fixed)
     ;;
 mac)
     font=( -fn ${fixed_14_font} )
-    colors=( -bg 'white' -fg 'black' -cr 'darkgray' ) 
+    colors=( -bg 'white' -fg 'black' -cr 'darkgray' )
     #  -selbg '#ddd' -selfg '#222'
     ;;
 white*|blue*|amber*|green*)
@@ -229,7 +229,7 @@ white*|blue*|amber*|green*)
     case $size in
     6)
         # led
-        options=( ${options[@]} -geometry 68x24 ) 
+        options=( ${options[@]} -geometry 68x24 )
         ;;
     0)
         font=()
@@ -276,12 +276,12 @@ unl*)           colors=( -fg '#011' -bg PaleGoldenrod ) ;;
 *@galatea)      colors=(            -bg '#d0f0b0' ) ;;
 *@larissa)      colors=(            -bg '#eae0ff' ) ;;
 *@naiad)        colors=(            -bg PowderBlue );; #'#e1e2f3' ) ;;
-*) 
+*)
     rgb="/dev/null"
     for f in /usr/X11/share/X11/rgb.txt \
                  /usr/X11R6/lib/X11/rgb.txt \
                  /usr/share/X11/rgb.txt \
-             ; do 
+             ; do
         if [ -r "$f" ] ; then
             rgb="$f"
             break
@@ -313,7 +313,7 @@ exit 0
 ########################################################################
 # 121 205 205             DarkSlateGray3
 #  82 139 139             DarkSlateGray4
-# 
+#
 # (show (color-24-value-to-name
 #         (color-mix '(121 205 205) '(82 139 139) 0.5)))
 # ==> "#65acac"

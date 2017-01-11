@@ -101,7 +101,7 @@ check_templates()
 		return
 	else
 		echo "${pname}: The template files are not readable"
-		echo "${pname}:     $templates/$language.header.template" 
+		echo "${pname}:     $templates/$language.header.template"
 		echo "${pname}:     $templates/$language.implem.template"
 		echo "${pname}: Please check the setting of the \$templates variable "
 		echo "${pname}: in me \"$0\" script."

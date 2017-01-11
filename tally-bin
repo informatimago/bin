@@ -6,9 +6,9 @@ cd ~/bin/
 file *[A-Za-z0-9] > "$files"
 
 cat "$files" | sed -n -e 's/,.*//' -e 's/^\([^:]*[^~]\): *//p' \
-| sort | uniq -c | sort -rn | egrep -i 'shell|cmu|lisp|perl|mz|awk' 
+| sort | uniq -c | sort -rn | egrep -i 'shell|cmu|lisp|perl|mz|awk'
 
 
 wc -l $(grep 'Bourne-Again shell script' "$files" | sed -e 's/:.*//') | sort -n > bourne-scripts.txt
-wc -l $(grep 'POSIX shell script'        "$files" | sed -e 's/:.*//') | sort -n > posix-scripts.txt 
+wc -l $(grep 'POSIX shell script'        "$files" | sed -e 's/:.*//') | sort -n > posix-scripts.txt
 wc -l $(grep 'C shell script'            "$files" | sed -e 's/:.*//') | sort -n > c-scripts.txt

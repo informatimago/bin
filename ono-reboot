@@ -13,7 +13,7 @@ BEGIN{s=0;l="";p="";}
 /machine/{if($2=="'"$machine"'"){s=1;}}
 /login/{if(s==1){l=$2;}}
 /password/{if(s==1){p=$2; printf("%s\n%s\n",l,p); exit(0);}}
-' < "$HOME/.netrc" 
+' < "$HOME/.netrc"
 }
 
 
@@ -21,7 +21,7 @@ netrc_query "$router" \
 | (
     read login
     read password
-    # --server-response 
+    # --server-response
     wget \
         --quiet \
         --no-http-keep-alive \

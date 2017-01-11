@@ -147,7 +147,7 @@ cameras=( \
 #            (vincrem (/ height vtiles)) )
 #         (for j 0 (1- vtiles)
 #             (for i 0 (1- htiles)
-#                 (printf "    \"%-14s%-8s%5d%5d  %s\" \\\n" 
+#                 (printf "    \"%-14s%-8s%5d%5d  %s\" \\\n"
 #                         (format "%s-%02d" name (+ i (* j htiles)))
 #                         (format "%d,%d" (* i hincrem) (* j vincrem))
 #                         hincrem vincrem display)
@@ -225,8 +225,8 @@ displays=(\
 ##
 ## END CONFIGURATION
 ##
- 
- 
+
+
 
 
 # Some functions:
@@ -297,12 +297,12 @@ function make_symbol () {
 function refvar () {
     echo ${!1}
 }
-    
+
 function setvar () {
     eval $1=\""$2"\"
 }
 
-   
+
 
 function usage () {
     echo ""
@@ -328,7 +328,7 @@ function usage () {
     echo "--help list the available cameras and displays too."
     echo "--test don't do anything but prints what would be done."
 }
-   
+
 function cmd () {
     if [ -z $test ] ; then
         $@
@@ -341,7 +341,7 @@ function get_and_dispatch () {
     local index="$1"
     local cames="$2"
     local screens="$3"
-    
+
     local came
     local screen
     local disp
@@ -437,7 +437,7 @@ while [ $# -ge 1 ] ; do
         fi
         cames="${cames} ${came}"
         ;;
-        
+
     -k|-keep|--keep)
         if [ $# -le 1 ] ; then
             echo "${pname}: Missing argument after '$1'."
@@ -455,7 +455,7 @@ while [ $# -ge 1 ] ; do
         # We store the keep into the camera because keeps are PATHS.
         setvar $(make_symbol "$came" keep) "$keep"
         ;;
-        
+
     -d|-dis|-display|--display)
         if [ $# -le 1 ] ; then
             echo "${pname}: Missing argument after '$1'."
@@ -556,7 +556,7 @@ screens=""
 
 function screen_with_x_screen () {
     local xscreen="$1"
-    for screen in $screens ; do 
+    for screen in $screens ; do
         if [ "$(refvar $(make_symbol $screen screen))" = "$xscreen" ] ; then
             echo $screen
             return
@@ -585,7 +585,7 @@ function prepare () {
             setvar $(make_symbol $screen screen) $xscreen
             screens="${screens} ${screen}"
         fi
-        local screen_displays=$(make_symbol $screen displays) 
+        local screen_displays=$(make_symbol $screen displays)
         setvar $screen_displays "$(refvar $screen_displays) $disp"
 
         local disline="$(find_line_named $disp "${displays[@]}")"
@@ -614,7 +614,7 @@ if [ -n "$oneshoot" ] ; then
     touch $tick
     get_and_dispatch 0 "$cames" "$screens"
 else
-    ( set -- tic-tac ; while touch $tick ; do # echo tic `date` 
+    ( set -- tic-tac ; while touch $tick ; do # echo tic `date`
         sleep $delay ; done ) &
     clock_pid=$!
 

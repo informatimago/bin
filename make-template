@@ -14,19 +14,19 @@
 #   1993-09-28 <PJB>  Corrected object.${TARGET} to objects.${TARGET}.
 #LEGAL
 #    GPL
-#    
+#
 #    Copyright Pascal Bourguignon 1992 - 2003
-#    
+#
 #    This program is free software; you can redistribute it and/or
 #    modify it under the terms of the GNU General Public License
 #    as published by the Free Software Foundation; either version
 #    2 of the License, or (at your option) any later version.
-#    
+#
 #    This program is distributed in the hope that it will be
 #    useful, but WITHOUT ANY WARRANTY; without even the implied
 #    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 #    PURPOSE.  See the GNU General Public License for more details.
-#    
+#
 #    You should have received a copy of the GNU General Public
 #    License along with this program; if not, write to the Free
 #    Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -65,7 +65,7 @@ case project:
     $0 __makedirectories "${name}" ${projectdirectories}
     ln -s bin.${TARGET} ${name}/bin
     ln -s libraries.${TARGET} ${name}/libraries
-    set targets=(`cd ${COMMON}/makedir;/bin/ls [A-Z0-9]*`) 
+    set targets=(`cd ${COMMON}/makedir;/bin/ls [A-Z0-9]*`)
     sed -e "s/__TARGETS__/${targets}/g" \
         -e "s/__PROJECT_NAME__/${project}/g" \
         < ${COMMON}/makedir/project_template_Makefile \
@@ -136,7 +136,7 @@ documentation/      user or client documentation.
 __EOF__
         if ( ${kind} == library ) then
             cat >> "${name}/README" << __EOF__
-interfaces/         interface (header) files a client program needs 
+interfaces/         interface (header) files a client program needs
                             to use this module.
 __EOF__
         endif

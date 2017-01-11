@@ -42,7 +42,7 @@ file="$1"
 shift
 # --ref --req
 /local/bin/html-access-stat  "$file">$tmp/stat
-( 
+(
 egrep '\<hits?\>' $tmp/stat \
 | awk '
 BEGIN {
@@ -63,8 +63,8 @@ BEGIN {
 {
     print $0;
 }
-' 
-cat $tmp/stat 
+'
+cat $tmp/stat
 ) | mail -s "Statistics for $url" $@
 exit 0
 

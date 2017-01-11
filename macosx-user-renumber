@@ -12,12 +12,12 @@ user=
 newuid=
 for arg ; do
     case "$arg" in
-    -h|--help) 
+    -h|--help)
         usage
         exit 0
-        ;; 
-    -*) 
-        printf "%s error: invalid option: %s\n" "$pname" "$arg" 
+        ;;
+    -*)
+        printf "%s error: invalid option: %s\n" "$pname" "$arg"
         usage
         exit 1
         ;;

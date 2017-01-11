@@ -25,7 +25,7 @@ BEGIN{
         }else{
             i++;
         }
-    } 
+    }
 }' < /dev/null
     done
 elif [ -n "$1" ] ; then
@@ -36,14 +36,14 @@ elif [ -n "$1" ] ; then
         mob_temp=$( awk '{print $3}' < $sensor/temp1 )
         cpu_fans=$( awk '{print $2}' < $sensor/fan1 )
         printf "%20s %10.1f C (MB) %10.1f C (CPU) %10.1f r/m (CPU)\n" \
-            "$date" $mob_temp $cpu_temp $cpu_fans 
+            "$date" $mob_temp $cpu_temp $cpu_fans
     done
 fi
 date=$( date +"%Y-%m-%d %H:%M:%S" )
 cpu_temp=$( awk '{print $3}' < $sensor/temp2 )
 mob_temp=$( awk '{print $3}' < $sensor/temp1 )
 cpu_fans=$( awk '{print $2}' < $sensor/fan1 )
-echo $date $mob_temp $cpu_temp $cpu_fans 
+echo $date $mob_temp $cpu_temp $cpu_fans
 if [ $(awk "BEGIN{printf \"%d\",$cpu_temp*10;}"</dev/null) -gt 625 ] ; then
     /sbin/halt -p
 fi

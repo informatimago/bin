@@ -5,7 +5,7 @@
 ;;;;SYSTEM:             Common-Lisp
 ;;;;USER-INTERFACE:     CLI
 ;;;;DESCRIPTION
-;;;;    
+;;;;
 ;;;;    This file defines utilities for lisp scripts.
 ;;;;
 ;;;;AUTHORS
@@ -17,19 +17,19 @@
 ;;;;BUGS
 ;;;;LEGAL
 ;;;;    GPL
-;;;;    
+;;;;
 ;;;;    Copyright Pascal J. Bourguignon 2009 - 2012
-;;;;    
+;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU General Public License
 ;;;;    as published by the Free Software Foundation; either version
 ;;;;    2 of the License, or (at your option) any later version.
-;;;;    
+;;;;
 ;;;;    This program is distributed in the hope that it will be
 ;;;;    useful, but WITHOUT ANY WARRANTY; without even the implied
 ;;;;    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 ;;;;    PURPOSE.  See the GNU General Public License for more details.
-;;;;    
+;;;;
 ;;;;    You should have received a copy of the GNU General Public
 ;;;;    License along with this program; if not, write to the Free
 ;;;;    Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -107,19 +107,19 @@
            "*DEFAULT-PROGRAM-NAME*" "*PROGRAM-NAME*" "*PROGRAM-PATH*" "*ARGUMENTS*"
 
            "WITHOUT-OUTPUT" "WITH-PAGER"
-           "REDIRECTING-STDOUT-TO-STDERR" 
+           "REDIRECTING-STDOUT-TO-STDERR"
            "RELAUCH-WITH-KFULL-LINKSET-IF-NEEDED"
 
            ;; I/O
            "PERROR" "PMESSAGE" "PQUERY"
-           
+
            ;; Options
            "DEFINE-OPTION" "CALL-OPTION-FUNCTION"
            "PARSE-OPTIONS" "MAIN"
            "SET-DOCUMENTATION-TEXT"
            "*BASH-COMPLETION-HOOK*"
-          
-           
+
+
            ;; Utilities:
            "FIND-DIRECTORIES"
            "CONCAT" "MAPCONCAT"
@@ -133,7 +133,7 @@
            "EX-NOPERM" "EX-NOUSER" "EX-OK" "EX-OSERR" "EX-OSFILE"
            "EX-PROTOCOL" "EX-SOFTWARE" "EX-TEMPFAIL" "EX-UNAVAILABLE"
            "EX-USAGE"
-           
+
            "EXIT"))
 (in-package "COM.INFORMATIMAGO.COMMON-LISP.SCRIPT")
 
@@ -645,7 +645,7 @@ NOTE:   current implementation only accepts as separators
 BUG: when the optionals or keys have a present indicator,
      we just ignore it and build a list that will pass
      the default value anyways...
-" 
+"
   (assert (every (function symbolp) mandatories))
   (append mandatories
           (mapcar (lambda (opt)
@@ -824,7 +824,7 @@ use directly.
 bash function used to do auto-completion of command arguments.
 Use it with:
 
-       eval $($COMMAND  --bash-completion-function) 
+       eval $($COMMAND  --bash-completion-function)
 
 and then typing TAB on the command line after the command name will
 autocomplete argument prefixes.
@@ -976,13 +976,13 @@ that are accessible by the user."
 ;; ;;;
 ;; ;;; The main program, definition of the options
 ;; ;;;
-;; 
-;; 
+;;
+;;
 ;; (in-package "COMMON-LISP-USER")
 ;; (load (make-pathname :name "SCRIPT" :type "LISP" :version NIL :case :common
 ;;                      :defaults *load-pathname*))
 ;; (use-package "SCRIPT")
-;; 
+;;
 ;; ;; (redirecting-stdout-to-stderr (load #p"/etc/gentoo-init.lisp"))
 ;; (redirecting-stdout-to-stderr
 ;;  (let ((*load-verbose* nil)
@@ -993,7 +993,7 @@ that are accessible by the user."
 ;;    ))
 ;; (redirecting-stdout-to-stderr (asdf:oos 'asdf:load-op :split-sequence)
 ;;                               (asdf:oos 'asdf:load-op :cl-ppcre))
-;; 
+;;
 ;; ;; #-testing-script
 ;; (exit (main ext:*args*))
 

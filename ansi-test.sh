@@ -22,7 +22,7 @@ for in in "" INVERT ; do
 jin="$(echo "$in          "|sed -e 's/^\(........\).*$/\1/')"
 for bl in "" BLINK  ; do
 jbl="$(echo "$bl          "|sed -e 's/^\(........\).*$/\1/')"
-for un in "" UNDERLINE ; do 
+for un in "" UNDERLINE ; do
 jun="$(echo "$un          "|sed -e 's/^\(........\).*$/\1/')"
 for bo in "" BOLD ; do
 jbo="$(echo "$bo          "|sed -e 's/^\(........\).*$/\1/')"

@@ -33,7 +33,7 @@ set filelist=( `find "$startdir" -type f \( -name '*.snd' -o -name '*.au' \)  -d
 endif
 if ( -d $scoredir ) then
 	set filelist=( $filelist `find "$scoredir" -type f \
-					-name '*.playscore' -depth -print | grep .playscore` ) 
+					-name '*.playscore' -depth -print | grep .playscore` )
 	echo '    and all scores from '$scoredir at random. >> $out
 endif
 
@@ -62,7 +62,7 @@ while ( $c > 0 )
 	echo "$f" >> ${tmplist}
 	@ s = ${s} + 1
 	@ c = ${c} - 1
-end 
+end
 
 @ s=1
 while ( $s <= $#sortedlist )

@@ -179,8 +179,8 @@
  (set! height (/ height ratio))
  )
 
-(gimp-file-save run-mode image 
-                                (car (gimp-image-get-active-layer image)) 
+(gimp-file-save run-mode image
+                                (car (gimp-image-get-active-layer image))
                                 fname fname)
 
 ;;(car (gimp-image-get-active-layer image))

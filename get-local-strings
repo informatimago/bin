@@ -6,7 +6,7 @@
 #USER-INTERFACE:	None
 #DESCRIPTION
 #	$Header$
-#	This script extract localized strings from GNUstep sources and generate 
+#	This script extract localized strings from GNUstep sources and generate
 #	string table files.
 #USAGE
 #	get-local-string --help
@@ -78,7 +78,7 @@ usage()
 	echo 'cpp with a special set of macros used to extract the localized '
 	echo "strings. You can see the consequences.  One day, we'll have a "
 	echo 'more sophisticated alternative.'
-	echo '' 
+	echo ''
 	echo 'The processed macros are:'
 	echo '      GSLocalizedString, and GSLocalizedStringFromTable,'
 	echo '      NSLocalizedString, and NSLocalizedStringFromTable,'
@@ -168,7 +168,7 @@ create_table()
 
 ##DEBUG##echo "${pname}: starting..."
 for arg ; do
-	##DEBUG##echo "${pname}: processing $arg" 
+	##DEBUG##echo "${pname}: processing $arg"
 	case "$arg" in
 	-h|--help)
 		echo ''
@@ -249,7 +249,7 @@ for file in $files ; do
 				if echo "$anytables"|grep -q ":${table}:" ; then
 					append_to_table
 				else
-					cons_anytables 
+					cons_anytables
 					create_table
 				fi
 			fi

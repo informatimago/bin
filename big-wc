@@ -1,6 +1,6 @@
 #!/bin/bash
 find $1 -type f -print \
-| while read item ; do 
+| while read item ; do
     file $item | sed -e 's/.*: //' | grep -s -q text
     text=$?
     if [ $text -eq 0 ] ; then

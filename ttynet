@@ -4,10 +4,10 @@ while sleep $delay ; do
     ifconfig eth0
 done \
 | awk -v delay=$delay '
-BEGIN{ 
+BEGIN{
     rx=0;
     tx=0;
-    FS="[\t :]+"; 
+    FS="[\t :]+";
     count=1;
 }
 /RX bytes:/{
@@ -19,7 +19,7 @@ BEGIN{
         count=20;
     }
     nrx=$4;
-    ntx=$9; 
+    ntx=$9;
     printf "%10d %10d\n",(nrx-rx)/delay,(ntx-tx)/delay;
     rx=nrx;
     tx=ntx;

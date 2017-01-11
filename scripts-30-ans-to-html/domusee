@@ -101,7 +101,7 @@ EOF
 
 	printf PAGE "<br>\n<p align=center>";
 	if($prev ne ''){
-		printf PAGE 
+		printf PAGE
 		"| <a href=\"%s.html\">Pr&eacute;c&eacute;dant</a> \n",$prev;
 	}
 	printf PAGE "| <a href=\"musee.html\">Index</a> \n";

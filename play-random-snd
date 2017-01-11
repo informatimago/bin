@@ -24,7 +24,7 @@ echo '    and all scores from '$scoredir at random. >> $out
 
 set filelist=( `find "$startdir" -type f -name '*.snd' -depth -print | grep .snd` )
 if ( -d $scoredir ) then
-set filelist=( $filelist `find "$scoredir" -type f -name '*.playscore' -depth -print | grep .playscore` ) 
+set filelist=( $filelist `find "$scoredir" -type f -name '*.playscore' -depth -print | grep .playscore` )
 endif
 
 @ x=0

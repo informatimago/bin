@@ -1,6 +1,6 @@
 #!/bin/sh
 #| -*- mode:lisp; coding:utf-8 -*-
-exec ccl -e '(set-dispatch-macro-character #\# #\! 
+exec ccl -e '(set-dispatch-macro-character #\# #\!
                 (lambda (stream subchar arg)
                   (declare (ignore subchar arg))
                   (read-line stream)
@@ -18,7 +18,7 @@ exec ccl -e '(set-dispatch-macro-character #\# #\!
 (prin1 (alexandria:iota 20))
 (terpri)
 
-(defparameter *arguments* (subseq ccl:*command-line-argument-list* 
+(defparameter *arguments* (subseq ccl:*command-line-argument-list*
                                   (1+ (or (position "--" ccl:*command-line-argument-list* :test 'string=) -1))))
 (prin1 *arguments*)
 (terpri)

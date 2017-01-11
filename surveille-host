@@ -8,11 +8,11 @@
 ;;;;DESCRIPTION
 ;;;;
 ;;;;    This scripts pings regularly an IP address (or list of IP addresses)
-;;;;    and signals (and/or sends an email) when a change occurs (remote 
+;;;;    and signals (and/or sends an email) when a change occurs (remote
 ;;;;    going on-line or off-line).
 ;;;;
 ;;;;AUTHORS
-;;;;    <PJB> Pascal J. Bourguignon 
+;;;;    <PJB> Pascal J. Bourguignon
 ;;;;MODIFICATIONS
 ;;;;    2003-08-14 <PJB> Creation.
 ;;;;BUGS
@@ -46,7 +46,7 @@
   (:NICKNAMES SURVEILLE-HOST)
   (:DOCUMENTATION
    "This scripts pings regularly an IP address (or list of IP addresses)
-    and signals (and/or sends an email) when a change occurs -- remote 
+    and signals (and/or sends an email) when a change occurs -- remote
     going on-line or off-line.
    ")
   (:FROM COMMON-LISP :IMPORT :ALL)
@@ -181,7 +181,7 @@ RETURN: Whether :ON-LINE or :OFF-LINE according to the status of ping.
   );;CHECK
 
 
-  
+
 
 
 (DEFUN FIND-REMOTE-WITH-IP-ADDRESS (IP-ADDRESS)

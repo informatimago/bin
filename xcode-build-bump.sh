@@ -1,5 +1,5 @@
 # xcode-build-bump.sh
-# @desc Auto-increment the build number every time the project is run. 
+# @desc Auto-increment the build number every time the project is run.
 # @usage
 # 1. Select: your Target in Xcode
 # 2. Select: Build Phases Tab

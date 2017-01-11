@@ -34,9 +34,9 @@
                              :output nil)
             (progn
               (with-open-file (stream cached-url
-                                      :direction :output 
+                                      :direction :output
                                       :if-exists :supersede
-                                      :if-does-not-exist :create) 
+                                      :if-does-not-exist :create)
                 (write-line url stream))
               file))))))
 
@@ -57,12 +57,12 @@
                                   :version nil
                                   :defaults dir)))
         (destructuring-bind (&key (style *style*) (scale *scale*) (direction *direction*)) options
-         (format dst ".. |~A/~A| image:: ~A~%" kod name  
+         (format dst ".. |~A/~A| image:: ~A~%" kod name
                  (namestring
                   (get-resource
                    file
                    (yuml-url
-                    (loop 
+                    (loop
                        :for line = (read-line src nil nil)
                        :for sline = (and line (string-trim " " line))
                        :while (and line (not (string= "" sline)))

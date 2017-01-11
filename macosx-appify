@@ -16,7 +16,7 @@ fi
 case "$1" in
 -h|--help|-help|help) usage ; exit 0 ;;
 -v|--version)         printf "%s version %s\n" "${pname}" "${version}" ; exit 0 ;;
-*) true ;; 
+*) true ;;
 esac
 
 SCRIPTNAME="$1"

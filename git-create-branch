@@ -19,6 +19,6 @@ echodo git checkout -b "$branchName"
 trap : INT
 for remote in $(git remote) ; do
     echodo git push "$remote" "$branchName"
-    echodo git branch --set-upstream-to "$branchName" "$remote"/"$branchName" 
+    echodo git branch --set-upstream-to "$branchName" "$remote"/"$branchName"
 done
 trap INT

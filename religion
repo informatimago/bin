@@ -76,12 +76,12 @@
   (assert (<= 0 min max 9) (min max) "MIN and MAX must be integers between 0 and 9, and MIN<MAX.")
   (let ((predicate (make-predicate-name name)))
    `(progn
-      
+
       (deftype ,name () '(member ,@(loop
                                       :for i :from min :to max
                                       :collect (digit-char i))
                                  ,@(when allow-unknown '(#\?))))
-      
+
       (defun ,predicate (object)
         (if (integerp object)
             (<= ,min object ,max)
@@ -104,17 +104,17 @@
               (if allow-unknown
                   (append table  `((#\? "Unknown.")))
                   table)))
-      
+
       (defmethod normalize-enumeration-constant ((self (eql ',name)) (constant t))
         (assert (,predicate constant) (constant)
                 "CONSTANT must be between ~A and ~A." ,min ,max)
         (character constant))
-      
+
       (defmethod normalize-enumeration-constant ((self (eql ',name)) (constant integer))
         (assert (,predicate constant) (constant)
                 "CONSTANT must be between ~A and ~A." ,min ,max)
         (digit-char constant))
-            
+
       ',name)))
 
 
@@ -124,19 +124,19 @@
           (min max) "MIN and MAX must be characters and MIN<MAX.")
   (let ((predicate (make-predicate-name name)))
     `(progn
-       
+
        (deftype ,name () '(member ,@(loop
                                        :for i :from (char-code min) :to (char-code max)
                                        :collect (code-char i))
                                   ,@(when allow-unknown '(#\?))))
-       
+
        (defun ,predicate (object)
          (and (or (characterp object)
                   (stringp object)
                   (symbolp object))
               (= 1 (length (string object)))
               (typep (character object) ',name)))
-       
+
        (defmethod enumeration-constants ((self (eql ',name)))
          ',(let ((table (loop
                            :for n :from 1
@@ -155,25 +155,25 @@
          (assert (,predicate constant) (constant)
                  "CONSTANT must be between ~A and ~A." ,min ,max)
          (character constant))
-       
+
        ',name)))
 
 
 (defmacro define-enumeration (name (&key (allow-unknown t) documentation) &rest constants)
   (let ((predicate (make-predicate-name name)))
    `(progn
-     
+
       (deftype ,name () '(member ,@(mapcar (lambda (constant) (character (first constant)))
                                            constants)
                                  ,@(when allow-unknown '(#\?))))
-     
+
       (defun ,predicate (object)
         (and (or (characterp object)
                  (stringp object)
                  (symbolp object))
              (= 1 (length (string object)))
              (typep (character object) ',name)))
-     
+
       (defmethod enumeration-constants ((self (eql ',name)))
         ',(append (mapcar (lambda (constant)
                            (list (character (first constant))
@@ -187,7 +187,7 @@
                 "CONSTANT must be one of ~{~A~^, ~}."
                 ',(mapcar (function first) constants))
         (character constant))
-      
+
       ',name)))
 
 
@@ -214,13 +214,13 @@
 
 
 (define-enumeration after-death ()
-  ("0" "Everybody goes to a nice place.") 
-  ("1" "Members of the religion go to a nice place, everybody else goes to an unpleasant place.") 
-  ("2" "Members of the religion go to an unpleasant place, everybody else goes to a nice place.") 
-  ("3" "Everybody goes to an unpleasant place.") 
-  ("4" "Nobody goes anywhere.") 
-  ("5" "Really bad people are forced to work in all night convenience stores in New Jersey.") 
-  ("6" "Everybody is reincarnated.") 
+  ("0" "Everybody goes to a nice place.")
+  ("1" "Members of the religion go to a nice place, everybody else goes to an unpleasant place.")
+  ("2" "Members of the religion go to an unpleasant place, everybody else goes to a nice place.")
+  ("3" "Everybody goes to an unpleasant place.")
+  ("4" "Nobody goes anywhere.")
+  ("5" "Really bad people are forced to work in all night convenience stores in New Jersey.")
+  ("6" "Everybody is reincarnated.")
   ("7" "Only people who deserve punishment are reincarnated."))
 
 
@@ -238,12 +238,12 @@ a 9."))
 
 
 (define-enumeration policy ()
-  ("A" "Handed down from a single source.") 
-  ("B" "Voted upon by a collection of elders.") 
-  ("C" "Voted upon by everybody.") 
-  ("D" "Chosen by a random number generator.") 
-  ("E" "Determined by careful computer analysis.") 
-  ("F" "Determined by combatants representing each view playing Super Mario Brothers.") 
+  ("A" "Handed down from a single source.")
+  ("B" "Voted upon by a collection of elders.")
+  ("C" "Voted upon by everybody.")
+  ("D" "Chosen by a random number generator.")
+  ("E" "Determined by careful computer analysis.")
+  ("F" "Determined by combatants representing each view playing Super Mario Brothers.")
   ("Z" "Nobody has ever tried to change the policy, so nobody knows just yet."))
 
 
@@ -253,13 +253,13 @@ of the religion."))
 
 
 (define-enumeration place ()
-  ("A" "No meetings.") 
-  ("B" "A building set aside for the purpose.") 
-  ("C" "A building which is also the gym for the local high school.") 
-  ("D" "Outside.") 
-  ("E" "In an airport or bus terminal.") 
-  ("F" "In a submarine.") 
-  ("G" "In a graveyard or mausoleum.") 
+  ("A" "No meetings.")
+  ("B" "A building set aside for the purpose.")
+  ("C" "A building which is also the gym for the local high school.")
+  ("D" "Outside.")
+  ("E" "In an airport or bus terminal.")
+  ("F" "In a submarine.")
+  ("G" "In a graveyard or mausoleum.")
   ("F" "In a bathtub or jacuzzi."))
 
 

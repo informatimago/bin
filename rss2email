@@ -6,9 +6,9 @@
 ;;;;SYSTEM:             Common-Lisp
 ;;;;USER-INTERFACE:     NONE
 ;;;;DESCRIPTION
-;;;;    
+;;;;
 ;;;;    rss2email: get RSS feeds emailed to you.
-;;;;    
+;;;;
 ;;;;    Usage:
 ;;;;       new [youremail] (create new feedfile)
 ;;;;       email [yournewemail] (update default email)
@@ -24,19 +24,19 @@
 ;;;;BUGS
 ;;;;LEGAL
 ;;;;    GPL
-;;;;    
+;;;;
 ;;;;    Copyright Pascal Bourguignon 2006 - 2006
-;;;;    
+;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU General Public License
 ;;;;    as published by the Free Software Foundation; either version
 ;;;;    2 of the License, or (at your option) any later version.
-;;;;    
+;;;;
 ;;;;    This program is distributed in the hope that it will be
 ;;;;    useful, but WITHOUT ANY WARRANTY; without even the implied
 ;;;;    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 ;;;;    PURPOSE.  See the GNU General Public License for more details.
-;;;;    
+;;;;
 ;;;;    You should have received a copy of the GNU General Public
 ;;;;    License along with this program; if not, write to the Free
 ;;;;    Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -75,7 +75,7 @@ NIL           Receive an email every time a post changes.
 (defvar *DATE-HEADER-ORDER* '(:modified :issued :created)
   "
 A list of (member :issued :created :modified :expired)
-giving the order of preference in dates 
+giving the order of preference in dates
 to use for the Date header of the email.
 ")
 
@@ -115,7 +115,7 @@ Example: (setf *BONUS-HEADER* '(\"Approved: joe@bob.org\"
 
 (defvar *OVERRIDE-FROM*  '()
   "
-Set this a-list to override From addresses. 
+Set this a-list to override From addresses.
 Keys are feed URLs, values are new titles.
 ")
 
@@ -155,7 +155,7 @@ Keys are feed URLs, values are new titles.
             (format smtp "~A~%.~%" message))))
       (format smtp "QUIT~%")
       (sleep 3))))
-  
+
 
 (defun send (from to message)
   ;; Note: You can also override the send function.
@@ -183,8 +183,8 @@ Put the links after each paragraph instead of at the end.
 
 (defvar *BODY-WIDTH*  nil
 "
-Wrap long lines at position. 
-NIL for no wrapping. 
+Wrap long lines at position.
+NIL for no wrapping.
 ")
 
 
@@ -244,8 +244,8 @@ def getContent(entry, HTMLOK=0):
 	If raw HTML is best, an ('HTML', best) tuple is returned. """
 	
 	;; How this works:
-	;;  * We have a bunch of potential contents. 
-	;;  * We go thru looking for our first choice. 
+	;;  * We have a bunch of potential contents.
+	;;  * We go thru looking for our first choice.
 	;;    (HTML or text, depending on HTMLOK)
 	;;  * If that doesn't work, we go thru looking for our second choice.
 	;;  * If that still doesn't work, we just take the first one.
@@ -373,13 +373,13 @@ def run(num=None):
 	try:
 		;; We store the default to address as the first item in the feeds list.
 		;; Here we take it out and save it for later.
-		if feeds and isstr(feeds[0]): default_to = feeds[0]; ifeeds = feeds[1:] 
+		if feeds and isstr(feeds[0]): default_to = feeds[0]; ifeeds = feeds[1:]
 		else: ifeeds = feeds
 		
 		if num: ifeeds = [feeds[num]]
 		
 		for f in ifeeds:
-			try: 
+			try:
 				if *VERBOSE*: print >>warn, "I: Processing", f.url
 				r = feedparser.parse(f.url, f.etag, f.modified)
 				
@@ -393,11 +393,11 @@ def run(num=None):
 				
 				http_status = r.get('status', 200)
 				http_headers = r.get('headers', {
-				  'content-type': 'application/rss+xml', 
+				  'content-type': 'application/rss+xml',
 				  'content-length':'1'})
 				exc_type = r.get("bozo_exception", Exception()).__class__
 				if http_status != 304 and not r.entries and not r.get('version', ''):
-					if http_status not in [200, 302]: 
+					if http_status not in [200, 302]:
 						print >>warn, "W: error", http_status, f.url
 
 					elif contains(http_headers.get('content-type', 'rss'), 'html'):
@@ -484,14 +484,14 @@ def run(num=None):
 					"\nTo: " + header7bit(unu(f.to or default_to)) + ;; set a default email!
 					"\nSubject: " + header7bit(title) +
 					"\nDate: " + time.strftime("%a, %d %b %Y %H:%M:%S -0000", datetime) +
-					"\nUser-Agent: rss2email" + ;; really should be X-Mailer 
+					"\nUser-Agent: rss2email" + ;; really should be X-Mailer
 					*BONUS-HEADER* +
 					"\nContent-Type: ")         ;; but backwards-compatibility
 					
 					if ishtml(content):
 						message += "text/html"
 						
-						content = ("<html><body>\n\n" + 
+						content = ("<html><body>\n\n" +
 						           '<h1><a href="'+link+'">'+title+'</a></h1>\n\n' +
 						           unu(content[1]).strip() + ;; drop type tag (HACK: bad abstraction)
 						           '<p>URL: <a href="'+link+'">'+link+'</a></p>' +
@@ -557,7 +557,7 @@ if __name__ == '__main__':
 		if len(args) < 3: raise ie, "insufficient args"
 		feedfile, action, args = args[1], args[2], args[3:]
 		
-		if action == "run": 
+		if action == "run":
 			if args and args[0] == "--no-send":
 				def send(x,y,z):
 					if *VERBOSE*: print 'Not sending', (
@@ -571,7 +571,7 @@ if __name__ == '__main__':
 
 		elif action == "add": add(*args)
 
-		elif action == "new": 
+		elif action == "new":
 			if len(args) == 1: d = [args[0]]
 			else: d = []
 			pickle.dump(d, open(feedfile, 'w'))

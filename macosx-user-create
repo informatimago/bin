@@ -1,7 +1,7 @@
 #!/bin/bash
 echo not yet
 exit 0
-dscl . -create /Users/ar 
+dscl . -create /Users/ar
 dscl . -create /Users/ar UserShell /bin/bash
 dscl . -create /Users/ar RealName "Andre Reinald"
 dscl . -create /Users/ar UniqueID "515"

@@ -4,29 +4,29 @@ CHMS=$HOME/chms
 
 cd "$CHMS"
 
-( 
-    echo '<html>' 
-    echo '<head><title>Index des CHM</title></head>' 
-    echo '<body><ul>' 
-    port=8100 
-    for chm in *.chm ; do 
-        ( while sleep 1 ; do chm_http --port=$port $chm ; done ) & disown 
-        printf '<li><a href="http://free.informatimago.com:%s/">%s</a></li>\n' $port $chm 
-        port=$(( $port + 1 )) 
-    done 
-    echo '</ul></body>' 
-    echo '</html>' 
+(
+    echo '<html>'
+    echo '<head><title>Index des CHM</title></head>'
+    echo '<body><ul>'
+    port=8100
+    for chm in *.chm ; do
+        ( while sleep 1 ; do chm_http --port=$port $chm ; done ) & disown
+        printf '<li><a href="http://free.informatimago.com:%s/">%s</a></li>\n' $port $chm
+        port=$(( $port + 1 ))
+    done
+    echo '</ul></body>'
+    echo '</html>'
     )> /srv/www/localhost/htdocs/chmindex.html
 
-( 
-    echo '<html>' 
-    echo '<head><title>Index des CHM</title></head>' 
-    echo '<body><ul>' 
-    port=8100 
-    for chm in *.chm ; do 
-        printf '<li><a href="http://localhost:%s/">%s</a></li>\n' $port $chm 
-        port=$(( $port + 1 )) 
-    done 
-    echo '</ul></body>' 
-    echo '</html>' 
+(
+    echo '<html>'
+    echo '<head><title>Index des CHM</title></head>'
+    echo '<body><ul>'
+    port=8100
+    for chm in *.chm ; do
+        printf '<li><a href="http://localhost:%s/">%s</a></li>\n' $port $chm
+        port=$(( $port + 1 ))
+    done
+    echo '</ul></body>'
+    echo '</html>'
     )> /srv/www/localhost/htdocs/chmlocal.html

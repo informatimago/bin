@@ -7,7 +7,7 @@ usage () {
     echo ""
     echo "  Copies the following files from the current directory to /boot,"
     echo "  appending -<TAG> to the names."
-    echo "      vmlinux" 
+    echo "      vmlinux"
     echo "      System.map"
     echo "      .config"
     echo "      include/linux/autoconf.h"
@@ -27,7 +27,7 @@ for arg ; do
         ;;
     -*)
         echo "$0: Invalid option '$arg'."
-        usage 
+        usage
         exit 1
         ;;
     *)
@@ -64,7 +64,7 @@ tar $tarv -zcf                                /boot/vmlinuz-${tag}.config.tar.gz
     .config \
     $( [ -r include/linux/autoconf.h ] && echo include/linux/autoconf.h ) \
     $( [ -d include/generated ] && echo include/generated ) \
-    include/linux/version.h 
+    include/linux/version.h
 if [ $verbose -ne 0 ] ; then
     echo "  to /boot/vmlinuz-${tag}.config.tar.gz"
 fi

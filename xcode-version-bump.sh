@@ -1,5 +1,5 @@
 # xcode-version-bump.sh
-# @desc Auto-increment the version number (only) when a project is archived for export. 
+# @desc Auto-increment the version number (only) when a project is archived for export.
 # @usage
 # 1. Select: your Target in Xcode
 # 2. Select: Build Phases Tab

@@ -187,7 +187,7 @@
 
 
 ;; ISO 3166-2:FR
-;; 
+;;
 ;; Les départements français possèdent un code ISO sous la forme suivante :
 ;; FR-XX où XX est le code du département (par ex FR-2B pour la
 ;; Haute-Corse). Ceci ne concerne que les départements métropolitains ;

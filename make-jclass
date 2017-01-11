@@ -52,7 +52,7 @@ endif
 
 
 echo "Creating ${ClassName}.${Extension}..."
-cat > ${ClassName}.${Extension} << EOF 
+cat > ${ClassName}.${Extension} << EOF
 /******************************************************************************
 FILE:               ${ClassName}.java
 LANGUAGE:           JAVA
@@ -80,7 +80,7 @@ import java.net.*;
 import java.text.*;
 import java.util.*;
 
-class ${ClassName} 
+class ${ClassName}
 	extends ${SuperClass}${InterfaceList}
 {
 	static public String rcsid="\$Id\$";

@@ -21,7 +21,7 @@ else{
 print "totf",totf,"mus_per_f",mus_per_f,"dur",dur;
   s=dur%60; dur=dur/60;
   m=dur%60; dur=dur/60;
-  h=dur; 
+  h=dur;
   printf "                %s  TotalFrames=%s  %2d:%02d:%02d  %s\n",
          $4,totf,h,m,s,size;next;}}
 /Stream /{print substr($0,16);next;}
@@ -36,7 +36,7 @@ elif [ -s "$(which mplayer 2>/dev/null)" -a -x "$(which mplayer 2>/dev/null)" ] 
         mplayer -identify -frames 0 "$arg" -vo null -ao null 2>/dev/null \
             | awk -F= '/=[^=]/{printf "%s=\"%s\"\n",$1,$2;}' > $tmp
         . $tmp
-        printf "%s \n" "$ID_FILENAME" 
+        printf "%s \n" "$ID_FILENAME"
         printf "video:  %dx%d  %d bit/s %f f/s  (%s %s)\n" \
             "$ID_VIDEO_WIDTH" "$ID_VIDEO_HEIGHT" "$ID_VIDEO_BITRATE" "$ID_VIDEO_FPS" \
             "$ID_VIDEO_FORMAT" "$ID_DEMUXER"

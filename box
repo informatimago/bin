@@ -8,13 +8,13 @@
 
 
 ;; "─═┌╔┬╦┐╗├╠┼╬┤╣│║└╚┴╩┘╝"
-;; 
+;;
 ;; ┌────────────────────────┬────────┬──────┐
 ;; │                        │        │      │
 ;; ├────────────────────────┼────────┼──────┤
 ;; │                        │        │      │
 ;; └────────────────────────┴────────┴──────┘
-;; 
+;;
 ;; box drawing
 ;; ╭──────────────────────────────────────────────────────────────────────────────╮
 ;; │                                                                              │
@@ -23,7 +23,7 @@
 ;; ╰──────────────────────────────────────────────────────────────────────────────╯
 
 ;; spaces='                                                                               '
-;; 
+;;
 ;; if [ "$1" = "-toto" ] ; then
 ;; 	echo '                                 \\\\\\|///                                       '
 ;; 	echo '                               \\\  - -  //                                     '
@@ -32,13 +32,13 @@
 ;; else
 ;; 	echo '+-----------------------------------------------------------------------------+'
 ;; fi
-;; 
+;;
 ;; while read line ; do
 ;; 	echo "$line$spaces$spaces" \
 ;; 	| expand \
 ;; 	| sed -e 's/^\(............................................................................\).*/| \1|/'
 ;; done
-;; 
+;;
 ;; if [ "$1" = "-toto" ] ; then
 ;; 	echo '|                             ooo0                                            |'
 ;; 	echo '|                            (    )   0ooo                                    |'
@@ -48,7 +48,7 @@
 ;; else
 ;; 	echo '+-----------------------------------------------------------------------------+'
 ;; fi
-;; 
+;;
 ;; exit 0
 
 ;; (load (make-pathname :name ".clisprc" :type "lisp"
@@ -71,7 +71,7 @@
 
 
 (defparameter *box-path*
-  (or *load-pathname* 
+  (or *load-pathname*
       (make-pathname :directory (append (pathname-directory
                                          (user-homedir-pathname)) '("bin"))
                      :name "box"
@@ -84,7 +84,7 @@
     (loop do
           (let ((line (read-line in nil nil)))
             (when (or (null line) (prefixp line ";; DATA"))  (loop-finish))))
-    (macrolet ((end-block 
+    (macrolet ((end-block
                 ()
                 `(when block
                    (push (nreverse block) section)
@@ -148,7 +148,7 @@ RETURN:  left right first last
         (last  0)
         (left most-positive-fixnum)
         (right 0))
-    (if fill-char 
+    (if fill-char
       (setf pred (function char=)
             fill-char (character fill-char))
       (setf fill-char (character " ")))
@@ -157,11 +157,11 @@ RETURN:  left right first last
          (p))
         ((null lines) (values left right first last))
       (setf p (position fill-char (car lines) :test pred))
-      (when p 
+      (when p
         (setf first (min first i)
               last (max last i)
               left (min left p)
-              right (max right (position fill-char (car lines) 
+              right (max right (position fill-char (car lines)
                                          :test pred :from-end t))))
       )));;enclosing-box
 
@@ -174,8 +174,8 @@ RETURN:  left right first last
 #||
 
 ;; left right of - in base header line
-(enclosing-box 
- (mapcar (function second) 
+(enclosing-box
+ (mapcar (function second)
          (remove-if (lambda (line) (not (eq :i (car line))))
          (BLOCK-LINES
           (GET-BLOCK (get-section templates "FRAMES") "roll"))))
@@ -183,15 +183,15 @@ RETURN:  left right first last
 
 
 ;; enclosing box of "*"
-(enclosing-box 
- (mapcar (function second) 
+(enclosing-box
+ (mapcar (function second)
          (BLOCK-LINES
           (GET-BLOCK (get-section templates "FRAMES") "roll")))
  "*")
 
 ;; enclosig box of sprite
-(enclosing-box 
- (mapcar (function second) 
+(enclosing-box
+ (mapcar (function second)
          (BLOCK-LINES
           (GET-BLOCK (get-section templates "FEET") "toto"))))
 
@@ -211,184 +211,184 @@ ext:*args*
 ;;     T title
 ;;     H picture
 ;;     B base-line picture
-;; 
-;; 
+;;
+;;
 ;; DATA
 ;; S HEADS
-;; 
-;; 
+;;
+;;
 ;; T toto
 ;; H       \\\|///
 ;; H     \\  - -  //
 ;; H      (  0-0  )
 ;; B  --oOOo-(_)-oOOo--
-;; 
-;; 
+;;
+;;
 ;; T teacher
 ;; H      ______
 ;; H      |___| "
 ;; H      (o o)
 ;; B  -ooO--O--Ooo-
-;; 
-;; 
+;;
+;;
 ;; T bear
 ;; H      (_)-(_)
 ;; H       (o o)
 ;; B  -ooO--(_)--Ooo-
-;; 
-;; 
+;;
+;;
 ;; T mouse
 ;; H       ()_()
 ;; H       (o o)
 ;; B  -ooO--`o'--Ooo-
-;; 
+;;
 ;; T cow
 ;; H       ((__))
 ;; H        (00)
 ;; B  -nn--(o__o)--nn-
-;; 
-;; 
+;;
+;;
 ;; T judge
 ;; H        ___
 ;; H       .|||.
 ;; H       (o o)
 ;; B  -ooO--(_)--Ooo-
-;; 
-;; 
+;;
+;;
 ;; T haut-de-forme
 ;; H        |"|
 ;; H       _|_|_
 ;; H       (o o)
 ;; B  -ooO--(_)--Ooo-
-;; 
+;;
 ;; T head-1
 ;; H       '/_\
 ;; H       (o o)
 ;; B  -ooO--(_I--Ooo-
-;; 
+;;
 ;; T head-2
 ;; H      ` /_\ '
 ;; H     - (o o) -
 ;; B  -ooO--(_)--Ooo-
-;; 
+;;
 ;; T asyrien
 ;; H    .  .:::.
 ;; H      :(o o):  .
 ;; B  -ooO-=(_)--Ooo-
-;; 
+;;
 ;; T egyptian
 ;; H       ,,,,,
 ;; H      /(o o)\
 ;; B  -ooO--(_)--Ooo-
-;; 
+;;
 ;; T head-3
 ;; H       /\#/\
 ;; H      /(o o)\
 ;; B  -ooO=-(_)--Ooo-
-;; 
+;;
 ;; T et
 ;; H     '. ___ .'
 ;; H    '  (> <) '
 ;; B  -ooO--(_)--Ooo-
-;; 
+;;
 ;; T head-4
 ;; H     `  _ _  '
 ;; H    -  (OXO)  -
 ;; B  -ooO--(_)--Ooo-
-;; 
+;;
 ;; T head-5
 ;; H      '\\-//`
 ;; H       (o o)
 ;; B  -ooO--(_)--Ooo-
-;; 
+;;
 ;; T head-5
 ;; H        vvv
 ;; H       (0~0)
 ;; B  -ooO--(_)--Ooo-
-;; 
+;;
 ;; T head-5
 ;; H      ` /_\ '
 ;; H     - (o o) -
 ;; B  -ooO--(_)--Ooo-
-;; 
+;;
 ;; T head-6
 ;; H        /_\ `*
 ;; H       (o o)
 ;; B  -ooO--(_)--Ooo-
-;; 
+;;
 ;; T halterophile
 ;; H   #                 #
 ;; H   #=ooO=========Ooo=#
 ;; H   #  \\  (o o)  //  #
 ;; B  ---------(_)---------
-;; 
-;; 
+;;
+;;
 ;; T lancier
 ;; H    #   ___
 ;; H    #  <_*_>
 ;; H    #  (o o)
 ;; B  --8---(_)--Ooo-
-;; 
-;; 
+;;
+;;
 ;; T guard
 ;; H      .'_#_`.
 ;; H      |[o o]|
 ;; B  -ooO--(_)--Ooo-
-;; 
-;; 
+;;
+;;
 ;; T head-7
 ;; H        !!!
 ;; H     `  _ _  '
 ;; H    -  (OXO)  -
 ;; B  -ooO--(_)--Ooo-
-;; 
-;; 
+;;
+;;
 ;; T head-8
 ;; H       .|||.
 ;; H       (o o)
 ;; B  -ooO--(_)--Ooo-
-;; 
-;; 
+;;
+;;
 ;; T fou-du-roi
 ;; H      _     _
 ;; H    o' \.=./ `o
 ;; H       (o o)
 ;; B  -ooO--(_)--Ooo-
-;; 
-;; 
+;;
+;;
 ;; T
 ;; H      |.===.
 ;; H      {}o o{}
 ;; B  -ooO--(_)--Ooo-
-;; 
+;;
 ;; T
 ;; H       ,-_-|
 ;; H      ([o o])
 ;; B  -ooO--(_)--Ooo-
-;; 
-;; 
+;;
+;;
 ;; T canotier
 ;; H      __MMM__
 ;; H       (o o)
 ;; B  -ooO--(_)--Ooo-
-;; 
-;; 
+;;
+;;
 ;; S FEET
-;; 
+;;
 ;; T small
 ;; B  ----/\---/\----
 ;; H      \(   )/
-;; 
-;; 
+;;
+;;
 ;; T toto
 ;; E     ooo0
 ;; E    (    )   0ooo
 ;; B  ---\  (----(   )--
 ;; E      \_)     ) /
 ;; E             (_/
-;; 
-;; 
-;; 
+;;
+;;
+;;
 ;; S FRAMES
 ;;    T title
 ;;    F fill char
@@ -400,22 +400,22 @@ ext:*args*
 ;;    O optional end
 ;;    I head base line
 ;;    G end base line
-;; 
+;;
 ;; T box
 ;; F *
 ;; I +---------------------------------------------------------------------+
 ;; M | ******************************************************************* |
 ;; G +---------------------------------------------------------------------+
-;; 
-;; 
+;;
+;;
 ;; T bevel
 ;; F *
 ;; I /---------------------------------------------------------------------\
 ;; M | ******************************************************************* |
 ;; G \---------------------------------------------------------------------/
-;; 
-;; 
-;; 
+;;
+;;
+;;
 ;; T tape
 ;; F *
 ;; I   .-----------------------------------------------------------------.
@@ -429,9 +429,9 @@ ext:*args*
 ;; E \       |                                                     |       /
 ;; E  \     /                                                       \     /
 ;; E   `---'                                                         `---'
-;; 
-;; 
-;; 
+;;
+;;
+;;
 ;; T roll
 ;; F *
 ;; H                                                                .---.
@@ -450,11 +450,11 @@ ext:*args*
 ;; E \       |
 ;; E  \     /
 ;; E   `---'
-;; 
-;; 
+;;
+;;
 ;; T directory
 ;;  directory symbol, folder symbol]
-;; 
+;;
 ;; H     ___
 ;; H    /___\_________
 ;; H   |              |
@@ -463,8 +463,8 @@ ext:*args*
 ;; H   | ************ |
 ;; H   | ************ |
 ;; HVK |______________|
-;; 
-;; 
+;;
+;;
 ;; T hand
 ;; F *
 ;; I                                 ______________________________________
@@ -526,9 +526,9 @@ ext:*args*
 ;; O MMV
 ;; O MV
 ;; O V
-;; 
+;;
 ;; S END
-;; 
+;;
 ;;        if you are a legitimat__email operator that has be victimized by spews
 ;;     >  please contact m_ to (  ) a __ass ac____ lawsuit.
 ;;     >                 ( )    \ (  (  \    (    )

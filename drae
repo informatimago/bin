@@ -32,7 +32,7 @@ if (@ARGV){
 
 # Codificar las eñes, tildes y demás en formato HTML.
 $w = HTML::Entities::encode ($w);
-$url = sprintf $RAE_URL_FORMAT, $w; 
+$url = sprintf $RAE_URL_FORMAT, $w;
 
 $ua = LWP::UserAgent->new();
 # Simular que somos Mozilla Firefox 3.5.5 (se puede cambiar a voluntad)
@@ -70,24 +70,24 @@ exit 0;
 # Date: Tue, 08 Dec 2009 15:16:32 +0100
 # Organization: Mondragon Unibertsitatea - ETEO
 # Message-ID: <67hbs1a6v3.fsf@poseidon.eteo.mondragon.edu>
-# 
+#
 # gamo@telecable.es writes:
-# 
-# > Nope, sale lo mismo de antes. Una pantalla con dos entradas de texto y 
+#
+# > Nope, sale lo mismo de antes. Una pantalla con dos entradas de texto y
 # > la llamada a darle a la flechita.
-# 
+#
 # Creo que de alguna manera comprueba si la petición viene desde un
 # navegador 'interactivo', porque me pasa como a Gonzalo, desde Firefox
 # si funciona, pero desde lynx pidiendolo a pelo no.
-# 
+#
 # Así que he hecho un script en Perl mezclando lo que tenías y un par de
 # recetillas del 'Perl Cookbook' de O'Reilly, y con lo siguiente me
 # funciona perfectamente :-)
-# 
-# 
+#
+#
 # Saludos. Iñaki.
-# 
-# -- 
+#
+# --
 # Mondragon University
-# 
+#
 # GPG Key available at public keyservers

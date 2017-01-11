@@ -2,7 +2,7 @@
 sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
     -verbose \
     -agent -stop \
-    -deactivate 
+    -deactivate
 exit 0
 
 sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
@@ -58,7 +58,7 @@ $ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resou
 
 6. Apple Remote Desktop 3.2 or later only: Allow access for all users and give all users full access
 
-$ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -configure -allowAccessFor -allUsers -privs -all 
+$ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -configure -allowAccessFor -allUsers -privs -all
 
 7. Apple Remote Desktop 3.2 or later only: Allow access for only a specific set of users.
 

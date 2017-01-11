@@ -1,4 +1,4 @@
-#!/usr/local/bin/clisp -ansi -q -E utf-8 -on-error abort
+#!/usr/local/bin/clisp -ansi -q -E utf-8 -on-error debug
 ;;;; -*- mode:lisp; coding:utf-8 -*-
 ;;;;****************************************************************************
 ;;;;FILE:               cookie
@@ -67,10 +67,10 @@
         (remove-duplicates (append
                             (mapcan (lambda (dir)
                                       (set-difference (ignore-errors (directory (merge-pathnames "*" dir)))
-                                                              (append (ignore-errors (directory (merge-pathnames "*.dat" dir)))
-                                                                      (ignore-errors (directory (merge-pathnames "*.u8" dir)))
-                                                                       (ignore-errors (directory (merge-pathnames "*~" dir))))
-                                                              :test (function equal)))
+                                                      (append (ignore-errors (directory (merge-pathnames "*.dat" dir)))
+                                                              (ignore-errors (directory (merge-pathnames "*.u8" dir)))
+                                                              (ignore-errors (directory (merge-pathnames "*~" dir))))
+                                                      :test (function equal)))
                                     (list "/usr/share/games/fortune/"
                                           "/opt/local/share/games/fortune/"))
                             (ignore-errors (directory "/data/cookies/*.cookies"))
@@ -82,8 +82,10 @@
        (with-open-file (input table-path :direction :input :if-does-not-exist nil)
          (when input
            (loop for line = (read-line input nil nil)
+                 for path = (and line (string-trim " " line))
                  while line
-                 collect (string-trim " " line))))))
+                 when (plusp (length path))
+                   collect path)))))
 
 
 (defun cookie-separator-p (ch)
@@ -140,8 +142,8 @@
     (explain-cookie-files
      (or (explain-load-file-names
           (or (explain-value (ext:getenv +cookie-environment-variable-name+)
-                           (format nil "The environment variable ~A"
-                                   +cookie-environment-variable-name+))
+                             (format nil "The environment variable ~A"
+                                     +cookie-environment-variable-name+))
               (explain-value *default-table-path* '*default-table-path*)))
          (explain-value *default-files* '*default-files*)))))
 
@@ -149,9 +151,9 @@
 
 (defun optionp (options arguments)
   (if (atom options)
-    (member options arguments :test (function string-equal))
-    (some (lambda (option) (member option arguments :test (function string-equal)))
-          options)))
+      (member options arguments :test (function string-equal))
+      (some (lambda (option) (member option arguments :test (function string-equal)))
+            options)))
 
 (defun usage ()
   (format t "~A usage:~%~

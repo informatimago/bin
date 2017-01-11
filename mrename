@@ -1,5 +1,5 @@
 #!/bin/csh
-# Usage: mrename old-substring new-substring files 
+# Usage: mrename old-substring new-substring files
 
 	if ( ${#argv} < 3 ) then
 		echo mrename usage: $0 old-substring new-substring files...
