@@ -2,32 +2,32 @@
 
 function ACK () {
     # ACKNOWLEDGE
-    
+
     echo -n ""
 }
 function APC () {
     # APPLICATION PROGRAM COMMAND
-    
+
     echo -n "_"
 }
 function BEL () {
     # BELL
-    
+
     echo -n ""
 }
 function BPH () {
     # BREAK PERMITTED HERE
-    
+
     echo -n "B"
 }
 function BS () {
     # BACKSPACE
-    
+
     echo -n ""
 }
 function CAN () {
     # CANCEL
-    
+
     echo -n ""
 }
 function CBT () {
@@ -37,7 +37,7 @@ function CBT () {
 }
 function CCH () {
     # CANCEL CHARACTER
-    
+
     echo -n "T"
 }
 function CHA () {
@@ -52,7 +52,7 @@ function CHT () {
 }
 function CMD () {
     # CODING METHOD DELIMITER
-    
+
     echo -n "d"
 }
 function CNL () {
@@ -77,12 +77,12 @@ function CR () {
 }
 function CSI () {
     # CONTROL SEQUENCE INTRODUCER
-    
+
     echo -n "["
 }
 function CTC () {
     # CURSOR TABULATION CONTROL
-    
+
     echo -n "[$(semicolon='';res='';for arg in $@;do res=${res}${semicolon}${arg};semicolon=';';done;echo -n ${res})W"
 }
 function CUB () {
@@ -122,7 +122,7 @@ function DA () {
 }
 function DAQ () {
     # DEFINE AREA QUALIFICATION
-    
+
     echo -n "[$(semicolon='';res='';for arg in $@;do res=${res}${semicolon}${arg};semicolon=';';done;echo -n ${res})o"
 }
 function DCH () {
@@ -132,27 +132,27 @@ function DCH () {
 }
 function DCS () {
     # DEVICE CONTROL STRING
-    
+
     echo -n "P"
 }
 function DC1 () {
     # DEVICE CONTROL ONE
-    
+
     echo -n ""
 }
 function DC2 () {
     # DEVICE CONTROL TWO
-    
+
     echo -n ""
 }
 function DC3 () {
     # DEVICE CONTROL THREE
-    
+
     echo -n ""
 }
 function DC4 () {
     # DEVICE CONTROL FOUR
-    
+
     echo -n ""
 }
 function DL () {
@@ -162,12 +162,12 @@ function DL () {
 }
 function DLE () {
     # DATA LINK ESCAPE
-    
+
     echo -n ""
 }
 function DMI () {
     # DISABLE MANUAL INPUT
-    
+
     echo -n "\`"
 }
 function DSR () {
@@ -207,52 +207,52 @@ function EL () {
 }
 function EM () {
     # END OF MEDIUM
-    
+
     echo -n ""
 }
 function EMI () {
     # ENABLE MANUAL INPUT
-    
+
     echo -n "b"
 }
 function ENQ () {
     # ENQUIRY
-    
+
     echo -n ""
 }
 function EOT () {
     # END OF TRANSMISSION
-    
+
     echo -n ""
 }
 function EPA () {
     # END OF GUARDED AREA
-    
+
     echo -n "W"
 }
 function ESA () {
     # END OF SELECTED AREA
-    
+
     echo -n "G"
 }
 function ESC () {
     # ESCAPE
-    
+
     echo -n ""
 }
 function ETB () {
     # END OF TRANSMISSION BLOCK
-    
+
     echo -n ""
 }
 function ETX () {
     # END OF TEXT
-    
+
     echo -n ""
 }
 function FF () {
     # FORM FEED
-    
+
     echo -n ""
 }
 function FNK () {
@@ -297,17 +297,17 @@ function HPR () {
 }
 function HT () {
     # CHARACTER TABULATION
-    
+
     echo -n "	"
 }
 function HTJ () {
     # CHARACTER TABULATION WITH JUSTIFICATION
-    
+
     echo -n "I"
 }
 function HTS () {
     # CHARACTER TABULATION SET
-    
+
     echo -n "H"
 }
 function HVP () {
@@ -337,59 +337,59 @@ function IL () {
 }
 function INT () {
     # INTERRUPT
-    
+
     echo -n "a"
 }
 function IS1 () {
     # INFORMATION SEPARATOR ONE (US - UNIT SEPARATOR)
-    
+
     echo -n ""
 }
 function IS2 () {
     # INFORMATION SEPARATOR TWO (RS - RECORD SEPARATOR)
-    
+
     echo -n ""
 }
 function IS3 () {
     # INFORMATION SEPARATOR THREE (GS - GROUP SEPARATOR)
-    
+
     echo -n ""
 }
 function IS4 () {
     # INFORMATION SEPARATOR FOUR (FS - FILE SEPARATOR)
-    
+
     echo -n ""
 }
 function JFY () {
     # JUSTIFY
-    
+
     echo -n "[$(semicolon='';res='';for arg in $@;do res=${res}${semicolon}${arg};semicolon=';';done;echo -n ${res}) F"
 }
 function LF () {
     # LINE FEED
-    
-    echo -n 
+
+    echo -n
 "
 "
 }
 function LS0 () {
     # LOCKING-SHIFT ZERO
-    
+
     echo -n ""
 }
 function LS1 () {
     # LOCKING-SHIFT ONE
-    
+
     echo -n "~"
 }
 function LS2 () {
     # LOCKING-SHIFT TWO
-    
+
     echo -n "}"
 }
 function LS3 () {
     # LOCKING-SHIFT THREE
-    
+
     echo -n "|"
 }
 function MC () {
@@ -399,22 +399,22 @@ function MC () {
 }
 function MW () {
     # MESSAGE WAITING
-    
+
     echo -n "U"
 }
 function NAK () {
     # NEGATIVE ACKNOWLEDGE
-    
+
     echo -n ""
 }
 function NBH () {
     # NO BREAK HERE
-    
+
     echo -n "C"
 }
 function NEL () {
     # NEXT LINE
-    
+
     echo -n "E"
 }
 function NP () {
@@ -428,7 +428,7 @@ function NUL () {
 }
 function OSC () {
     # OPERATING SYSTEM COMMAND
-    
+
     echo -n "]"
 }
 function PEC () {
@@ -443,17 +443,17 @@ function PFS () {
 }
 function PLD () {
     # PARTIAL LINE FORWARD
-    
+
     echo -n "K"
 }
 function PLU () {
     # PARTIAL LINE BACKWARD
-    
+
     echo -n "L"
 }
 function PM () {
     # PRIVACY MESSAGE
-    
+
     echo -n "^"
 }
 function PP () {
@@ -483,17 +483,17 @@ function PTX () {
 }
 function PU1 () {
     # PRIVATE USE ONE
-    
+
     echo -n "Q"
 }
 function PU2 () {
     # PRIVATE USE TWO
-    
+
     echo -n "R"
 }
 function QUAD () {
     # QUAD
-    
+
     echo -n "[$(semicolon='';res='';for arg in $@;do res=${res}${semicolon}${arg};semicolon=';';done;echo -n ${res}) H"
 }
 function REP () {
@@ -503,17 +503,17 @@ function REP () {
 }
 function RI () {
     # REVERSE LINE FEED
-    
+
     echo -n "M"
 }
 function RIS () {
     # RESET TO INITIAL STATE
-    
+
     echo -n "c"
 }
 function RM () {
     # RESET MODE
-    
+
     echo -n "[$(semicolon='';res='';for arg in $@;do res=${res}${semicolon}${arg};semicolon=';';done;echo -n ${res})l"
 }
 function SACS () {
@@ -523,12 +523,12 @@ function SACS () {
 }
 function SAPV () {
     # SELECT ALTERNATIVE PRESENTATION VARIANTS
-    
+
     echo -n "[$(semicolon='';res='';for arg in $@;do res=${res}${semicolon}${arg};semicolon=';';done;echo -n ${res}) ]"
 }
 function SCI () {
     # SINGLE CHARACTER INTRODUCER
-    
+
     echo -n "Z"
 }
 function SCO () {
@@ -568,7 +568,7 @@ function SEF () {
 }
 function SGR () {
     # SELECT GRAPHIC RENDITION
-    
+
     echo -n "[$(semicolon='';res='';for arg in $@;do res=${res}${semicolon}${arg};semicolon=';';done;echo -n ${res})m"
 }
 function SHS () {
@@ -578,7 +578,7 @@ function SHS () {
 }
 function SI () {
     # SHIFT-IN
-    
+
     echo -n ""
 }
 function SIMD () {
@@ -608,27 +608,27 @@ function SLS () {
 }
 function SM () {
     # SET MODE
-    
+
     echo -n "[$(semicolon='';res='';for arg in $@;do res=${res}${semicolon}${arg};semicolon=';';done;echo -n ${res})h"
 }
 function SO () {
     # SHIFT-OUT
-    
+
     echo -n ""
 }
 function SOH () {
     # START OF HEADING
-    
+
     echo -n ""
 }
 function SOS () {
     # START OF STRING
-    
+
     echo -n "X"
 }
 function SPA () {
     # START OF GUARDED AREA
-    
+
     echo -n "V"
 }
 function SPD () {
@@ -673,7 +673,7 @@ function SRS () {
 }
 function SSA () {
     # START OF SELECTED AREA
-    
+
     echo -n "F"
 }
 function SSU () {
@@ -688,17 +688,17 @@ function SSW () {
 }
 function SS2 () {
     # SINGLE-SHIFT TWO
-    
+
     echo -n "N"
 }
 function SS3 () {
     # SINGLE-SHIFT THREE
-    
+
     echo -n "O"
 }
 function ST () {
     # STRING TERMINATOR
-    
+
     echo -n "\\"
 }
 function STAB () {
@@ -708,12 +708,12 @@ function STAB () {
 }
 function STS () {
     # SET TRANSMIT STATE
-    
+
     echo -n "S"
 }
 function STX () {
     # START OF TEXT
-    
+
     echo -n ""
 }
 function SU () {
@@ -723,7 +723,7 @@ function SU () {
 }
 function SUB () {
     # SUBSTITUTE
-    
+
     echo -n ""
 }
 function SVS () {
@@ -733,7 +733,7 @@ function SVS () {
 }
 function SYN () {
     # SYNCHRONOUS IDLE
-    
+
     echo -n ""
 }
 function TAC () {
@@ -788,12 +788,12 @@ function VPR () {
 }
 function VT () {
     # LINE TABULATION
-    
+
     echo -n ""
 }
 function VTS () {
     # LINE TABULATION SET
-    
+
     echo -n "J"
 }
 
@@ -831,11 +831,12 @@ export GOTO_HOME="$(IS2)"
 export CLEAR_HOME="$(FF)"
 export CLEAR_SCREEN="$(RIS)"
 
+export CSI='['
 export ISO6429ICH="${CSI}@"
-export ISO6429CUU="${CSI}${CSI_UP}"
-export ISO6429CUD="${CSI}${CSI_DOWN}"
-export ISO6429CUF="${CSI}${CSI_RIGHT}"
-export ISO6429CUB="${CSI}${CSI_LEFT}"
+export ISO6429CUU="${CSI}A"
+export ISO6429CUD="${CSI}B"
+export ISO6429CUF="${CSI}C"
+export ISO6429CUB="${CSI}D"
 export ISO6429CUP="${CSI}H"
 export ISO6429ED="${CSI}J"
 export ISO6429EL="${CSI}K"
