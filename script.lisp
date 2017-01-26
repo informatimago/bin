@@ -108,7 +108,7 @@
 
            "WITHOUT-OUTPUT" "WITH-PAGER"
            "REDIRECTING-STDOUT-TO-STDERR"
-           "RELAUCH-WITH-KFULL-LINKSET-IF-NEEDED"
+           "RELAUNCH-WITH-KFULL-LINKSET-IF-NEEDED"
 
            ;; I/O
            "PERROR" "PMESSAGE" "PQUERY"
@@ -198,7 +198,7 @@ If available we use the actual program name (from (EXT:ARGV) or
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 
-(defun relauch-with-kfull-linkset-if-needed (thunk)
+(defun relaunch-with-kfull-linkset-if-needed (thunk)
   ;; If the version of clisp requires -Kfull to have linux, then let's call it with -Kfull…
   (multiple-value-bind (res err) (ignore-errors (funcall thunk))
     (when err
@@ -217,7 +217,7 @@ If available we use the actual program name (from (EXT:ARGV) or
           (push :linux *features*))
 
 #-(or linux macos win32 #|what else is not linux?|#)
-(relauch-with-kfull-linkset-if-needed (lambda () (require "linux")))
+(relaunch-with-kfull-linkset-if-needed (lambda () (require "linux")))
 
 
 
