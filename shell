@@ -249,8 +249,6 @@ les spectateurs sont invités
 
 
 
-
-
 (define-option ("list-shells" "-ls" "--list") ()
   "List the known cine shells."
   (format t "~:{~A~%~}~%" *shells*))
@@ -728,7 +726,7 @@ RETURN:  A list of all the path that can be generated from the root of the
                        PROGRAM
 
                        END OF LINE ~6%" (tron-mcp-date))
-  (finish-output)) ;;tron-shell
+  (finish-output))
 
 
 (defparameter tron "
@@ -3017,7 +3015,24 @@ type activation_derived(unsigned int activation_fun
          \"Problem with the dependency graph: ~A\"
          (summarize-plan plan)))"))
 
+(defparameter *cyber-tracker-2-pm--1995*
+  '("
+DIRECTORIES AVAILABLE
+   CYBERTRACKER MAINTAINANCES FILES
+   CYBER TECHNOLOGY GRID
+   CYBER APPROPRIATION REPORTS
 
+ACCESS CYBER APPROPRIATION REPORTS
+
+"
+    "
+
+SYS INTERRUPT II65
+REROUTE IN PROGRESS
+
+ACCESS MEMLOC 1279AF400  ACCESSING…
+
+"))
 
 ;;;---------------------------------------------------------------------
 ;;; Run it
