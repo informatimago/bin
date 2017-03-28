@@ -1,0 +1,5 @@
+#!/bin/bash
+function vboxmanage(){
+    '/Applications/VirtualBox.app/Contents/MacOS/VBoxManage' "$@"
+}
+vboxmanage controlvm "debian-8.6-jessie" savestate

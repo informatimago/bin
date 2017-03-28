@@ -1,0 +1,5 @@
+#!/bin/bash
+function vboxmanage(){
+    '/Applications/VirtualBox.app/Contents/MacOS/VBoxManage' "$@"
+}
+vboxmanage startvm   "debian-8.6-jessie"
