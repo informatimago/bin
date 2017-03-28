@@ -1,4 +1,4 @@
-#!/usr/local/bin/clisp -ansi -q -E utf-8
+#!/usr/local/bin/clisp -ansi -q -E utf-8 -on-error debug
 ;;;; -*- mode:lisp;coding:utf-8 -*-
 ;;;;**************************************************************************
 ;;;;FILE:               ansi-test
@@ -72,15 +72,15 @@
 (defpackage "E48" (:use))
 (let ((*package* (find-package "E48")))
   (without-output
-      (funcall (or (find-symbol "GENERATE-ALL-FUNCTIONS"
-                                "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.ECMA048")
-                   (lambda (&rest args)
-                     (declare (ignore args))
-                     (error "Cannot generate the ECMA048 functions")))
-               :export  common-lisp:t
-               :8-bit   common-lisp:nil
-               :print   common-lisp:t
-               :result-type 'common-lisp:string)))
+      (eval (funcall (or (find-symbol "GENERATE-ALL-FUNCTIONS"
+                                      "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.ECMA048")
+                         (lambda (&rest args)
+                           (declare (ignore args))
+                           (error "Cannot generate the ECMA048 functions")))
+                     :export  common-lisp:t
+                     :8-bit   common-lisp:nil
+                     :print   common-lisp:t
+                     :result-type 'common-lisp:string))))
 
 
 
