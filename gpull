@@ -139,6 +139,7 @@ for pset in ${psets[@]} ; do
         (
             cd "$dir" && (
                 printf "\n########################################################################"
+                printf "\n### set: %s" "$pset"
                 printf "\ncd %s\n" "$(pwd)"
                 if [ $push_all_remotes -ne 0 ] ; then
                     case "${op[0]}" in
