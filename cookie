@@ -49,7 +49,7 @@
 (defparameter *pname*
   (if *load-pathname* (file-namestring *load-pathname*) "cookie"))
 
-(defparameter +cookie-environment-variable-name+ "cookiefiles")
+(defparameter +cookie-environment-variable-name+ "COOKIE_FILES")
 
 (defparameter *default-table-path* "/data/cookies/ALL.files")
 (defparameter *default-files*
