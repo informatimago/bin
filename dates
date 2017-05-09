@@ -5,6 +5,7 @@
     echo ''
     echo "San-Francisco  (USA): $(TZ=/usr/share/zoneinfo/America/Los_Angeles  LC_TIME=en_US date)"
     echo "New-York       (USA): $(TZ=/usr/share/zoneinfo/America/New_York     LC_TIME=en_US date)"
+    echo "São-Paulo   (Brasil): $(TZ=/usr/share/zoneinfo/America/Sao_Paulo    LC_TIME=en_US date)"
     echo "London  (Angleterre): $(TZ=/usr/share/zoneinfo/Europe/London        LC_TIME=en_UK date)"
     echo "Madrid     (Espagne): $(TZ=/usr/share/zoneinfo/Europe/Madrid        LC_TIME=es_ES date)"
     echo "Paris       (France): $(TZ=/usr/share/zoneinfo/Europe/Paris         LC_TIME=fr_FR date)"
