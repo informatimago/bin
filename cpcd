@@ -5,15 +5,13 @@ pname="$(basename "$0")"
 # default implementation:
 
 function eject(){
-    local ignore
-    read -p 'Please eject the CDROM, and type RET' ignore
+    read -p 'Please eject the CDROM, and type RET'
 }
 
 function wait_cd(){
     local cd="$1"
-    local ignore
     printf "Waiting for the CD %s\n" "$cd"
-    read -p "Please insert a CDROM, and type RET when it's ready" ignore
+    read -p "Please insert a CDROM, and type RET when it's ready"
 }
 
 
@@ -56,7 +54,7 @@ function cpcd(){
       eject ;\
       printf "Compressing in background.\n" ;\
       for f in *.wav ; do \
-          flac --silent -V --compression-level-8 ${f} >> flac.log && rm ${f} ;\
+          flac --silent -V --compression-level-8 "${f}" >> flac.log && rm "${f}" ;\
       done & )
 }
 
@@ -78,6 +76,7 @@ start=''
 format='cd%02d'
 
 function parse_arguments(){
+    local arg
     while [ $# -gt 0 ] ; do
         arg="$1" ; shift
         case "$arg" in
@@ -121,34 +120,42 @@ function parse_arguments(){
     done
 
     if [ "$dir" = '' -a "$start" = '' ] ; then
-        printf "Please give either -b \$start or $directory.\n"
+        # shellcheck disable=SC2016
+        printf 'Please give either -b $start or $directory.\n'
         usage
         exit 1
     fi
 
     if [ "$dir" != '' -a "$start" != '' ] ; then
-        printf "-b \$start and $directory are mutually exclusive.\n"
+        # shellcheck disable=SC2016
+        printf '-b $start and $directory are mutually exclusive.\n'
         usage
         exit 1
     fi
 }
 
 
-parse_arguments $@
+function main(){
+    parse_arguments "$@"
+    if [ "$start" != '' ] ; then
+        case "$start" in
+        (*[^0-9]*)
+            printf "Invalid start index, it must be an integer, not '%s'\n" "$start"
+            usage
+            exit 1
+            ;;
+        esac
+        index=$start
+        while true ; do
+            # shellcheck disable=SC2059
+            cpcd "$(printf "$format" "$index")"
+            ((index++))
+        done
+    else
+        cpcd "${dir}"
+    fi
+    exit 0
+}
 
-if [ "$start" != '' ] ; then
-    case "$start" in
-    *[^0-9]*)
-        printf "Invalid start index, it must be an integer, not '%s'\n" "$start"
-        usage
-        exit 1
-        ;;
-    esac
-    index=$start
-    while true ; do
-        cpcd "$(printf "$format" "$index")"
-        index=$(( $index + 1 ))
-    done
-else
-    cpcd "${dir}"
-fi
+
+main "$@"
