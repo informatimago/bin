@@ -6,7 +6,7 @@ declare TabWidth=8
 function expandTabs(){
     local file="$1"
     case "${file}" in
-    (*akefile*)
+    (*akefile*|.mk$)
         true
         ;;
     (*)
