@@ -3,6 +3,7 @@ set -e
 # TODO: Rewrite it in clisp, it has overflown bash complexity.
 
 pname="$(basename "$0")"
+gsets=()
 gdirs=("$HOME/.config/gpull-dirs"  "$(dirname "$0")/gdirs")
 for dir in "${gdirs[@]}" ; do
     if [ -r "$dir" ] ; then
@@ -19,181 +20,203 @@ gvers=$(git --version|sed -e 's/git version \([0-9]*\)\..*/\1/')
 push_all_remotes=0
 psets=()
 goterror=0
-
+linked_names=(gpull gpush gstat gremotes)
 
 function usage(){
     printf "\n"
     printf "%s usage:\n\n" "$pname"
-    printf "  %s links  # creates the associated symlinks.\n" "git-group"
-    printf "  %s sets   # display the list of gsets.\n" "$pname"
+    printf "  %s links  # creates the associated symlinks.\n"  "git-group"
+    printf "  %s sets   # display the list of gsets.\n"        "git-group"
     printf "  gstat [gset]\n"
     printf "  gpull [gset] [--all-remotes]\n"
     printf "  gpush [gset] [--all-remotes]\n"
     printf "\n"
     printf "gset should be one of: \n"
-    printf "             %s\n" ${gsets[@]}
+    printf "             %s\n" "${gsets[@]}"
     printf "\n"
 }
 
 function error(){
     goterror=1
-    printf "%s error: " "$pname" 1>&2
-    printf "$@"                  1>&2
-    printf "\n"                  1>&2
+    printf '%s error: %s\n' "$pname" "$*"  1>&2
 }
 
 function homedir(){
     local dir="$1"
-    echo $dir|sed -e "s:^${HOME}/:\\\${HOME}/:" -e "s:^${HOME}\$:\\\${HOME}:"
+    echo "$dir"|sed -e "s:^${HOME}/:\\\${HOME}/:" -e "s:^${HOME}\$:\\\${HOME}:"
 }
 
-case "$1" in
-link|links)
-    for link in gpush gstat gremotes ; do
-        ln -v -s -f git-groups "$(dirname "$0")/${link}"
-    done
-    exit 0
-    ;;
-sets|gsets)
-    echo ${gsets[@]}
-    exit 0
-    ;;
-clone)
-    for gset in ${gsets[@]} ; do
-        eval echo \${${gset}[@]}|tr ' ' '\012'
+
+function clone_all_gset_repositories(){
+    for gset in "${gsets[@]}" ; do
+        # shellcheck disable=SC2086
+        eval printf '%s\n' \${${gset}[@]}
     done \
         | sort -u \
         | while read dir ; do
-              echo '#'
-              first=0
-              ( cd $dir >/dev/null 2>&1 ; git-show-remotes ) \
-                  | sed -n -e 's/ (fetch)//p' \
-                  | while read name url ; do
-                        dstdir="$(homedir $(dirname ${dir}))"
-                        if [ $first -eq 0 ] ; then
-
-                            echo mkdir -p ${dstdir}
-                            echo cd ${dstdir}
-                            echo git clone -o $name $url $(basename $dir)
-                            first=1
-                        else
-                            echo cd ${dstdir}/$(basename $dir)
-                            echo git remote add $name $url
-                        fi
-                    done
-          done
-    exit 0
-    ;;
-esac
-
-for arg ; do
-    case "$arg" in
-    --all-remotes)
-        push_all_remotes=1
-        ;;
-    *)
-        gset="$arg"
-        gotit=0
-        for e in ${gsets[@]} ; do
-            if [ "$gset" = "$e" ] ; then
-                gotit=1
-                break
+        echo '#'
+        first=0
+        ( cd "${dir}" >/dev/null 2>&1 ; git-show-remotes ) \
+            | sed -n -e 's/ (fetch)//p' \
+            | while read name url ; do
+            dstdir="$(homedir "$(dirname "${dir}")")"
+            if [ $first -eq 0 ] ; then
+                echo mkdir -p "${dstdir}"
+                echo cd $"{dstdir}"
+                echo git clone -o "${name}" "${url}" "$(basename "${dir}")"
+                first=1
+            else
+                echo cd "${dstdir}/$(basename "${dir}")"
+                echo git remote add "${name}" "${url}"
             fi
         done
+    done
+}
 
-        if [ $gotit -eq 0 ] ; then
-            error "invalid git set '%s'" "$gset"
-        else
-            psets=( ${psets[@]} $gset )
-        fi
-       ;;
+
+function main(){
+
+    case "$1" in
+
+    (-h|--help|help)
+        usage
+        exit 0
+        ;;
+
+    (link|links)
+        for link in "${linked_names[@]}" ; do
+            ln -v -s -f git-groups "$(dirname "$0")/${link}"
+        done
+        exit 0
+        ;;
+
+    (sets|gsets)
+        printf '%s\n' "${gsets[@]}"
+        exit 0
+        ;;
+
+    (clone)
+        clone_all_gset_repositories
+        exit 0
+        ;;
+
     esac
-done
 
 
-case "$pname" in
-gpull)    op=(pull) ;;
-gpush)    op=(push --tags --follow-tags) ;;
-gstat)    op=(status --untracked-files=no) ;;
-gremotes) op=(remote) ;;
-*)
-    error "it should be named gpull, gpush or gstat\nuse:\n\t git-groups link \nto make the symlinks.\n"
-    ;;
-esac
-
-if [ $goterror -ne 0 ] ; then
-    usage
-    exit 1
-fi
-
-
-if [ ${#psets} -eq 0 ] ; then
-    psets=( ${gsets[0]} )
-fi
-
-for pset in ${psets[@]} ; do
-
-    eval 'pdirs=( ${'"$pset"'[@]} )'
-
-    for dir in "${pdirs[@]}" ; do
-        (
-            cd "$dir" && (
-                printf "\n########################################################################"
-                printf "\n### set: %s" "$pset"
-                printf "\ncd %s\n" "$(pwd)"
-                if [ $push_all_remotes -ne 0 ] ; then
-                    case "${op[0]}" in
-                    remote)
-                        trap : INT
-                        git-show-remotes |expand -16
-                        trap INT
-                        ;;
-                    push)
-                        printf "# pushing branch \"%s\".\n" "$(git branch |awk '/\*/{print $2}')"
-                        trap : INT
-                        for r in $(git remote) ; do
-                            printf "%s " "$r"
-                            git "${op[@]}" "$r"
-                        done
-                        trap INT
-                        ;;
-                    pull)
-                        trap : INT
-                        if [ $gvers -eq 1 -a $(git remote|wc -l) -eq 1 ] ; then
-                            git "${op[@]}"
-                        else
-                            git "${op[@]}" --all
-                        fi
-                        trap INT
-                        ;;
-                    *)
-                        trap : INT
-                        git "${op[@]}"
-                        trap INT
-                        ;;
-                    esac
-                else
-                    case "${op[0]}" in
-                    remote)
-                        trap : INT
-                        git-show-remotes |expand -16
-                        trap INT
-                        ;;
-                    push)
-                        printf "# pushing branch \"%s\".\n" "$(git branch |awk '/*/{print $2}')"
-                        trap : INT
-                        git "${op[@]}"
-                        trap INT
-                        ;;
-                    *)
-                        trap : INT
-                        git "${op[@]}"
-                        trap INT
-                        ;;
-                    esac
+    for arg ; do
+        case "$arg" in
+        --all-remotes)
+            push_all_remotes=1
+            ;;
+        *)
+            gset="$arg"
+            gotit=0
+            for e in "${gsets[@]}" ; do
+                if [ "$gset" = "$e" ] ; then
+                    gotit=1
+                    break
                 fi
-            )
-        )
+            done
+
+            if [ $gotit -eq 0 ] ; then
+                error "invalid git set '%s'" "$gset"
+            else
+                psets+=( $gset )
+            fi
+            ;;
+        esac
     done
 
-done
+    case "$pname" in
+    (gpull)    op=(pull)                        ;;
+    (gpush)    op=(push --tags --follow-tags)   ;;
+    (gstat)    op=(status --untracked-files=no) ;;
+    (gremotes) op=(remote)                      ;;
+    (*)
+        error "It should be named gpull, gpush or gstat\nuse:\n\t git-groups link \nto make the symlinks.\n"
+        ;;
+    esac
+
+    if [ $goterror -ne 0 ] ; then
+        usage
+        exit 1
+    fi
+
+
+    if [ ${#psets} -eq 0 ] ; then
+        psets=( ${gsets[0]} )
+    fi
+
+    for pset in "${psets[@]}" ; do
+
+        pdirs=()
+        # shellcheck disable=SC2016
+        eval 'pdirs=( ${'"$pset"'[@]} )'
+
+        for dir in "${pdirs[@]}" ; do
+            (
+                cd "$dir" && (
+                    printf "\n########################################################################"
+                    printf "\n### set: %s" "$pset"
+                    printf "\ncd %s\n" "$(pwd)"
+                    if [ $push_all_remotes -ne 0 ] ; then
+                        case "${op[0]}" in
+                        remote)
+                            trap : INT
+                            git-show-remotes |expand -16
+                            trap INT
+                            ;;
+                        push)
+                            printf "# pushing branch \"%s\".\n" "$(git branch |awk '/\*/{print $2}')"
+                            trap : INT
+                            for r in $(git remote) ; do
+                                printf "%s " "$r"
+                                git "${op[@]}" "$r"
+                            done
+                            trap INT
+                            ;;
+                        pull)
+                            trap : INT
+                            if [ "$gvers" -eq 1 -a "$(git remote|wc -l)" -eq 1 ] ; then
+                                git "${op[@]}"
+                            else
+                                git "${op[@]}" --all
+                            fi
+                            trap INT
+                            ;;
+                        *)
+                            trap : INT
+                            git "${op[@]}"
+                            trap INT
+                            ;;
+                        esac
+                    else
+                        case "${op[0]}" in
+                        remote)
+                            trap : INT
+                            git-show-remotes |expand -16
+                            trap INT
+                            ;;
+                        push)
+                            printf "# pushing branch \"%s\".\n" "$(git branch |awk '/*/{print $2}')"
+                            trap : INT
+                            git "${op[@]}"
+                            trap INT
+                            ;;
+                        *)
+                            trap : INT
+                            git "${op[@]}"
+                            trap INT
+                            ;;
+                        esac
+                    fi
+                )
+            )
+        done
+
+    done
+
+    exit 0
+}
+
+main "$@"
