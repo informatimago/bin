@@ -1,0 +1,145 @@
+#!/bin/bash
+# -*- mode:shell-script;coding:utf-8 -*-
+#*****************************************************************************
+#FILE:               macosx-uninstall-package
+#LANGUAGE:           bash
+#SYSTEM:             POSIX
+#USER-INTERFACE:     NONE
+#DESCRIPTION
+#    
+#    This script helps uninstalling macosx packages.
+#    
+#AUTHORS
+#    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
+#MODIFICATIONS
+#    2017-06-06 <PJB> Created.
+#BUGS
+#LEGAL
+#    AGPL3
+#    
+#    Copyright Pascal J. Bourguignon 2017 - 2017
+#    
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#    
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#    
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#*****************************************************************************
+
+
+_SYSEXITS_H=1
+EX_OK=0
+EX__BASE=64
+EX_USAGE=64
+EX_DATAERR=65
+EX_NOINPUT=66
+EX_NOUSER=67
+EX_NOHOST=68
+EX_UNAVAILABLE=69
+EX_SOFTWARE=70
+EX_OSERR=71
+EX_OSFILE=72
+EX_CANTCREAT=73
+EX_IOERR=74
+EX_TEMPFAIL=75
+EX_PROTOCOL=76
+EX_NOPERM=77
+EX_CONFIG=78
+EX__MAX=78
+
+# pkgutil --pkgs|grep com.mysteryislandsmusic.ms2kxrAudiounitVstiEditorV109Demo64Bit|while read p ; do pkgutil --pkg-info $p ; done
+
+
+
+dry_run=no
+
+
+
+function error(){
+    {
+        printf 'Error: '
+        # shellcheck disable=SC2059
+        printf "$@"
+        printf '\n'
+    } 1>&2
+}
+
+
+function package_get_field(){
+    local pkgid="$1"
+    local field="$2"
+    pkgutil --pkg-info-plist "${pkgid}" | plutil -extract "${field}" xml1 - -o - | xmllint --xpath 'string(//plist/string)' -
+}
+
+function package_install_location(){  package_get_field "$1" install-location ; }
+function package_install_volume(){    package_get_field "$1" volume ; }
+
+
+function uninstall_package(){
+    local pkgid="$1"
+    local install_location ; install_location="$(package_install_location "${pkgid}")"
+    local install_volume   ; install_volume="$(package_install_volume "${pkgid}")"
+    local command
+    if [[ $dry_run = no ]] ; then
+        command=sudo
+    else
+        command=echo
+    fi
+    (
+        cd "${install_volume}/${install_location}"
+        pkgutil --only-files --files "${pkgid}"           | tr '\n' '\0' | xargs -n 1 -0 "${command}" rm -v -f
+        # Some packages have install_location=/, therefore their --only-dirs contains system directories!
+        pkgutil --only-dirs  --files "${pkgid}" | sort -r | tr '\n' '\0' | xargs -n 1 -0 "${command}" rmdir 
+    ) && "${command}" pkgutil --forget "${pkgid}"
+}
+
+function validate_package(){
+    local pkgid="$1"
+    if ! pkgutil --pkg-info "${pkgid}" >/dev/null 2>&1 ; then
+        error 'No such package id: %s' "${pkgid}"
+        printf 'Use the following command to list valid package IDs:\n\n\t%s\n\n' 'pkgutil --pkgs'
+        exit $EX_DATAERR
+    fi
+}
+
+function usage(){
+    local pname="$1"
+    printf '%s usage:\n\n\t%s [-h|--help] | [-n|--dry-run] package_id...\n\n' "${pname}" "${pname}"
+}
+
+
+function main(){
+    local pname;pname="$(basename "$0")"
+    for arg ; do
+        case "${arg}" in
+        (-h|--help)
+            usage "${pname}"
+            exit $EX_OK
+            ;;
+        (-n|--dry-run)
+            dry_run=yes
+            ;;
+        (-*)
+            error 'Invalid option: %s' "${arg}"
+            usage "${pname}"
+            exit $EX_USAGE
+            ;;
+        (*)
+            pkgs+=("${arg}")
+            ;;
+        esac
+    done
+    for pkgid in "${pkgs[@]}" ; do
+        validate_package "${pkgid}" && uninstall_package "${pkgid}"
+    done
+    exit $EX_OK
+}
+
+main "$@"
