@@ -78,7 +78,7 @@ function check_path () {
 
 function usage () {
     echo "Usage:"
-    echo "   $(basename $0) [volset [volume]]"
+    echo "   $(basename "$0") [volset [volume]]"
 }
 
 
@@ -127,7 +127,7 @@ echo -n "Insert ORIGINAL CD and press RETURN:"
 beep ; read line
 
 mount /cdrom
-if [ $(find /cdrom/. -name \*.avi -print|wc -l) -ne 1 ] ; then
+if [ "$(find /cdrom/. -name \*.avi -print|wc -l)" -ne 1 ] ; then
     find /cdrom/. -name \*.avi -print
     echo "Not exactly one AVI on this CD. handle manually."
     eject
@@ -146,13 +146,12 @@ eject
 ### Burning file from hard disk to VIRGIN CD.
 ###
 
-echo -n "Insert VIRGIN CD and press RETURN:"
-beep ; read line
+beep ; read "Insert VIRGIN CD and press RETURN:"
 
-path=/alter/bandes/graves/"$(basename $path)"
+path=/alter/bandes/graves/"$(basename "$path")"
 chmod a+r "$path"
-echo $(dirname $0)/grave "${volset:q}" "${volume:q}" "${path:q}"
-$(dirname $0)/grave "$volset" "$volume" "$path" && rm -f "$path"
+echo "$(dirname "$0")"/grave "${volset:q}" "${volume:q}" "${path:q}"
+"$(dirname "$0")"/grave "$volset" "$volume" "$path" && rm -f "$path"
 
 
 #END#
