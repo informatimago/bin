@@ -129,7 +129,7 @@ function main(){
 
     case "$pname" in
     (gpull)    op=(pull)                        ;;
-    (gpush)    op=(push --tags --follow-tags)   ;;
+    (gpush)    op=(push)                        ;;
     (gstat)    op=(status --untracked-files=no) ;;
     (gremotes) op=(remote)                      ;;
     (*)
@@ -161,21 +161,23 @@ function main(){
                     printf "\ncd %s\n" "$(pwd)"
                     if [ $push_all_remotes -ne 0 ] ; then
                         case "${op[0]}" in
-                        remote)
+                        (remote)
                             trap : INT
                             git-show-remotes |expand -16
                             trap INT
                             ;;
-                        push)
+                        (push)
                             printf "# pushing branch \"%s\".\n" "$(git branch |awk '/\*/{print $2}')"
                             trap : INT
                             for r in $(git remote) ; do
                                 printf "%s " "$r"
-                                git "${op[@]}" "$r"
+                                git "${op[@]}"                      "$r"
+                                git "${op[@]}" --tags --follow-tags "$r"
                             done
                             trap INT
                             ;;
-                        pull)
+                        (pull)
+                            printf "# pulling branch \"%s\".\n" "$(git branch |awk '/\*/{print $2}')"
                             trap : INT
                             if [ "$gvers" -eq 1 -a "$(git remote|wc -l)" -eq 1 ] ; then
                                 git "${op[@]}"
@@ -192,15 +194,16 @@ function main(){
                         esac
                     else
                         case "${op[0]}" in
-                        remote)
+                        (remote)
                             trap : INT
                             git-show-remotes |expand -16
                             trap INT
                             ;;
-                        push)
+                        (push)
                             printf "# pushing branch \"%s\".\n" "$(git branch |awk '/*/{print $2}')"
                             trap : INT
                             git "${op[@]}"
+                            git "${op[@]}" --tags --follow-tags
                             trap INT
                             ;;
                         *)
