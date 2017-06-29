@@ -1,4 +1,4 @@
-#!/usr/local/bin/clisp -ansi -q -E iso-8859-1
+#!/usr/local/bin/clisp -ansi -q -E iso-8859-1 -on-error debug
 ;;;; -*- mode:lisp; coding:iso-8859-1 -*-
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;
@@ -26,7 +26,9 @@ NOTE:   current implementation only accepts as separators
              nextpos  position))
     (nreverse chunks)))
 
-
+(defun split-string (separators string &key remove-empty-subseqs)
+  (split-string-if (lambda (ch) (find ch separators)) string
+                   :remove-empty-subseqs remove-empty-subseqs))
 
 
 (defparameter *character-foldings*
@@ -34,7 +36,13 @@ NOTE:   current implementation only accepts as separators
     ("ETH" "Ğ") ("N" "Ñ") ("O" "ÒÓÔÕÖØ") ("U" "ÙÚÛÜ") ("Y" "İ")
     ("TH" "Ş") ("ss" "ß") ("a" "àáâãäå") ("ae" "æ") ("c" "ç")
     ("e" "èéêë") ("i" "ìíîï") ("eth" "ğ") ("n" "ñ") ("o" "òóôõöø")
-    ("u" "ùúûü") ("u" "ıÿ") ("th" "ş")))
+    ("u" "ùúûü") ("u" "ıÿ") ("th" "ş")
+
+    ("-lt-" "<")
+    ("-gt-" ">")
+    ("-exclaim-" "!")
+    ("-question-" "?")
+    ("-percent-" "%")))
 
 (defun character-folding (character)
   (car (member (character character) *character-foldings*
@@ -106,10 +114,100 @@ RETURN: A string containing the character without accent
           out)
         text)))
 
+(defun escape (string)
+  (with-output-to-string (*standard-output*)
+    (loop :for ch :across string
+            :initially (princ "'")
+          :do (if (char= #\' ch)
+                  (princ "'\\''")
+                  (princ ch))
+          :finally (princ "'"))))
 
-(defun main (argv)
-  (dolist (arg argv)
-    (princ (clean-name (translate-diacritics arg)))
-    (terpri)))
+(defun process-name (name)
+  (write-line (clean-name (translate-diacritics name))))
 
-(main ext:*args*)
+
+
+(defun process-item (path)
+  (let* ((components  (split-string "/" path :remove-empty-subseqs t))
+         (new-path    (format nil "~{~A~^/~}"
+                              (append (butlast components)
+                                      (list (clean-name
+                                             (translate-diacritics
+                                              (string-trim "- ." (first (last components))))))))))
+    (unless (string-equal path new-path)
+      (format t "mv -v ~A ~A~%" (escape path) (escape new-path)))))
+
+(defun process-items (path)
+  (with-open-file (input path)
+    (loop
+      :for item-path := (read-line input nil nil)
+      :while item-path
+      :do (process-item item-path))))
+
+;;;;--------------------------------------------------------------------
+
+(defvar *default-program-name* "untitled")
+
+(defun program-path ()
+  (let* ((argv  (ext:argv))
+         (largv (length argv))
+         (args  ext:*args*)
+         (largs (length args))
+         (index (- largv largs 1))
+         (path  (and (<= 0 index largv) (elt argv index))))
+    (cond
+      (path
+       path)
+      ((and *load-truename*
+            (string/= (file-namestring *load-truename*) "script.lisp"))
+       (namestring *load-truename*))
+      (t
+       *default-program-name*))))
+
+(defvar *program-path* (program-path)
+  "A namestring of the path to the program.
+This may be a relative pathname, when it's obtained from argv[0].
+If available we use the actual program name (from (EXT:ARGV) or
+*LOAD-TRUENAME*), otherwise we fallback to *DEFAULT-PROGRAM-NAME*.")
+
+(defvar *program-name* (file-namestring *program-path*)
+  "Name of the program.")
+
+(defun print-usage ()
+  (format t "~%~A usage:~%~
+             ~%    ~:*~A [-f|--list-file file]... [name...]~2%"
+          *program-name*))
+
+;;;;--------------------------------------------------------------------
+
+(defun main (args)
+  (let ((files    nil)
+        (names    '())
+        (options  '()))
+
+    (loop :while args
+          :do (let ((arg (pop args)))
+                (cond
+                  ((member arg '("-f" "--list-file") :test (function string-equal))
+                   (push (pop args) files))
+                  ((member arg '("-h" "--help")           :test (function string-equal))
+                   (print-usage)
+                   (return-from main 0))
+                  ((string= arg "-" :end1 (min (length arg) 1))
+                   (error "Unknown option: ~A" arg))
+                  (t (push arg names)))))
+    (when (and (null files) (null names))
+      (print-usage)
+      (return-from main 0))
+    (dolist (file files)
+      (process-items file))
+    (dolist (name names)
+      (process-name name))
+    0))
+
+
+#-testing-script
+(ext:exit (main ext:*args*))
+
+;;;;--------------------------------------------------------------------
