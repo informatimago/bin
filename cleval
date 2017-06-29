@@ -1,0 +1,68 @@
+#!/bin/bash
+
+
+# You could also prepare a lisp image with swank and other required
+# lisp systems to avoid depending on user quicklisp installation
+# (versions, etc).
+
+implementation=ccl
+
+
+# We would need to manage ports and on daemon per user or some option
+# to select the wanted daemon.  Also, see if swank can work over named
+# pipes.
+
+port=4991
+
+errors="/tmp/cleval-errors-${port}.txt"
+
+
+function ccl_daemonize(){
+    ccl \
+        --eval '#-quicklisp (load #P"~/quicklisp/setup.lisp") #+quicklisp nil' \
+        --eval '#-swank (ql:quickload :swank :verbose nil :silent t) #+swank nil' \
+        --eval '(let ((swank::*loopback-interface* "localhost")
+                      (port '"${port}"'))
+                    (swank:create-server :port port))' \
+                        --eval '(loop (sleep 10000))' \
+                        <>/dev/null 2> "${errors}" & disown
+}
+
+function stringify(){
+    local string="$1"
+    string="${string//\\/\\\\}"
+    string="${string//\"/\\\"}"
+    echo -n \""${string}"\"
+}
+
+function ccl_eval(){
+    local quoted_expressions=''
+    for expression ; do
+        quoted_expressions+=" $(stringify "${expression}")"
+    done
+    # shellcheck disable=SC1078
+    ccl \
+        --eval '#-quicklisp (load #P"~/quicklisp/setup.lisp") #+quicklisp nil' \
+        --eval '(ql:quickload :swank-protocol :verbose nil :silent t)' \
+        --eval '(let ((connection (swank-protocol:make-connection "localhost" '"${port}"')))
+                     (swank-protocol:connect connection)
+                     (swank-protocol:request-swank-require connection (quote (swank-repl)))
+                     (swank-protocol:request-create-repl connection)
+                     (dolist (expression (quote ('"${quoted_expressions}"')))
+                        (swank-protocol:request-listener-eval connection expression)
+                        (swank-protocol:read-all-messages connection)))' \
+        --eval '(ccl:quit)'
+}
+
+
+
+function main(){
+    if [[ $1 = '--daemonize' ]] ; then
+        "${implementation}_daemonize"
+    else
+        "${implementation}_eval" "$@"
+    fi
+    exit 0
+}
+
+main "$@"
