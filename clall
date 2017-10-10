@@ -313,18 +313,22 @@ function runcl(){
 
 printf '\n'
 
-runcl abcl     --batch --noinform --noinit --eval '(setq *load-verbose* nil)'  --load  "$script"
+abcl_cli_init=(--eval '(setq *load-verbose* nil)')
+lisp_cli_init=( -eval '(setq *load-verbose* nil)')
+sbcl_cli_init=(--eval '(setf sb-impl::*default-external-format* :utf-8)')
+
+runcl abcl     --batch --noinform --noinit              "${abcl_cli_init[@]}"  --load  "$script"
 runcl alisp     -batch -qq                                                      -L     "$script" -kill
 runcl ccl      --batch --no-init                                               --load  "$script"
 runcl clisp     -ansi  -q  -norc                                                       "$script"
 # debian calls cmucl cmucl instead of lisp.
-runcl cmucl     -noinit          -eval '(setq *load-verbose* nil)'              -load  "$script"
-runcl lisp      -noinit          -eval '(setq *load-verbose* nil)'              -load  "$script"
+runcl cmucl     -noinit                                 "${lisp_cli_init[@]}"   -load  "$script"
+runcl lisp      -noinit                                 "${lisp_cli_init[@]}"   -load  "$script"
 runcl ecl                  -norc                                                -load  "$script"
 # we can't run gcl, because it can't handle errors. (ignore-errors, handler-case).
 # runcl gcl       -batch                                                          -load  "$script"
 # runcl mocl       repl --verbose --android /tmp/  < "$script"
-runcl sbcl     --noinform --no-userinit                                        --load  "$script"
+runcl sbcl     --noinform --no-userinit                 "${sbcl_cli_init[@]}"  --load  "$script"
 
 runcl winccl   --batch --no-init                                               --load  $(winquote $winscript)
 runcl winsbcl  --noinform --no-userinit                                        --load  $(winquote $winscript)
