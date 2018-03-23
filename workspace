@@ -1,5 +1,16 @@
 #!/bin/bash
-pjb-xterm green -e screen & disown
-(sleep 10 ; emacsen ) & disown
-(sleep 50 ; firefox >/tmp/firefox-${UID}-$$.log & disown) &
 xset -dpms
+xsetroot -solid '#137'
+case "$1" in
+(minint)
+    xterm -fg green -bg black -fn terminus-32  -e screen    & disown
+    emacs & disown
+    (sleep 30 ; thunderbird >/tmp/thunderbird-${UID}-$$.log & disown) &
+    (sleep 50 ; firefox     >/tmp/firefox-${UID}-$$.log     & disown) &
+    ;;
+(*)
+    pjb-xterm green -e screen & disown
+    (sleep 10 ; emacsen ) & disown
+    (sleep 50 ; firefox >/tmp/firefox-${UID}-$$.log & disown) &
+    ;;
+esac
