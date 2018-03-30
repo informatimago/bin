@@ -1,8 +1,15 @@
 #!/bin/bash
 xset -dpms
 xsetroot -solid '#137'
-case "$1" in
-(minint)
+
+setxkbmap us -option ctrl:ac_ctrl
+xkbset nullify lock
+# xdotool key  Caps_Lock
+# xte "key Caps_Lock"
+
+case "$(hostname)" in
+(minint|*span)
+    gsettings set org.freedesktop.ibus.general.hotkey triggers []
     xterm -fg green -bg black -fn terminus-32  -e screen    & disown
     emacs & disown
     (sleep 30 ; thunderbird >/tmp/thunderbird-${UID}-$$.log & disown) &
