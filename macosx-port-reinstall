@@ -1,0 +1,12 @@
+#!/bin/bash
+set -eu
+sudo port -qv installed  | cat > myports.txt
+sudo port echo requested | cut -d ' ' -f 1 > requested.txt
+sudo port -f uninstall installed
+sudo rm -rf /opt/local/var/macports/build/*
+curl --location --remote-name \
+    https://github.com/macports/macports-contrib/raw/master/restore_ports/restore_ports.tcl
+chmod +x restore_ports.tcl
+sudo ./restore_ports.tcl myports.txt
+sudo port unsetrequested installed
+xargs sudo port setrequested < requested.txt
