@@ -25,16 +25,33 @@ linked_names=(gpull gpush gstat gremotes)
 function usage(){
     printf "\n"
     printf "%s usage:\n\n" "$pname"
-    printf "  %s links  # creates the associated symlinks.\n"  "git-group"
-    printf "  %s sets   # display the list of gsets.\n"        "git-group"
-    printf "  gstat [gset]\n"
-    printf "  gpull [gset] [--all-remotes]\n"
-    printf "  gpush [gset] [--all-remotes]\n"
+    printf "  %s [-n|--dry-run] [-v|--verbose] links  # creates the associated symlinks.\n"  "git-group"
+    printf "  %s sets                                 # display the list of gsets.\n"        "git-group"
+    printf "  gstat [-n|--dry-run] [-v|--verbose] [gset]\n"
+    printf "  gpull [-n|--dry-run] [-v|--verbose] [gset] [--all-remotes]\n"
+    printf "  gpush [-n|--dry-run] [-v|--verbose] [gset] [--all-remotes]\n"
     printf "\n"
     printf "gset should be one of: \n"
     printf "             %s\n" "${gsets[@]}"
     printf "\n"
 }
+
+
+function dry_run(){
+    printf "%s\n" "$*"
+}
+function verbose(){
+    printf "%s\n" "$*"
+    "$@"
+}
+function silent(){
+    "$@"
+}
+run=silent
+function run(){
+    "$run" "$@"
+}
+
 
 function error(){
     goterror=1
@@ -76,39 +93,52 @@ function clone_all_gset_repositories(){
 
 function main(){
 
-    case "$1" in
-
-    (-h|--help|help)
-        usage
-        exit 0
-        ;;
-
-    (link|links)
-        for link in "${linked_names[@]}" ; do
-            ln -v -s -f git-groups "$(dirname "$0")/${link}"
-        done
-        exit 0
-        ;;
-
-    (sets|gsets)
-        printf '%s\n' "${gsets[@]}"
-        exit 0
-        ;;
-
-    (clone)
-        clone_all_gset_repositories
-        exit 0
-        ;;
-
-    esac
-
-
     for arg ; do
         case "$arg" in
-        --all-remotes)
+
+        (-h|--help|help)
+            usage
+            exit 0
+            ;;
+
+        (-n|--dry-run)
+            run=dry_run
+            ;;
+
+        (-v|--verbose)
+            if [ "$run" = "silent" ] ; then
+                run=verbose
+            fi
+            ;;
+
+        (--all-remotes)
             push_all_remotes=1
             ;;
-        *)
+
+        (-*)
+            printf "Error: invalid option: %s\n" "$arg"
+            usage
+            exit 1
+            ;;
+
+        (link|links)
+            for link in "${linked_names[@]}" ; do
+                run ln -v -s -f git-groups "$(dirname "$0")/${link}"
+            done
+            exit 0
+            ;;
+
+        (sets|gsets)
+            printf '%s\n' "${gsets[@]}"
+            exit 0
+            ;;
+
+        (clone)
+            clone_all_gset_repositories
+            exit 0
+            ;;
+
+        (*)
             gset="$arg"
             gotit=0
             for e in "${gsets[@]}" ; do
@@ -163,7 +193,7 @@ function main(){
                         case "${op[0]}" in
                         (remote)
                             trap : INT
-                            git-show-remotes |expand -16
+                            run git-show-remotes |expand -16
                             trap INT
                             ;;
                         (push)
@@ -171,8 +201,8 @@ function main(){
                             trap : INT
                             for r in $(git remote) ; do
                                 printf "%s " "$r"
-                                git "${op[@]}"                      "$r"
-                                git "${op[@]}" --tags --follow-tags "$r"
+                                run git "${op[@]}"                         "$r"
+                                run git "${op[@]}" --tags --follow-tags -f "$r"
                             done
                             trap INT
                             ;;
@@ -180,15 +210,15 @@ function main(){
                             printf "# pulling branch \"%s\".\n" "$(git branch |awk '/\*/{print $2}')"
                             trap : INT
                             if [ "$gvers" -eq 1 -a "$(git remote|wc -l)" -eq 1 ] ; then
-                                git "${op[@]}"
+                                run git "${op[@]}"
                             else
-                                git "${op[@]}" --all
+                                run git "${op[@]}" --all
                             fi
                             trap INT
                             ;;
                         *)
                             trap : INT
-                            git "${op[@]}"
+                            run git "${op[@]}"
                             trap INT
                             ;;
                         esac
@@ -196,19 +226,19 @@ function main(){
                         case "${op[0]}" in
                         (remote)
                             trap : INT
-                            git-show-remotes |expand -16
+                            run git-show-remotes |expand -16
                             trap INT
                             ;;
                         (push)
                             printf "# pushing branch \"%s\".\n" "$(git branch |awk '/*/{print $2}')"
                             trap : INT
-                            git "${op[@]}"
-                            git "${op[@]}" --tags --follow-tags
+                            run git "${op[@]}"
+                            run git "${op[@]}" --tags --follow-tags -f
                             trap INT
                             ;;
                         *)
                             trap : INT
-                            git "${op[@]}"
+                            run git "${op[@]}"
                             trap INT
                             ;;
                         esac
