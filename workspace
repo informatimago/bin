@@ -9,6 +9,7 @@ xkbset nullify lock
 
 case "$(hostname)" in
 (minint|*span)
+    xrandr --size 1680x1050
     gsettings set org.freedesktop.ibus.general.hotkey triggers []
     xterm -fg green -bg black -fn terminus-32  -e screen    & disown
     emacs & disown
