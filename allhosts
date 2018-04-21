@@ -3,14 +3,16 @@ pname=$(basename "$0")
 verbose=1
 
 HOSTS=(
-    kuiper.lan.informatimago.com
-    galatea.lan.informatimago.com
-    larissa.lan.informatimago.com
-    lassell.lan.informatimago.com
+    hubble.informatimago.com
+    proteus.informatimago.com
     despina.lan.informatimago.com
-    triton.lan.informatimago.com
-    galle.lan.informatimago.com
-    voyager.informatimago.com
+    kuiper.lan.informatimago.com
+    larissa.lan.informatimago.com
+    # lassell.lan.informatimago.com
+    # galatea.lan.informatimago.com
+    # triton.lan.informatimago.com
+    # galle.lan.informatimago.com
+    # voyager.informatimago.com
 )
 
 
