@@ -23,6 +23,13 @@ EX__MAX=78
 pname="$(basename "$0")"
 root=none
 
+function usage(){
+    printf '%s usage\n\n' "$pname"
+    printf '\t%s [-h|--help]\n' "$pname"
+    printf '\t%s $mountpoint\n' "$pname"
+    printf '\n'
+}
+
 function parse_arguments(){
     for arg ; do
         case "$arg" in
@@ -49,7 +56,8 @@ function parse_arguments(){
 }
 
 function mount_them(){
-    cd "$root"
+    local root="$1"
+    cd "$root" || exit $EX_OSERR
     mount -t proc proc     proc
     mount -t sysfs sys     sys
     mount -o bind /dev     dev
@@ -57,9 +65,15 @@ function mount_them(){
 }
 
 function main(){
-    parse_arguments
-    mount_them
+    parse_arguments "$@"
+    if [ "$root" = none ] ; then
+        printf '%s error: missing mount point argument.\n' "$pname" 1>&2
+        usage
+        exit $EX_USAGE
+    else
+        mount_them "$root"
+    fi
 }
 
-main
+main "$@"
 exit $EX_OK
