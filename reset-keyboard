@@ -1,0 +1,6 @@
+#!/bin/bash
+setxkbmap -layout us \
+          -option ctrl:nocaps \
+          -option caps:none \
+          -option shift:breaks_caps \
+          -option compose:lctrl
