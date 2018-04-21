@@ -1,5 +1,13 @@
 #!/bin/bash
-pjb-xterm green -e screen & disown
-(sleep 10 ; emacsen ) & disown
-(sleep 50 ; firefox >/tmp/firefox-${UID}-$$.log & disown) &
 xset -dpms
+if type -p setxkbmap ; then
+    setxkbmap -layout us \
+              -option ctrl:nocaps \
+              -option caps:none \
+              -option shift:breaks_caps \
+              -option compose:lctrl
+fi
+( sleep  1 ; pjb-xterm green -e screen & disown ) &
+# (sleep 10 ; emacsen ) & disown
+( sleep  5 ; emacs & disown ) &
+( sleep 10 ; firefox >/tmp/firefox-${UID}-$$.log & disown ) &
