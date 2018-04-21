@@ -27,7 +27,7 @@ function parse_arguments(){
     for arg ; do
         case "$arg" in
         -h|--help)
-            usage 
+            usage
             exit 0
             ;;
         -*)
@@ -63,4 +63,3 @@ function main(){
 
 main
 exit $EX_OK
-
