@@ -3,7 +3,7 @@ set -eu
 for file ; do
     echo "==== $file"
     if file -L "$file"|grep -qs certificate ; then
-        openssl x509 -noout -text -in "$file" -inform perm
+        openssl x509 -noout -text -in "$file" -inform pem
     else
         openssl rsa  -noout -text -in "$file"
     fi
