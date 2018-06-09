@@ -1,37 +1,56 @@
 #!/bin/bash
 
-xset -dpms
-xsetroot -solid '#137'
+function set_x11(){
+    xset -dpms
+    xsetroot -solid '#137'
+}
 
-if type -p xkbset >/dev/null 2>&1 ; then
-    xkbset nullify lock
-fi
-# xdotool key  Caps_Lock
-# xte "key Caps_Lock"
+function set_keyboard(){
+    if type -p xkbset >/dev/null 2>&1 ; then
+        xkbset nullify lock
+    fi
+    # xdotool key  Caps_Lock
+    # xte "key Caps_Lock"
 
-if type -p setxkbmap >/dev/null 2>&1 ; then
-    setxkbmap -layout us \
-              -option ctrl:ac_ctrl
-              -option ctrl:nocaps \
-              -option caps:none \
-              -option shift:breaks_caps \
-              -option compose:lctrl
-fi
+    if type -p setxkbmap >/dev/null 2>&1 ; then
+        setxkbmap -layout us \
+                  -option ctrl:ac_ctrl
+        -option ctrl:nocaps \
+                -option caps:none \
+                -option shift:breaks_caps \
+                -option compose:lctrl
+    fi
+}
 
-case "$(hostname)" in
-(minint|*span)
-    xrandr --size 1680x1050
-    gsettings set org.freedesktop.ibus.general.hotkey triggers []
-    ( sleep  1 ; xterm -fg green -bg black -fn terminus-32  -e screen & disown ) &
-    ( sleep  5 ; emacs                                                & disown ) &
-    ( sleep  7 ; thunderbird >/tmp/thunderbird-${UID}-$$.log          & disown ) &
-    ( sleep 10 ; firefox     >/tmp/firefox-${UID}-$$.log              & disown ) &
-    ;;
+function span_dual_screen(){
+    xrandr --output eDP1  --mode 1920x1080  --primary
+    if xrandr --current | grep -qs 'HDMI1 connected' ; then
+        xrandr --output HDMI1  --mode 1920x1080  --left-of eDP1
+    fi
+}
 
-(*)
-    ( sleep  1 ; pjb-xterm green -e screen & disown ) &
-    # (sleep 10 ; emacsen ) & disown
-    ( sleep  5 ; emacs & disown ) &
-    ( sleep 10 ; firefox >/tmp/firefox-${UID}-$$.log & disown ) &
-    ;;
-esac
+
+function main(){
+    set_x11
+    set_keyboard
+    case "$(hostname)" in
+    (minint|*span)
+        span_dual_screen
+        gsettings set org.freedesktop.ibus.general.hotkey triggers []
+        ( sleep  1 ; xterm -fg green -bg black -fn terminus-32  -e screen & disown ) &
+        ( sleep  5 ; emacs                                                & disown ) &
+        ( sleep  7 ; thunderbird >/tmp/thunderbird-${UID}-$$.log          & disown ) &
+        ( sleep 10 ; firefox     >/tmp/firefox-${UID}-$$.log              & disown ) &
+        ;;
+
+    (*)
+        ( sleep  1 ; pjb-xterm green -e screen & disown ) &
+        # (sleep 10 ; emacsen ) & disown
+        ( sleep  5 ; emacs & disown ) &
+        ( sleep 10 ; firefox >/tmp/firefox-${UID}-$$.log & disown ) &
+        ;;
+    esac
+    exit 0
+}
+
+main
