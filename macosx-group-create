@@ -1,0 +1,118 @@
+#!/bin/bash -e 
+# echo not yet
+# exit 0
+
+groupname=games
+grouprealname='Unix Games'
+groupid=$(dscl . list /Groups PrimaryGroupID |awk '{print $2}'|sort -rn|head -1)
+groupid=$(( groupid + 1 ))
+
+sudo dscl . create /Groups/${groupname}
+sudo dscl . create /Groups/${groupname} RealName "${grouprealname}"
+sudo dscl . create /Groups/${groupname} passwd "*"
+sudo dscl . create /Groups/${groupname} gid ${groupid}
+
+exit 0
+
+
+To create a group, add some users and enabling remote login for the same group from scratch do the following:
+
+Locally:
+
+Create group:
+
+sudo dscl . create /Groups/servsupport
+Add some details like real name, password etc.:
+
+sudo dscl . create /Groups/servsupport RealName "Service and Support"
+sudo dscl . create /Groups/servsupport passwd "*"
+sudo dscl . create /Groups/servsupport gid 799
+Use an unused groupID number as gid! You get a sorted list of used gids by entering:
+
+dscl . list /Groups PrimaryGroupID | tr -s ' ' | sort -n -t ' ' -k2,2
+There is also an answer somewhere at apple.stackexchange.com how to find the first free uid or gid greater than x and how to apply it to new groups or users.
+
+Add an admin user (here I assume the user name is admin):
+
+sudo dscl . create /Groups/servsupport GroupMembership admin
+If you want to add a second user use the subcommand append:
+
+sudo dscl . append /Groups/servsupport GroupMembership admin2
+Test whether the group SSH Service ACL exists:
+
+dscl . list /Groups PrimaryGroupID  | grep com.apple.access_ssh*
+If the group doesn't exist create it similar as the Service and Support group:
+
+sudo dscl . create /Groups/com.apple.access_ssh
+sudo dscl . create /Groups/com.apple.access_ssh RealName "SSH Service ACL"
+sudo dscl . create /Groups/com.apple.access_ssh passwd "*"
+sudo dscl . create /Groups/com.apple.access_ssh gid 399
+Add the group servsupport as nested group to the SSH Service ACL group if the SSH ACL is already enabled:
+
+sudo dseditgroup -o edit -a servsupport -t group com.apple.access_ssh
+or if SSH ACL are dsiabled:
+
+sudo dseditgroup -o edit -a servsupport -t group com.apple.access_ssh-disabled
+Enable remote login:
+
+sudo systemsetup -setremotelogin on
+A script doing essentially this except creating a new Service and Support group is available here: add_localadmins_to_ssh. The linked script requires slight mods to meet your requirements.
+
+Based on the linked script I made a new one meeting your requirements. Take it with a grain of salt and test it thoroughly:
+
+#!/bin/bash
+
+# set the input for lazy convenience
+IFS=$' '
+
+# We first need to test if the access_ssh group exists and create it if it doesn't
+
+/usr/bin/dscl . list /Groups PrimaryGroupID  | grep com.apple.access_ssh* >  /dev/null 2>&1
+rc=$?
+if [[ $rc != 0 ]]; then
+    /usr/bin/dscl . create /Groups/com.apple.access_ssh
+    /usr/bin/dscl . create /Groups/com.apple.access_ssh RealName "SSH Service ACL"
+    /usr/bin/dscl . create /Groups/com.apple.access_ssh passwd "*"
+    /usr/bin/dscl . create /Groups/com.apple.access_ssh gid 399
+fi
+
+# create  "Service and Support" group and add admin users
+
+localadmins=$(/usr/bin/dscl . read /Groups/admin GroupMembership | awk -F': ' '{print $2}')
+
+for account in `echo $localadmins`; do
+    # add additional blocks like >> && ! [ "$account" == "username" ] << for additional exclusions
+    if ! [ "$account" == "root" ] && ! [ "$account" == "itstech" ]; then
+        userID=$(/usr/bin/dscl . read /Users/$account | grep GeneratedUID | awk '{print $2}')
+        if [ "$userID" != "" ]; then
+            # Test if the servsupport group exists and create it if it doesn't
+            /usr/bin/dscl . read /Groups/servsupport > /dev/null 2>&1
+            sc=$?
+            if [[ $sc != 0 ]]; then
+                /usr/bin/dscl . create /Groups/servsupport
+                /usr/bin/dscl . create /Groups/servsupport RealName "Service and Support"
+                /usr/bin/dscl . create /Groups/servsupport passwd "*"
+                /usr/bin/dscl . create /Groups/servsupport gid 799
+            fi
+            /usr/bin/dscl . append /Groups/servsupport GroupMembership "$userID"
+        else
+            echo "$account has no local GUID"
+        fi
+    fi
+done
+
+# Add the "Service and Support" group as nested group to the SSH Service ACL group depending on the state of SSH Service ACL.
+
+GroupState=$(/usr/bin/dscl . list /Groups RealName | grep "SSH Service ACL" | awk '{print $1}')
+dseditgroup -o edit -a servsupport -t group $GroupState
+
+if ! [ "$GroupState" == "com.apple.access_ssh" ]; then
+    /usr/bin/dscl . change /Groups/com.apple.access_ssh-disabled RecordName com.apple.access_ssh-disabled com.apple.access_ssh
+fi
+
+# Enable Remote Login service
+
+systemsetup -setremotelogin on
+In a managed environment (OpenDirectory or AD) with OD/AD users/groups with local admin access permissions it's much simpler.
+
+If you've already created the group you can lookup the groupID and the group name (servsupport above) by right-clicking the group name in "Users & Groups".

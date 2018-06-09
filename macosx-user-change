@@ -1,0 +1,6 @@
+#!/bin/bash
+echo not implemented yet
+exit 0
+
+sudo dscl . -change /Users/$USERNAME NFSHomeDirectory $OLDPATH $NEWPATH
+sudo dscl . -change /Users/_ftp NFSHomeDirectory /var/emtpy /opt/ftp
