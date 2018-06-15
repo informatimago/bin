@@ -22,6 +22,23 @@ psets=()
 goterror=0
 linked_names=(gpull gpush gstat gremotes)
 
+
+function gset_to_ui(){
+    echo "$1" | tr '_' '-'
+}
+
+function gset_from_ui(){
+    echo "$1" | tr '-' '_'
+}
+
+function print_gsets(){
+    local prefix="$1"
+    for gset in "${gsets[@]}" ; do
+        printf "%s%s\n" "$prefix" "$(gset_to_ui "$gset")"
+    done
+}
+
+
 function usage(){
     printf "\n"
     printf "%s usage:\n\n" "$pname"
@@ -32,7 +49,7 @@ function usage(){
     printf "  gpush [-n|--dry-run] [-v|--verbose] [gset] [--all-remotes]\n"
     printf "\n"
     printf "gset should be one of: \n"
-    printf "             %s\n" "${gsets[@]}"
+    print_gsets '             '
     printf "\n"
 }
 
@@ -65,6 +82,7 @@ function homedir(){
 
 
 function clone_all_gset_repositories(){
+    local gset
     for gset in "${gsets[@]}" ; do
         # shellcheck disable=SC2086
         eval printf '%s\n' \${${gset}[@]}
@@ -92,7 +110,7 @@ function clone_all_gset_repositories(){
 
 
 function main(){
-
+    local gset
     for arg ; do
         case "$arg" in
 
@@ -129,7 +147,7 @@ function main(){
             ;;
 
         (sets|gsets)
-            printf '%s\n' "${gsets[@]}"
+            print_gsets ''
             exit 0
             ;;
 
@@ -139,7 +157,7 @@ function main(){
             ;;
 
         (*)
-            gset="$arg"
+            gset="$(gset_from_ui "$arg")"
             gotit=0
             for e in "${gsets[@]}" ; do
                 if [ "$gset" = "$e" ] ; then
@@ -149,9 +167,9 @@ function main(){
             done
 
             if [ $gotit -eq 0 ] ; then
-                error "invalid git set '%s'" "$gset"
+                error "invalid git set '%s'" "$(gset_to_ui "$gset")"
             else
-                psets+=( $gset )
+                psets+=( "$gset" )
             fi
             ;;
         esac
