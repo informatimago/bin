@@ -1,0 +1,18 @@
+#!/bin/bash
+
+function set_x11(){
+    xset -dpms
+    xsetroot -solid '#137'
+}
+
+function span_dual_screen(){
+    xrandr --output eDP1  --mode 1920x1080
+    if xrandr --current | grep -qs 'HDMI1 connected' ; then
+        xrandr --output HDMI1  --mode 1920x1080  --left-of eDP1
+    fi
+}
+
+
+set_x11
+span_dual_screen
+
