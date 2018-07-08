@@ -208,6 +208,7 @@ function main(){
                     printf "\n### set: %s" "$pset"
                     printf "\ncd %s\n" "$(pwd)"
                     if [ $push_all_remotes -ne 0 ] ; then
+                        branch="$(git branch |awk '/\*/{print $2}')"
                         case "${op[0]}" in
                         (remote)
                             trap : INT
@@ -215,23 +216,21 @@ function main(){
                             trap INT
                             ;;
                         (push)
-                            printf "# pushing branch \"%s\".\n" "$(git branch |awk '/\*/{print $2}')"
+                            printf "# pushing branch \"%s\".\n" "${branch}"
                             trap : INT
                             for r in $(git remote) ; do
                                 printf "%s " "$r"
-                                run git "${op[@]}"                         "$r"
-                                run git "${op[@]}" --tags --follow-tags -f "$r"
+                                run git "${op[@]}"                         "$r" "${branch}"
+                                run git "${op[@]}" --tags --follow-tags -f "$r" "${branch}"
                             done
                             trap INT
                             ;;
                         (pull)
-                            printf "# pulling branch \"%s\".\n" "$(git branch |awk '/\*/{print $2}')"
+                            printf "# pulling branch \"%s\".\n" "${branch}"
                             trap : INT
-                            if [ "$gvers" -eq 1 -a "$(git remote|wc -l)" -eq 1 ] ; then
-                                run git "${op[@]}"
-                            else
-                                run git "${op[@]}" --all
-                            fi
+                            git remote | while read remote ; do
+                                run git "${op[@]}" "${remote}" "${branch}"
+                            done
                             trap INT
                             ;;
                         *)
