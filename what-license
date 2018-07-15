@@ -1,0 +1,84 @@
+#!/bin/bash
+set -eu
+
+# shellcheck disable=SC2034
+here="$(dirname "$0")"
+pname="$(basename "$0")"
+pversion='0.0'
+
+patterns=(
+    'AGPL-3|GNU AFFERO GENERAL PUBLIC LICENSE|Version 3, 19 November 2007'
+    'LGPL-2.1|GNU LESSER GENERAL PUBLIC LICENSE|Version 2.1, February 1999'
+    'GPL-2|GNU Library General Public|version 2 of the License'
+)
+
+license_urls=(
+    'Apache-2|http://www.apache.org/licenses/LICENSE-2.0|Apache License|Version 2.0, January 2004'
+)
+
+function what_license(){
+    local source_dir="$1"
+    shopt -s nullglob
+    for licfile in "${source_dir}"/{LICENSE,COPY}* ; do
+        if grep -qs http "${licfile}" >/dev/null ; then
+            sed -n -e 's-.*\(https?://[^> ]*\).*-\1-p' < "${licfile}" | while read url ; do
+                for lurl in "${license_urls[@]}" ; do
+                    read -d '|' abbrev url inextenso version < <(echo "${lurl}")
+                    echo "${abbrev}"
+                    echo "${url}"
+                    echo "${inextenso}"
+                    echo "${version}"
+                done
+            done
+        fi
+        for pattern in "${patterns[@]}" ; do
+            read -d '|' abbrev inextenso version < <(echo "${pattern}")
+            echo "${abbrev}" -- "${inextenso}" -- "${version}"
+            grep "${inextenso}" <"${licfile}" | head -1 || continue
+            grep "${version}"   <"${licfile}" | head -1 || continue
+            return
+        done
+    done
+    shopt -u nullglob
+}
+
+function usage(){
+    printf '%s usage:\n\n' "${pname}"
+    printf '\t%s [-h|--help|-V|--version]\n' "${pname}"
+    # shellcheck disable=SC2016
+    printf '\t%s $directory …\n' "${pname}"
+    printf '\n'
+}
+
+function version(){
+    printf '%s version %s\n' "${pname}" "${pversion}"
+}
+
+function main(){
+    for arg ; do
+        case "${arg}" in
+        (-V|--version)
+            version
+            exit 0
+            ;;
+        (-h|--help)
+            usage
+            exit 0
+            ;;
+        (-*)
+            printf '%s: Invalid option %s\n' "${pname}" "${arg}" 1>&2
+            usage
+            exit 1
+            ;;
+        (*)
+            echo what-license "${arg}"
+            what_license "${arg}"
+            ;;
+        esac
+    done
+    exit 0
+}
+
+
+main "$@"
+# THE END #
