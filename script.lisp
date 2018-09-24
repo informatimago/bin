@@ -217,7 +217,14 @@ If available we use the actual program name (from (EXT:ARGV) or
           (push :linux *features*))
 
 #-(or linux macos win32 #|what else is not linux?|#)
-(relaunch-with-kfull-linkset-if-needed (lambda () (require "linux")))
+(relaunch-with-kfull-linkset-if-needed
+ (lambda ()
+   ;; But sometimes, it's not enough, linux is just not there…
+   (handler-case
+       (require "linux")
+     (error (err)
+       (format *error-output* "~A: ~A~%Missing the Linux module.  Abort.~%" *program-name* err)
+       (ext:quit 69)))))
 
 
 
