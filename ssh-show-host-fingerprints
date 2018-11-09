@@ -1,0 +1,4 @@
+#!/bin/bash
+for file in /etc/ssh/*.pub ; do
+    ssh-keygen -lf "$file"
+done

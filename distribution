@@ -400,6 +400,34 @@ declareDarwinVersion "16.1.0"  "Sierra"          "October 24, 2016"    "OS X v10
 declareDarwinVersion "16.3.0"  "Sierra"          "December 13, 2016"   "OS X v10.12.2"                          "build 16C67 16C68"
 declareDarwinVersion "16.4.0"  "Sierra"          "December 20, 2016"   "OS X v10.12.3 Beta 2"                   "build 16D17a"
 
+declareDarwinVersion "17.0.0"  "High Sierra"     "September 25, 2017"  "OS X v10.13"                            "build 17A365"
+declareDarwinVersion "17.0.0"  "High Sierra"     "October 5, 2017"     "OS X v10.13"                            "build 17A405"
+
+declareDarwinVersion "17.2.0"  "High Sierra"     "October 31, 2017"    "OS X v10.13.1"                          "build 17B48"
+declareDarwinVersion "17.2.0"  "High Sierra"     "November 29, 2017"   "OS X v10.13.1"                          "build 17B1002"
+declareDarwinVersion "17.2.0"  "High Sierra"     "November 29, 2017"   "OS X v10.13.1"                          "build 17B1003"
+
+declareDarwinVersion "17.3.0"  "High Sierra"     "December 6, 2017"    "OS X v10.13.2"                          "build 17C88"
+declareDarwinVersion "17.3.0"  "High Sierra"     "December 6, 2017"    "OS X v10.13.2"                          "build 17C89"
+declareDarwinVersion "17.3.0"  "High Sierra"     "January 8, 2018"     "OS X v10.13.2"                          "build 17C205"
+declareDarwinVersion "17.3.0"  "High Sierra"     "January 8, 2018"     "OS X v10.13.2"                          "build 17C2205"
+
+declareDarwinVersion "17.4.0"  "High Sierra"     "January 23, 2018"    "OS X v10.13.3"                          "build 17D47"
+declareDarwinVersion "17.4.0"  "High Sierra"     "January 23, 2018"    "OS X v10.13.3"                          "build 17D2047"
+declareDarwinVersion "17.4.0"  "High Sierra"     "February 19, 2018"   "OS X v10.13.3"                          "build 17D102"
+declareDarwinVersion "17.4.0"  "High Sierra"     "February 19, 2018"   "OS X v10.13.3"                          "build 17D2102"
+
+declareDarwinVersion "17.5.0"  "High Sierra"     "March 29, 2018"      "OS X v10.13.4"                          "build 17E199"
+declareDarwinVersion "17.5.0"  "High Sierra"     "April 24, 2018"      "OS X v10.13.4"                          "build 17E202"
+
+declareDarwinVersion "17.6.0"  "High Sierra"     "June 1, 2018"        "OS X v10.13.5"                          "build 17F77"
+
+declareDarwinVersion "17.7.0"  "High Sierra"     "July 9, 2018"        "OS X v10.13.6"                          "build 17G65"
+declareDarwinVersion "17.7.0"  "High Sierra"     "July 9, 2018"        "OS X v10.13.6"                          "build 17G2208"
+declareDarwinVersion "17.7.7"  "High Sierra"     "August 28, 2018"     "OS X v10.13.6"                          "build 17G23"
+
+declareDarwinVersion "18.0.0"  "Mojave"          "September 24, 2018"  "OS X v10.14"                            "build 18A384"
+
 # http://en.wikipedia.org/wiki/Darwin_%28operating_system%29#Release_history
 
 

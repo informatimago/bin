@@ -7,7 +7,7 @@ gsets=()
 gdirs=("$HOME/.config/gpull-dirs"  "$(dirname "$0")/gdirs")
 for dir in "${gdirs[@]}" ; do
     if [ -r "$dir" ] ; then
-        source "$dir" # should define gsets
+        source "$dir" || true # should define gsets
         break
     fi
 done
