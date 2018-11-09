@@ -1,0 +1,66 @@
+#!/bin/bash
+set -m
+
+programs=(
+    cmatrix
+    top
+)
+pdur=10 # duration of a single program
+current=0
+program=''
+
+function functionp(){
+    local name="$1"
+    [ -n "$(type -t "$name")" ] && [ "$(type -t "$name")" = function ]
+}
+
+
+function run_top_for(){
+    local duration="$1"
+    top -n $duration -d 1
+}
+
+function select_next_program(){
+    local pcount=${#programs[@]}
+    local c=0
+    local p="${programs[$current]}"
+    type -p "$p" >/dev/null 2>&1
+    local e=$?
+    while (( c < pcount && e != 0 )) ; do
+        current=$(( (current+1) % pcount ))
+        (( c++ ))
+    done
+    if (( c >= pcount )) ; then
+        {
+            printf 'There are no runnable programs.\n'
+            printf '  %s\n' "${programs[@]}"
+        } 1>&2
+        exit 1
+    fi
+    current=$(( (current+1) % pcount ))
+    program="$p"
+}
+
+function run_program_for(){
+    local program="$1"
+    local duration="$2"
+    if functionp "$program" ; then
+        eval "run_${program}_for" $duration
+    else
+        $program & pid=$!
+        trap 'kill $pid' EXIT INT
+        ( sleep $duration ; kill $pid ) &
+        fg '%$program'
+        trap '' EXIT INT
+    fi
+}
+
+function main(){
+    while true ; do
+        select_next_program
+        run_program_for $program $pdur
+    done
+    exit 0 ;
+}
+
+main
