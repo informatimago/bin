@@ -10,10 +10,11 @@ function set_keyboard(){
     if type -p setxkbmap >/dev/null 2>&1 ; then
         setxkbmap -layout us \
                   -option ctrl:ac_ctrl \
-		  -option ctrl:nocaps \
+		          -option ctrl:nocaps \
                   -option caps:none \
                   -option shift:breaks_caps \
-                  -option compose:lctrl
+                  -option compose:lctrl \
+                  -option altwin:hyper_win
     fi
 }
 
