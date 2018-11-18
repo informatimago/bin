@@ -1,6 +1,6 @@
 #!/bin/bash
 pname="$(basename "$0")"
-
+device=/dev/disk1
 
 # default implementation:
 
@@ -26,7 +26,7 @@ Darwin)
         local cd="$1"
         local gotit=0
         while [ $gotit -eq 0 ] ; do
-            if  df | grep -q -s /dev/disk1  ; then
+            if  df | grep -q -s "$device"  ; then
                 gotit=1
             else
                 printf "Waiting for the CD %s\n" "$cd"
@@ -62,7 +62,7 @@ function cpcd(){
 function usage(){
     printf "%s usage:\n" "$pname"
     printf "   %s -h|--help\n" "$pname"
-    printf "   %s -b|--batch \$start [-f|--directory-format \$format]\n" "$pname"
+    printf "   %s -b|--batch \$start [-f|--directory-format \$format] [-d|--device \$device]\n" "$pname"
     printf "   %s \$directory\n" "$pname"
     printf "\nExamples:\n"
     printf "   %s one-CDA\n" "$pname"
@@ -83,6 +83,15 @@ function parse_arguments(){
         -h|--help)
             usage
             exit 0
+            ;;
+        -d|--device)
+            if [ $# -gt 0 ] ; then
+                device="$1" ; shift
+            else
+                printf "Missing the device after %s\n" "$arg"
+                usage
+                exit 1
+            fi
             ;;
         -b|--batch)
             if [ $# -gt 0 ] ; then
