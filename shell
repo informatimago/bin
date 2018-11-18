@@ -3034,6 +3034,28 @@ ACCESS MEMLOC 1279AF400  ACCESSING…
 
 "))
 
+(defparameter *nasanet*
+  '("
+================== NASANET ========================
+
+X-RAY FLUORESCENCE SPECTROMETER ANALYSIS
+RESULTS
+
+         SAMPLE                UTOPIA PLANITIA
+------------------------   ------------------------
+SILICON OXIDE         45   SILICON OXIDE         45
+IRON                  15   IRON                  15
+MAGNESIUM             08   MAGNESIUM             08
+SULFUR                08   SULFUR                08
+ALUMINUM              06   ALUMINUM              06
+CALCIUM               06   CALCIUM               06
+TITANIUM              01   TITANIUM              01
+OTHER                 05   OTHER                 05
+
+"
+    )
+
+  "Alien Invasion")
 ;;;---------------------------------------------------------------------
 ;;; Run it
 ;;;---------------------------------------------------------------------

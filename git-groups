@@ -7,7 +7,7 @@ gsets=()
 gdirs=("$HOME/.config/gpull-dirs"  "$(dirname "$0")/gdirs")
 for dir in "${gdirs[@]}" ; do
     if [ -r "$dir" ] ; then
-        source "$dir" # should define gsets
+        source "$dir" || true # should define gsets
         break
     fi
 done
@@ -44,9 +44,14 @@ function usage(){
     printf "%s usage:\n\n" "$pname"
     printf "  %s [-n|--dry-run] [-v|--verbose] links  # creates the associated symlinks.\n"  "git-group"
     printf "  %s sets                                 # display the list of gsets.\n"        "git-group"
+    printf "  git-group stat [-n|--dry-run] [-v|--verbose] [gset]\n"
+    printf "  git-group pull [-n|--dry-run] [-v|--verbose] [gset] [--all-remotes]\n"
+    printf "  git-group push [-n|--dry-run] [-v|--verbose] [gset] [--all-remotes]\n"
+    printf "  git-group remotes [-n|--dry-run] [-v|--verbose] [gset]\n"
     printf "  gstat [-n|--dry-run] [-v|--verbose] [gset]\n"
     printf "  gpull [-n|--dry-run] [-v|--verbose] [gset] [--all-remotes]\n"
     printf "  gpush [-n|--dry-run] [-v|--verbose] [gset] [--all-remotes]\n"
+    printf "  gremotes [-n|--dry-run] [-v|--verbose] [gset]\n"
     printf "\n"
     printf "gset should be one of: \n"
     print_gsets '             '
@@ -154,6 +159,19 @@ function main(){
         (clone)
             clone_all_gset_repositories
             exit 0
+            ;;
+
+        (pull)
+            pname=gpull
+            ;;
+        (push)
+            pname=gpush
+            ;;
+        (stat)
+            pname=gstat
+            ;;
+        (remotes)
+            pname=gremotes
             ;;
 
         (*)
