@@ -1,0 +1,26 @@
+#!/bin/bash
+
+function mail_log_trace(){
+    local message_id="$1"
+    local file="$2"
+
+    grep "${message_id}" "${file}" \
+        | tr ':' ' ' | awk '{print $8;}' \
+        | while read reference ; do
+              grep " ${reference}: " "${file}"
+              printf "\n"
+              process=$( grep "input attribute value: ${reference}" "${file}" \
+                               | tr ':' ' ' | awk '{print $7;}' | sed -e 's/\[/\\[/g' -e 's/\]/\\]/g' )
+              grep " ${process}: " "${file}"
+              printf "\n\n"
+          done
+}
+
+
+function main(){
+    mail_log_trace "$@"
+    exit 0
+}
+
+
+main "$@"
