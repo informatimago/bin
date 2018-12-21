@@ -50,23 +50,23 @@ function trim_colons(){
 
 function with_gcc_8(){
     gcc_prefix="/usr/local/gcc"
+    libs=(${gcc_prefix}/lib64 ${gcc_prefix}/lib /usr/local/lib64 /usr/local/lib /usr/lib /lib )
     export PATH=$(trim_colons "${gcc_prefix}/bin:${PATH}")
     export CFLAGS=$(trim_spaces "-I${gcc_prefix}/include ${CFLAGS:-}")
     export CXXFLAGS=$(trim_spaces "-I${gcc_prefix}/include ${CXXFLAGS:-}")
-    export LDFLAGS=$(trim_spaces "-L${gcc_prefix}/lib ${LDFLAGS:-}")
-    export LD_LIBRARY_PATH="${gcc_prefix}/lib:/usr/local/lib:/usr/local/lib64:/usr/lib:/lib"
+    export LDFLAGS=$(trim_spaces "${LDFLAGS:-} $(printf "-L%s "" ${libs[@]}") ")
+    export LD_LIBRARY_PATH="$(trim_colons $(printf "%s:"" ${libs[@]}"))"
     export PKG_CONFIG_PATH="${gcc_prefix}/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig"
-    libs="-L${gcc_prefix}/lib -L/usr/local/lib -L/usr/local/lib64 -L/lib -L/usr/lib"
 
     gcc -dumpversion
     case "$(gcc -dumpversion)" in
     [789]*)
         export CFLAGS=$(trim_spaces "${CFLAGS:-} ${sanitize_cc[*]} -g -g3 -ggdb -O0")
-        export LDFLAGS=$(trim_spaces "${LDFLAGS:-} ${libs} ${sanitize_ld[*]}")
+        export LDFLAGS=$(trim_spaces "${LDFLAGS:-} ${sanitize_ld[*]}")
         ;;
     *)
         export CFLAGS=$(trim_spaces "${CFLAGS:-} -g -g3 -ggdb -O0")
-        export LDFLAGS=$(trim_spaces "${LDFLAGS:-} ${libs}")
+        export LDFLAGS=$(trim_spaces "${LDFLAGS:-}")
         ;;
     esac
 }
