@@ -54,8 +54,8 @@ function with_gcc_8(){
     export PATH=$(trim_colons "${gcc_prefix}/bin:${PATH}")
     export CFLAGS=$(trim_spaces "-I${gcc_prefix}/include ${CFLAGS:-}")
     export CXXFLAGS=$(trim_spaces "-I${gcc_prefix}/include ${CXXFLAGS:-}")
-    export LDFLAGS=$(trim_spaces "${LDFLAGS:-} $(printf "-L%s "" ${libs[@]}") ")
-    export LD_LIBRARY_PATH="$(trim_colons $(printf "%s:"" ${libs[@]}"))"
+    export LDFLAGS=$(trim_spaces "${LDFLAGS:-} $(printf -- "-L%s " "${libs[@]}") ")
+    export LD_LIBRARY_PATH="$(trim_colons $(printf -- "%s:" "${libs[@]}"))"
     export PKG_CONFIG_PATH="${gcc_prefix}/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig"
 
     gcc -dumpversion
