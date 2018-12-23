@@ -9,29 +9,29 @@ fi
 
 order=(
     make-4.2.1
-    
+
     autoconf-2.69
     automake-1.15.1
     m4-1.4.18
-    
+
     $binutils
-    
+
     gettext-0.19.8
     gmp-6.1.2
     mpfr-4.0.1
     mpc-1.1.0
-    
+
     diffutils-3.6
     patch-2.7
     texinfo-6.5
     help2man-1.47.8
-    
+
     libunistring-0.9.10
     bdwgc
     #guile-2.2.4
     guile-2.0.14
     autogen-5.18.7
-    
+
     flex
 
     # # gcc-5.5.0
@@ -59,7 +59,7 @@ files=(
     # exact version:
     ftp://ftp.gnu.org/gnu/automake/automake-1.15.1.tar.xz
     ftp://ftp.gnu.org/gnu/automake/automake-1.15.1.tar.xz.sig
-    
+
     ftp://ftp.gnu.org/gnu/autogen/autogen-5.18.7.tar.xz
     ftp://ftp.gnu.org/gnu/autogen/autogen-5.18.7.tar.xz.sig
 
@@ -74,10 +74,10 @@ files=(
 
     ftp://ftp.gnu.org/gnu/gettext/gettext-0.19.8.tar.xz
     ftp://ftp.gnu.org/gnu/gettext/gettext-0.19.8.tar.xz.sig
-    
+
     ftp://ftp.gnu.org/gnu/m4/m4-1.4.18.tar.xz
     ftp://ftp.gnu.org/gnu/m4/m4-1.4.18.tar.xz.sig
-    
+
     ftp://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz
     ftp://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz.sig
 
@@ -86,19 +86,19 @@ files=(
 
     ftp://ftp.gnu.org/gnu/texinfo/texinfo-6.5.tar.xz
     ftp://ftp.gnu.org/gnu/texinfo/texinfo-6.5.tar.xz.sig
-    
+
     ftp://ftp.gnu.org/gnu/help2man/help2man-1.47.8.tar.xz
     ftp://ftp.gnu.org/gnu/help2man/help2man-1.47.8.tar.xz.sig
-    
+
     ftp://ftp.gnu.org/gnu/patch/patch-2.7.tar.xz
     ftp://ftp.gnu.org/gnu/patch/patch-2.7.tar.xz.sig
 
     ftp://ftp.gnu.org/gnu/gcc/gcc-5.5.0/gcc-5.5.0.tar.xz
     ftp://ftp.gnu.org/gnu/gcc/gcc-5.5.0/gcc-5.5.0.tar.xz.sig
-    
+
     ftp://ftp.gnu.org/gnu/gcc/gcc-6.5.0/gcc-6.5.0.tar.xz
     ftp://ftp.gnu.org/gnu/gcc/gcc-6.5.0/gcc-6.5.0.tar.xz.sig
-    
+
     ftp://ftp.gnu.org/gnu/gcc/gcc-8.2.0/gcc-8.2.0.tar.xz
     ftp://ftp.gnu.org/gnu/gcc/gcc-8.2.0/gcc-8.2.0.tar.xz.sig
 
@@ -265,7 +265,7 @@ function compile_it(){
     local name="$1"
     local log
     local status
-    CFLAGS=$(trim_spaces "${CFLAGS:-} $(name_CFLAGS "$name")")           ; export CFLAGS 
+    CFLAGS=$(trim_spaces "${CFLAGS:-} $(name_CFLAGS "$name")")           ; export CFLAGS
     CXXFLAGS=$(trim_spaces "${CXXFLAGS:-} $(name_CXXFLAGS "$name")")     ; export CXXFLAGS
     LDFLAGS=$(trim_spaces "${LDFLAGS:-}  $(name_LDFLAGS "$name")")       ; export LDFLAGS
     log="$(pwd)/${name}.log"
@@ -291,7 +291,7 @@ function compile_it(){
             ;;
         (*)
             # shellcheck disable=SC2046
-            if [ -x autogen.sh ] ; then 
+            if [ -x autogen.sh ] ; then
                 info 'Autogening %s' "$name" \
                 && runcmd ./autogen.sh >> "$log" 2>&1 ;
             fi \
@@ -303,7 +303,7 @@ function compile_it(){
             && runcmd make >> "$log" 2>&1 \
             && info 'Installing %s' "$name" \
             && runcmd make install >> "$log" 2>&1
-    
+
     status=$?
     if [ $status -eq 0 ] ; then
         success 'Status %d' "$status"
@@ -343,7 +343,7 @@ function compile_all(){
         rm -rf "$name"
         unpack "$tarball" "$extension"
     done
-    define_alterations 
+    define_alterations
     # compile first time
     for module in "${order[@]}" ; do
         compile_module "$module"
@@ -390,10 +390,10 @@ function get_and_compile(){
     hash -r
 
     save_env PATH CFLAGS CXXFLAGS LDFLAGS PKG_CONFIG_PATH
-    
+
     get_all
     compile_all
-    
+
     echo export PATH="'${prefix}/bin:$PATH'"
     echo export CFLAGS="'-I${prefix}/include ${CFLAGS:-}'"
     echo export CXXFLAGS="'-I${prefix}/include ${CXXFLAGS:-}'"
