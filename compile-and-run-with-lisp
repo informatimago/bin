@@ -1,0 +1,64 @@
+#!/bin/bash
+
+function compile_and_run_asd(){
+    local asd_file="$1"
+    local asd_system
+    asd_system="$(basename "${asd_file}" .asd)"
+    rm -rf ~/.cache/common-lisp/*
+    sbcl --noinform --non-interactive --no-userinit --eval '(require :asdf)' --load "$asd_file" --eval '(asdf:oos (quote asdf:compile-op) "'"${asd_system}"'")'
+    sbcl --noinform --non-interactive --no-userinit --eval '(require :asdf)' --load "$asd_file" --eval '(asdf:oos (quote asdf:load-op)    "'"${asd_system}"'")'
+}
+
+function compile_and_run_lisp(){
+    local lisp_file="$1"
+    local stem
+    case "$lisp_file" in
+    (*.lisp)  stem="${lisp_file%.lisp}" ;;
+    (*.cl)    stem="${lisp_file%.cl}"   ;;
+    (*)       return 1
+    esac
+    sbcl --noinform --non-interactive --no-userinit --eval '(compile-file "'"${lisp_file}"'")'
+    sbcl --noinform --non-interactive --no-userinit --eval '(load         "'"${stem}"'")'
+}
+
+function main(){
+    local program="$1"
+    case "$program" in
+    (*.asd)
+        compile_and_run_asd "$program"
+        ;;
+    (*.cl|*.lisp)
+        compile_and_run_lisp "$program"
+        ;;
+    (*)
+        printf 'Unexpected program type: %s\n' "$program" 1>&2
+        exit 1
+        ;;
+    esac
+}
+
+main "$@"
+exit 0
+
+[pjb@despina org.macports:0 ~]$ ./compile-and-run-with-lisp /tmp/hello.asd
+; compiling file "/private/tmp/hello.lisp" (written 08 DEC 2018 01:10:27 AM):
+; compiling (DEFPARAMETER HELLO ...)
+
+; /Users/pjb/.cache/common-lisp/sbcl-1.4.9-macosx-x64/private/tmp/hello-tmpGHU3ALSV.fasl written
+; compilation finished in 0:00:00.001
+; compiling file "/private/tmp/main.lisp" (written 08 DEC 2018 01:17:21 AM):
+; compiling (FORMAT T ...)
+; compiling (FINISH-OUTPUT)
+
+; /Users/pjb/.cache/common-lisp/sbcl-1.4.9-macosx-x64/private/tmp/main-tmpAAURSO1.fasl written
+; compilation finished in 0:00:00.000
+Hello World!
+[pjb@despina org.macports:0 ~]$ ./compile-and-run-with-lisp /tmp/hw.lisp
+; compiling file "/private/tmp/hw.lisp" (written 08 DEC 2018 04:00:50 AM):
+; compiling (WRITE-LINE "Hello World!")
+; compiling (FINISH-OUTPUT)
+
+; /tmp/hw.fasl written
+; compilation finished in 0:00:00.002
+Hello World!
+[pjb@despina org.macports:0 ~]$
