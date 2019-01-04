@@ -58,7 +58,6 @@ function with_gcc_8(){
     export LD_LIBRARY_PATH="$(trim_colons $(printf -- "%s:" "${libs[@]}"))"
     export PKG_CONFIG_PATH="${gcc_prefix}/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig"
 
-    gcc -dumpversion
     case "$(gcc -dumpversion)" in
     [789]*)
         export CFLAGS=$(trim_spaces "${CFLAGS:-} ${sanitize_cc[*]} -g -g3 -ggdb -O0")
@@ -69,6 +68,10 @@ function with_gcc_8(){
         export LDFLAGS=$(trim_spaces "${LDFLAGS:-}")
         ;;
     esac
+
+    # for var in PATH CFLAGS CXXFLAGS LDFLAGS LD_LIBRARY_PATH PKG_CONFIG_PATH ; do
+    #     printf "export %s='%s'\n" "${var}" "${!var}"
+    # done
 }
 
 with_gcc_8
