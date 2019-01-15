@@ -1,0 +1,6 @@
+#!/bin/bash
+od -t x1 \
+| ( echo 'static unsigned char buffer[]={'
+    sed -e 's/^[0-9a-fA-F]*\( \|$\)/ /' -e 's/\([0-9a-fA-F][0-9a-fA-F]\)/0x\1,/g'
+    echo '};' )
+
