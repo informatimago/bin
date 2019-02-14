@@ -1,9 +1,9 @@
-#!/usr/local/bin/clisp -ansi -q -E utf-8
+#!/usr/local/bin/clisp -norc -q -ansi
 ;;;; -*- mode:lisp; coding:utf-8 -*-
 
-(SETQ *LOAD-VERBOSE* NIL)
-(LOAD (merge-pathnames #P".clash.lisp" (user-homedir-pathname) nil))
-(LOOP
+(setq *load-verbose* nil)
+(load (merge-pathnames #p".clash.lisp" (user-homedir-pathname) nil))
+(loop
    (handler-case
        (progn (terpri) (princ "> ")
               (print (eval (read *terminal-io*))))

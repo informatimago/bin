@@ -1,9 +1,0 @@
-#!/bin/sh
-exec ccl -Q -n -e '(set-dispatch-macro-character #\# #\! (lambda (s c n) (declare (ignore c n)) (read-line s) (read-line s) (values)))' -l "$0" -e '(ccl:quit 0)' -- "$0" "$@"
-(format t "~S~%" CCL:*UNPROCESSED-COMMAND-LINE-ARGUMENTS*)
-(loop for line = (read-line *standard-input* nil)
-      while line
-      do (write-line (string-upcase line)))
-
-
-
