@@ -1,0 +1,6 @@
+#!/bin/bash
+cat <<EOF
+sudo tcpdump -Ini en0 
+sudo airport en1 sniff 1
+EOF
+
