@@ -1,0 +1,553 @@
+#!/bin/bash -e
+# set -x
+
+# prefix="$HOME/gcc"
+prefix='/usr/local/gcc'
+pname=$(basename "$0")
+
+if [ "$(uname)" = Darwin ] ; then
+    binutils='binutils-gdb'
+else
+    binutils='binutils-2.32'
+fi
+
+binutils='binutils-2.32'
+
+order=(
+    make-4.2.1
+
+    autoconf-2.69
+    automake-1.15.1
+    m4-1.4.18
+
+    $binutils
+
+    gettext-0.19.8
+    gmp-6.1.2
+    mpfr-4.0.1
+    mpc-1.1.0
+
+    diffutils-3.6
+    patch-2.7
+    texinfo-6.5
+    help2man-1.47.8
+
+    libunistring-0.9.10
+    bdwgc
+    #guile-2.2.4
+    guile-2.0.14
+    autogen-5.18.7
+
+    flex
+
+    # # gcc-5.5.0
+    # # gcc-6.5.0
+    gcc-8.2.0
+
+    gdb-8.2.1
+)
+
+files=(
+    ftp://ftp.gnu.org/gnu/make/make-4.2.1.tar.bz2
+    ftp://ftp.gnu.org/gnu/make/make-4.2.1.tar.bz2.sig
+
+    ftp://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.xz
+    ftp://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.xz.sig
+
+    ftp://ftp.gnu.org/gnu/libunistring/libunistring-0.9.10.tar.xz
+    ftp://ftp.gnu.org/gnu/libunistring/libunistring-0.9.10.tar.xz.sig
+
+    # for --with-isl (Graphite loop optimization)
+    # ftp://gcc.gnu.org/pub/gcc/infrastructure/isl-0.18.tar.bz2
+
+    # exact version:
+    ftp://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.xz
+    ftp://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.xz.sig
+
+    # exact version:
+    ftp://ftp.gnu.org/gnu/automake/automake-1.15.1.tar.xz
+    ftp://ftp.gnu.org/gnu/automake/automake-1.15.1.tar.xz.sig
+
+    ftp://ftp.gnu.org/gnu/autogen/autogen-5.18.7.tar.xz
+    ftp://ftp.gnu.org/gnu/autogen/autogen-5.18.7.tar.xz.sig
+
+    ftp://ftp.gnu.org/gnu/libiconv/libiconv-1.15.tar.gz
+    ftp://ftp.gnu.org/gnu/libiconv/libiconv-1.15.tar.gz.sig
+
+    ftp://ftp.gnu.org/gnu/guile/guile-2.0.14.tar.xz
+    ftp://ftp.gnu.org/gnu/guile/guile-2.0.14.tar.xz.sig
+
+    # ftp://ftp.gnu.org/gnu/guile/guile-2.2.4.tar.xz
+    # ftp://ftp.gnu.org/gnu/guile/guile-2.2.4.tar.xz.sig
+
+    ftp://ftp.gnu.org/gnu/gettext/gettext-0.19.8.tar.xz
+    ftp://ftp.gnu.org/gnu/gettext/gettext-0.19.8.tar.xz.sig
+
+    ftp://ftp.gnu.org/gnu/m4/m4-1.4.18.tar.xz
+    ftp://ftp.gnu.org/gnu/m4/m4-1.4.18.tar.xz.sig
+
+    # ftp://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz
+    # ftp://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz.sig
+    ftp://ftp.gnu.org/gnu/binutils/binutils-2.32.tar.xz
+    ftp://ftp.gnu.org/gnu/binutils/binutils-2.32.tar.xz.sig
+
+    ftp://ftp.gnu.org/gnu/diffutils/diffutils-3.6.tar.xz
+    ftp://ftp.gnu.org/gnu/diffutils/diffutils-3.6.tar.xz.sig
+
+    ftp://ftp.gnu.org/gnu/texinfo/texinfo-6.5.tar.xz
+    ftp://ftp.gnu.org/gnu/texinfo/texinfo-6.5.tar.xz.sig
+
+    ftp://ftp.gnu.org/gnu/help2man/help2man-1.47.8.tar.xz
+    ftp://ftp.gnu.org/gnu/help2man/help2man-1.47.8.tar.xz.sig
+
+    ftp://ftp.gnu.org/gnu/patch/patch-2.7.tar.xz
+    ftp://ftp.gnu.org/gnu/patch/patch-2.7.tar.xz.sig
+
+    ftp://ftp.gnu.org/gnu/gcc/gcc-5.5.0/gcc-5.5.0.tar.xz
+    ftp://ftp.gnu.org/gnu/gcc/gcc-5.5.0/gcc-5.5.0.tar.xz.sig
+
+    ftp://ftp.gnu.org/gnu/gcc/gcc-6.5.0/gcc-6.5.0.tar.xz
+    ftp://ftp.gnu.org/gnu/gcc/gcc-6.5.0/gcc-6.5.0.tar.xz.sig
+
+    ftp://ftp.gnu.org/gnu/gcc/gcc-8.2.0/gcc-8.2.0.tar.xz
+    ftp://ftp.gnu.org/gnu/gcc/gcc-8.2.0/gcc-8.2.0.tar.xz.sig
+
+    ftp://ftp.gnu.org/gnu/gdb/gdb-8.2.1.tar.xz
+    ftp://ftp.gnu.org/gnu/gdb/gdb-8.2.1.tar.xz.sig
+
+    https://www.hboehm.info/gc/gc_source/gc-7.6.8.tar.gz
+    https://www.hboehm.info/gc/gc_source/libatomic_ops-7.6.6.tar.gz
+
+#   https://www.mpfr.org/mpfr-current/mpfr-4.0.1.tar.xz
+    https://ftp.gnu.org/gnu/mpc/mpc-1.1.0.tar.gz
+
+)
+
+gits=(
+    https://github.com/westes/flex.git
+    git://sourceware.org/git/binutils-gdb.git
+)
+
+
+
+
+# order=(
+#     gdb-8.2.1
+# )
+#
+# files=(
+#     ftp://ftp.gnu.org/gnu/gdb/gdb-8.2.1.tar.xz
+#     ftp://ftp.gnu.org/gnu/gdb/gdb-8.2.1.tar.xz.sig
+# )
+# order=(
+#     # make-4.2.1
+#     #
+#     # autoconf-2.69
+#     # automake-1.15.1
+#     # m4-1.4.18
+# 
+#     $binutils
+# 
+#     # gettext-0.19.8
+#     # gmp-6.1.2
+#     mpfr-4.0.1
+#     mpc-1.1.0
+# 
+#     diffutils-3.6
+#     patch-2.7
+#     texinfo-6.5
+#     help2man-1.47.8
+# 
+#     libunistring-0.9.10
+#     bdwgc
+#     #guile-2.2.4
+#     guile-2.0.14
+#     autogen-5.18.7
+# 
+#     flex
+# 
+#     # # gcc-5.5.0
+#     # # gcc-6.5.0
+#     gcc-8.2.0
+# 
+#     gdb-8.2.1
+# )
+
+
+function sgr () {
+    # SELECT GRAPHIC RENDITION
+    echo -n "[$(semicolon='';res='';for arg in "$@";do res="${res}${semicolon}${arg}";semicolon=';';done;echo -n "${res}")m"
+}
+
+normal="$(sgr 0)"
+bold="$(sgr 1)"
+underline="$(sgr 4)"
+blink="$(sgr 5)"
+invert="$(sgr 7)"
+no_bold="$(sgr 22)"
+no_underline="$(sgr 24)"
+no_blink="$(sgr 25)"
+no_invert="$(sgr 27)"
+black="$(sgr 30)"
+red="$(sgr 31)"
+green="$(sgr 32)"
+yellow="$(sgr 33)"
+blue="$(sgr 34)"
+magenta="$(sgr 35)"
+cyan="$(sgr 36)"
+white="$(sgr 37)"
+black_back="$(sgr 40)"
+red_back="$(sgr 41)"
+green_back="$(sgr 42)"
+yellow_back="$(sgr 43)"
+blue_back="$(sgr 44)"
+magenta_back="$(sgr 45)"
+cyan_back="$(sgr 46)"
+white_back="$(sgr 47)"
+echo -n "$normal"
+
+function info(){
+    printf '%s#  ' "$yellow"
+    # shellcheck disable=SC2059
+    printf "$@"
+    printf '%s\n' "$normal"
+}
+
+function success(){
+    printf '%s#  ' "$green"
+    # shellcheck disable=SC2059
+    printf "$@"
+    printf '%s\n' "$normal"
+}
+
+function failure(){
+    printf '%s#  ' "$red"
+    # shellcheck disable=SC2059
+    printf "$@"
+    printf '%s\n' "$normal"
+}
+
+function trim_spaces(){
+    local string="$1"
+    # ${a## } or ${a%% } doesn't work! (in bash 4.3).
+    string="$(echo "$string" | sed -e 's/^ *//' -e 's/ *$//')"
+    echo -n "${string}"
+}
+
+function trim_colon(){
+    local string="$1"
+    string="$(echo "$string" | sed -e 's/^:*//' -e 's/:*$//')"
+    echo -n "${string}"
+}
+
+function get_all(){
+    cd  "$prefix/src"
+    mkdir -p "$prefix/src/tarballs"
+    for file in "${files[@]}" ; do
+        # TODO: get the certificates CA Chains!
+        (cd "$prefix/src/tarballs" && wget --no-check-certificate --timestamping  "$file")
+    done
+    for git in "${gits[@]}" ; do
+        dir=$(basename "$git" .git)
+        if [ -d "$dir" ] ; then
+            (cd "$dir" && git pull)
+        else
+            git clone "$git"
+        fi
+    done
+}
+
+function unpack(){
+    local tarball="$1"
+    local extension="$2"
+    local taropt=''
+    case "$extension" in
+    (xz)  taropt=J ;;
+    (gz)  taropt=z ;;
+    (bz2)  taropt=j ;;
+    (*) failure 'Bad extension %s' "$extension"
+        exit 1 ;;
+    esac
+    tar ${taropt}xf "$tarball"
+}
+
+
+function name_to_var(){
+    local name="$1"
+    name="${name//-/_}"
+    name="${name//./_}"
+    echo "${name}"
+}
+
+function name_CFLAGS(){
+    local name; name=$(name_to_var "$1")_CFLAGS
+    echo "${!name}"
+}
+
+function name_CXXFLAGS(){
+    local name; name=$(name_to_var "$1")_CXXFLAGS
+    echo "${!name}"
+}
+
+function name_LDFLAGS(){
+    local name; name=$(name_to_var "$1")_LDFLAGS
+    echo "${!name}"
+}
+
+function name_configure(){
+    local name; name=$(name_to_var "$1")_configure
+    echo "${!name}"
+}
+
+function define_alterations(){
+    case "$(gcc -dumpversion)" in
+    [789]*)
+        # shellcheck disable=SC2034
+        make_4_2_1_CFLAGS='-D__alloca=alloca -D__stat=stat'
+        ;;
+    *)
+        true
+        ;;
+    esac
+    # shellcheck disable=SC2034
+    gcc_5_5_0_configure="--disable-multilib --with-mpc=${prefix}"
+    gcc_6_5_0_configure="--disable-multilib --with-mpc=${prefix}"
+    gcc_8_2_0_configure="--disable-multilib --with-mpc=${prefix}"
+}
+
+function runcmd(){
+    printf "##  %s\n" "$*"
+    "$@"
+}
+
+function compile_it(){
+    local name="$1"
+    local log
+    local status
+    CFLAGS=$(trim_spaces "${CFLAGS:-} $(name_CFLAGS "$name")")           ; export CFLAGS
+    CXXFLAGS=$(trim_spaces "${CXXFLAGS:-} $(name_CXXFLAGS "$name")")     ; export CXXFLAGS
+    LDFLAGS=$(trim_spaces "${LDFLAGS:-}  $(name_LDFLAGS "$name")")       ; export LDFLAGS
+    log="$(pwd)/${name}.log"
+    rm -f "$log"
+    { date ; env | sort ; } > "$log"
+    if [ -d .git ] ; then
+        runcmd git clean -dfx >> "$log" 2>&1
+    fi
+    cd "${name}" && \
+        case "${name}" in
+        (gcc*)
+            #
+            # gcc uses a build directory, configure is ../configure !
+            #
+            # shellcheck disable=SC2046
+            mkdir -p build && cd build \
+            && info 'Configuring %s' "$name" \
+            && runcmd ../configure --prefix="$prefix" $(name_configure "$name") >> "$log" 2>&1 \
+            ;;
+        (gc-*|gettext-*)
+            #
+            # Those components have both autogen.sh and configure, but we must skip autogen.sh.
+            #
+            info 'Configuring %s' "$name" \
+            && runcmd ./configure --prefix="$prefix" $(name_configure "$name") >> "$log" 2>&1 \
+            ;;
+        (*)
+            # shellcheck disable=SC2046
+            if [ -x autogen.sh ] ; then
+                info 'Autogening %s' "$name" \
+                && runcmd ./autogen.sh >> "$log" 2>&1 ;
+            fi \
+            && info 'Configuring %s' "$name" \
+            && runcmd ./configure --prefix="$prefix" $(name_configure "$name") >> "$log" 2>&1 \
+            ;;
+        esac \
+            && info 'Compiling %s' "$name" \
+            && runcmd make >> "$log" 2>&1 \
+            && info 'Installing %s' "$name" \
+            && runcmd make install >> "$log" 2>&1
+
+    status=$?
+    if [ $status -eq 0 ] ; then
+        success 'Status %d' "$status"
+    else
+        failure 'Status %d' "$status"
+    fi
+}
+
+function compile_bdwgc(){
+    local name=gc-7.6.8
+    # autoreconf -vif
+    # automake --add-missing
+    ln -sf  ../libatomic_ops-7.6.6 "${name}"/libatomic_ops \
+        && compile_it "${name}"
+}
+
+function compile_module(){
+    local name="$1"
+    (
+        if [ "x$(type -t "compile_${name}")" = xfunction ] ; then
+            "compile_${name}"
+        else
+            compile_it "${name}"
+        fi
+    )
+}
+
+function compile_all(){
+    cd  "$prefix/src"
+    local tarball
+    local extension
+    local name
+    local to_compile=()
+    if [ $# -gt 0 ] ; then
+        to_compile+=("${packages[@]}")
+    else
+        to_compile+=("${order[@]}")
+        # unpack
+        for tarball in tarballs/*.tar.{xz,gz,bz2} ; do
+            extension="${tarball/*.}"
+            name=$(basename "$tarball" ".tar.$extension")
+            info 'Extracting %s' "$name"
+            rm -rf "$name"
+            unpack "$tarball" "$extension"
+        done
+    fi
+    define_alterations
+    # compile first time
+    for module in "${to_compile[@]}" ; do
+        compile_module "$module"
+        hash -r
+    done
+    # compile again, with the new compiler!
+    for module in "${to_compile[@]}" ; do
+        compile_module "$module"
+        hash -r
+    done
+}
+
+function save_env(){
+    for var ; do
+        echo "${var}='${!var}'"
+        echo "export '${var}'"
+    done > "${prefix}/environment"
+    export BASH_ENV="${prefix}/environment"
+    export ENV="${prefix}/environment"
+}
+
+function get_and_compile(){
+    unset BASH_ENV
+    unset ENV
+
+    local escape=''
+    local normal="${escape}"'[0m'
+    echo -n "$normal"
+
+    if [ "$(uname)" = Darwin ] ; then
+        export PATH="/opt/local/bin:${PATH}"
+        export CFLAGS=$(trim_spaces "-I/opt/local/include ${CFLAGS:-}")
+        export CXXFLAGS=$(trim_spaces "-I/opt/local/include ${CXXFLAGS:-}")
+        export LDFLAGS=$(trim_spaces "-L/opt/local/lib ${LDFLAGS:-}")
+        export LD_LIBRARY_PATH=$(trim_colon "/opt/local/lib:${LD_LIBRARY_PATH:-}")
+        export DYLD_LIBRARY_PATH=$(trim_colon "/opt/local/lib:${DYLD_LIBRARY_PATH:-}")
+    fi
+    export PATH=$(trim_colon "${prefix}/bin:${PATH}")
+    export CFLAGS=$(trim_spaces "-I${prefix}/include ${CFLAGS:-}")
+    export CXXFLAGS=$(trim_spaces "-I${prefix}/include ${CXXFLAGS:-}")
+    export LDFLAGS=$(trim_spaces "-L${prefix}/lib64 -L${prefix}/lib ${LDFLAGS:-}")
+    export PKG_CONFIG_PATH=$(trim_colon "${prefix}/lib/pkgconfig:${PKG_CONFIG_PATH:-}")
+    export LD_LIBRARY_PATH=$(trim_colon "${prefix}/lib64:${prefix}/lib:${LD_LIBRARY_PATH:-}")
+    export DYLD_LIBRARY_PATH=$(trim_colon "${prefix}/lib64:${prefix}/lib:${DYLD_LIBRARY_PATH:-}")
+
+    hash -r
+
+    save_env PATH CFLAGS CXXFLAGS LDFLAGS PKG_CONFIG_PATH LD_LIBRARY_PATH DYLD_LIBRARY_PATH
+
+    if [ $# -gt 0 ] ; then
+        compile_all "$@"
+    else
+        get_all
+        compile_all
+    fi
+}
+
+function with_clean_environment(){
+    # We need to restrict the environment used while compiling.
+    # We keep PATH and PKG_CONFIG_PATH, for the bootstrap compiler and tools.
+    env -i \
+        EDITOR="${EDITOR}" \
+        VISUAL="${VISUAL}" \
+        HOME="${HOME}" \
+        INPUTRC="${INPUTRC}" \
+        LANG="${LANG}" \
+        LC_CTYPE="${LC_CTYPE}" \
+        LOGNAME="${LOGNAME}" \
+        MANPATH="${MANPATH}" \
+        PAGER="${PAGER}" \
+        PATH="${PATH}" \
+        PKG_CONFIG_PATH="${PKG_CONFIG_PATH}" \
+        SHELL="${SHELL}" \
+        TERM="${TERM}" \
+        TZ="${TZ}" \
+        USER="${USER}" \
+        "$@" 
+}
+
+function member(){
+    local item="$1" ; shift
+    for arg ; do
+        if [ "$item" = "$arg" ] ; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+function usage(){
+    printf '%s usage:\n' "$pname"
+    printf '\n'
+    printf '    %s -l|--list|--list-packages\n' "$pname"
+    printf '    %s [package…]\n' "$pname"
+    printf '\n'
+}
+
+function list_packages(){
+    printf '%s\n' "${order[@]}"
+}
+
+function main(){
+    local packages=()
+    for arg ; do
+        case "$arg" in
+        (-h|--help)
+            usage 
+            exit 0
+            ;;
+        (-l|--list|--list-packages)
+            list_packages
+            exit 0
+            ;;
+        (--%run)
+            get_and_compile "${packages[@]}"
+            exit 0
+            ;;
+        (*)
+            if member "$arg" "${order[@]}" ; then
+                packages+=("$arg" )
+            else
+                printf 'Invalid argument: %s\n' 1>&2
+                usage
+                exit 64
+            fi
+            ;;
+        esac
+    done
+
+    with_clean_environment "$0"  "${packages[@]}" '--%run'
+    exit 0
+}
+
+main "$@"
+
+
+# ./configure --prefix="$prefix" --enable-multilib
+# make
