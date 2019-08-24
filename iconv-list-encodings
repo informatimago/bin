@@ -1,0 +1,2 @@
+#!/bin/bash
+iconv -l|tr -d /|while read e ; do f="$(iconv -f "$e" -t "utf-8" < b 2>/dev/null)" && printf "%-30s %s\n" "$e" "$f" ; done|sort -k 2

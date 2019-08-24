@@ -1,0 +1,78 @@
+#!/bin/bash
+set -e
+user_certificate="$1"
+issuer_certificate="$2"
+
+umask 177
+
+cert_body="/tmp/cert-body.bin.$$"
+cert_sig_decrypted="/tmp/cert-sig-decrypted.bin.$$"
+cert_sig="/tmp/cert-sig.bin.$$"
+issuer_pubkey="/tmp/issuer-pub.pem.$$"
+
+trap 'rm -f  $cert_body $cert_sig_decrypted $cert_sig $issuer_pubkey' 0
+
+# extract the issuer public key:
+openssl x509 -in "$issuer_certificate"  -noout -pubkey > /tmp/issuer-pub.pem
+
+# extract the signature:
+signature_hex=$(openssl x509 -in "$user_certificate" -text -noout -certopt ca_default -certopt no_validity -certopt no_serial -certopt no_subject -certopt no_extensions -certopt no_signame | grep -v 'Signature Algorithm' | tr -d '[:space:]:')
+echo "${signature_hex}" | xxd -r -p > /tmp/cert-sig.bin
+
+# decrypt the signature:
+openssl rsautl -verify -inkey /tmp/issuer-pub.pem -in /tmp/cert-sig.bin -pubin > /tmp/cert-sig-decrypted.bin
+# extract the decrypted signature:
+stored_signature=$(openssl asn1parse -inform der -in /tmp/cert-sig-decrypted.bin|sed -n 's/.*HEX DUMP.:\(.*\)/\1/p')
+
+# extract the certificate sans-signature:
+openssl asn1parse -in "$user_certificate" -strparse 4 -out /tmp/cert-body.bin -noout
+
+# extract the signature algorithm:
+algo=-$(openssl asn1parse -inform der -in /tmp/cert-sig-decrypted.bin|sed -n 's/.*OBJECT.*:\(.*\)/\1/p')
+
+# compute the signature:
+computed_signature=$(openssl dgst "$algo" /tmp/cert-body.bin|sed -n -e 's/.*= \(.*\)/\1/p')
+
+# check them:
+stored_signature=$(echo "${stored_signature}"|tr '[a-z]' '[A-Z]')
+computed_signature=$(echo "${computed_signature}"|tr '[a-z]' '[A-Z]')
+if [ "$stored_signature" = "$computed_signature" ] ; then
+    exit 0
+else
+    printf 'Invalid signature.\nstored:   %s\ncomputed: %s\n'   "$stored_signature" "$computed_signature" 
+    exit 2
+fi
+
+# tests:
+if false ; then
+
+    openssl x509 -in "$user_certificate"    -noout -text
+
+    function dumpSubjectAlternativeNames(){
+        local user_certificate="$1"
+        openssl asn1parse -i -in "$user_certificate" \
+            | grep -A1 'X509v3 Subject Alternative Name' \
+            | sed -n -e 's/.*HEX DUMP.:\(.*\)/\1/p' \
+            | while read altname ; do
+                echo "$altname" \
+                    | xxd -r -p \
+                    | openssl asn1parse -inform der -in /dev/stdin
+        done
+    }
+
+
+    ./openssl-verify-certificate-signature \
+        /Users/pjb/works/sbde/secrets/sbde/CA/sbde-dev-test--users/test-ssl-server/user.crt \
+        /Users/pjb/works/sbde/secrets/sbde/CA/sbde-dev-test--inteca/inteca.crt
+
+    ./openssl-verify-certificate-signature \
+        /Users/pjb/works/sbde/secrets/sbde/CA/sbde-dev-test--inteca/inteca.crt \
+        /Users/pjb/works/sbde/secrets/sbde/CA/sbde-dev-test--rootca/rootca.crt
+
+    ./openssl-verify-certificate-signature \
+        /Users/pjb/works/sbde/secrets/sbde/CA/sbde-dev-test--rootca/rootca.crt \
+        /Users/pjb/works/sbde/secrets/sbde/CA/sbde-dev-test--rootca/rootca.crt
+
+fi
+
+
