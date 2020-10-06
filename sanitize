@@ -11,16 +11,16 @@ sanitize_cc=(
     -fsanitize=null
     -fsanitize=bounds
     -fsanitize=vla-bound
-    # -fsanitize=object-size # not with -O0
+    -fsanitize=object-size # not with -O0
 
     -fsanitize=unreachable
     -fsanitize=return # C++ only
 
-    # -fsanitize=shift
-    # -fsanitize=shift-exponent
-    # -fsanitize=shift-base
-    # -fsanitize=integer-divide-by-zero
-    # -fsanitize=signed-integer-overflow
+    -fsanitize=shift
+    -fsanitize=shift-exponent
+    -fsanitize=shift-base
+    -fsanitize=integer-divide-by-zero
+    -fsanitize=signed-integer-overflow
 
     -fsanitize=float-divide-by-zero
     -fsanitize=float-cast-overflow
