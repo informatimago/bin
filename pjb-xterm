@@ -1,5 +1,6 @@
 #!/bin/bash
 
+echo $PATH
 # -ls      login shell
 # -sb      save some scrolled lines
 # -sl N    save N scrolled lines
@@ -80,12 +81,12 @@ case "$DISPLAY" in
 esac
 
 cmd_xterm=xterm
-for c in /usr/bin/xterm /usr/X11R6/bin/xterm $(which xterm) xterm ; do
-    if [ $c = xterm -o -x $c ] ; then
-	    cmd_xterm=$c
-	    break
-    fi
-done
+# for c in /usr/bin/xterm /usr/X11R6/bin/xterm $(which xterm) xterm ; do
+#     if [ $c = xterm -o -x $c ] ; then
+# 	    cmd_xterm=$c
+# 	    break
+#     fi
+# done
 
 function xterm () {
     echo xterm "$@"
@@ -318,3 +319,11 @@ exit 0
 #         (color-mix '(121 205 205) '(82 139 139) 0.5)))
 # ==> "#65acac"
 #### pjb-xterm                        --                     --          ####
+-report-fonts
+
+
+
+
+
+
+
