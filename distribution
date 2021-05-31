@@ -426,7 +426,96 @@ declareDarwinVersion "17.7.0"  "High Sierra"     "July 9, 2018"        "OS X v10
 declareDarwinVersion "17.7.0"  "High Sierra"     "July 9, 2018"        "OS X v10.13.6"                          "build 17G2208"
 declareDarwinVersion "17.7.7"  "High Sierra"     "August 28, 2018"     "OS X v10.13.6"                          "build 17G23"
 
-declareDarwinVersion "18.0.0"  "Mojave"          "September 24, 2018"  "OS X v10.14"                            "build 18A384"
+# https://en.wikipedia.org/wiki/MacOS_Mojave
+declareDarwinVersion "18.0.0"  "Mojave"          "September 24, 2018"        "OS X v10.14"                            "build 18A384"
+declareDarwinVersion "18.0.0"  "Mojave"          "September 24, 2018"        "OS X v10.14"                            "build 18A391"
+
+declareDarwinVersion "18.2.0"  "Mojave"          "October   30, 2018"        "OS X v10.14.1"                          "build 18B75"
+declareDarwinVersion "18.2.0"  "Mojave"          "October   30, 2018"        "OS X v10.14.1"                          "build 18B2107"
+declareDarwinVersion "18.2.0"  "Mojave"          "October   30, 2018"        "OS X v10.14.1"                          "build 18B3094"
+
+declareDarwinVersion "18.2.0"  "Mojave"          "December  5,  2018"        "OS X v10.14.2"                          "build 18C54"
+
+declareDarwinVersion "18.2.0"  "Mojave"          "January   22, 2019"        "OS X v10.14.3"                          "build 18D42"
+declareDarwinVersion "18.2.0"  "Mojave"          "January   25, 2019"        "OS X v10.14.3"                          "build 18D43"
+declareDarwinVersion "18.2.0"  "Mojave"          "February  7,  2019"        "OS X v10.14.3"                          "build 18D109"
+
+declareDarwinVersion "18.5.0"  "Mojave"          "March     25, 2019"        "OS X v10.14.4"                          "build 18E226"
+declareDarwinVersion "18.5.0"  "Mojave"          "March     25, 2019"        "OS X v10.14.4"                          "build 18E2227"
+
+declareDarwinVersion "18.6.0"  "Mojave"          "May       13, 2019"        "OS X v10.14.5"                          "build 18F132"
+
+
+declareDarwinVersion "18.7.0"  "Mojave"          "July      22, 2019"       "OS X v10.14.6"                          "build 18G84"
+declareDarwinVersion "18.7.0"  "Mojave"          "August    1,  2019"       "OS X v10.14.6"                          "build 18G87"
+declareDarwinVersion "18.7.0"  "Mojave"          "August    26, 2019"       "OS X v10.14.6"                          "build 18G95"
+declareDarwinVersion "18.7.0"  "Mojave"          "September 26, 2019"       "OS X v10.14.6"                          "build 18G103"
+declareDarwinVersion "18.7.0"  "Mojave"          "October   29, 2019"       "OS X v10.14.6"                          "build 18G1012"
+declareDarwinVersion "18.7.0"  "Mojave"          "December  10, 2019"       "OS X v10.14.6"                          "build 18G2022"
+declareDarwinVersion "18.7.0"  "Mojave"          "January   28, 2020"       "OS X v10.14.6"                          "build 18G3022"
+declareDarwinVersion "18.7.0"  "Mojave"          "March     24, 2020"       "OS X v10.14.6"                          "build 18G4032"
+declareDarwinVersion "18.7.0"  "Mojave"          "May       26, 2020"       "OS X v10.14.6"                          "build 18G5033"
+declareDarwinVersion "18.7.0"  "Mojave"          "July      15, 2020"       "OS X v10.14.6"                          "build 18G6020"
+declareDarwinVersion "18.7.0"  "Mojave"          "September 24, 2020"       "OS X v10.14.6"                          "build 18G6032"
+declareDarwinVersion "18.7.0"  "Mojave"          "October   1,  2020"       "OS X v10.14.6"                          "build 18G6032"
+declareDarwinVersion "18.7.0"  "Mojave"          "November  12, 2020"       "OS X v10.14.6"                          "build 18G6042"
+declareDarwinVersion "18.7.0"  "Mojave"          "December  15, 2020"       "OS X v10.14.6"                          "build 18G7016"
+declareDarwinVersion "18.7.0"  "Mojave"          "February  1,  2020"       "OS X v10.14.6"                          "build 18G8012"
+declareDarwinVersion "18.7.0"  "Mojave"          "February  9,  2020"       "OS X v10.14.6"                          "build 18G8022"
+declareDarwinVersion "18.7.0"  "Mojave"          "April     26, 2020"       "OS X v10.14.6"                          "build 18G9028"
+declareDarwinVersion "18.7.0"  "Mojave"          "May       25, 2020"       "OS X v10.14.6"                          "build 18G9216"
+
+# https://en.wikipedia.org/wiki/MacOS_Catalina
+
+declareDarwinVersion "19.0.0"  "Catalina"        "October  7,  2019"       "OS X v10.15"                            "build 19A583"
+declareDarwinVersion "19.0.0"  "Catalina"        "October  15, 2019"       "OS X v10.15"                            "build 19A602"
+declareDarwinVersion "19.0.0"  "Catalina"        "October  21, 2019"       "OS X v10.15"                            "build 19A603"
+
+declareDarwinVersion "19.0.0"  "Catalina"        "October  29, 2019"       "OS X v10.15.1"                          "build 19B88"
+
+declareDarwinVersion "19.2.0"  "Catalina"        "December 10, 2019"       "OS X v10.15.2"                          "build 19C57"
+
+declareDarwinVersion "19.3.0"  "Catalina"        "January  28, 2020"       "OS X v10.15.3"                          "build 19D76"
+
+declareDarwinVersion "19.4.0"  "Catalina"        "Mars     24, 2020"       "OS X v10.15.4"                          "build 19E266"
+declareDarwinVersion "19.4.0"  "Catalina"        "April    8,  2020"       "OS X v10.15.4"                          "build 19E287"
+
+declareDarwinVersion "19.5.0"  "Catalina"        "May      26, 2020"       "OS X v10.15.5"                          "build 19F96"
+declareDarwinVersion "19.5.0"  "Catalina"        "June     1,  2020"       "OS X v10.15.5"                          "build 19F101"
+
+declareDarwinVersion "19.6.0"  "Catalina"        "July     15, 2020"       "OS X v10.15.6"                          "build 19G73"
+declareDarwinVersion "19.6.0"  "Catalina"        "August   12, 2020"       "OS X v10.15.6"                          "build 19G2021"
+
+declareDarwinVersion "19.6.0"  "Catalina"        "September 24, 2020"       "OS X v10.15.7"                          "build 19H2"
+declareDarwinVersion "19.6.0"  "Catalina"        "October   27, 2020"       "OS X v10.15.7"                          "build 19H4"
+declareDarwinVersion "19.6.0"  "Catalina"        "November  5,  2020"       "OS X v10.15.7"                          "build 19H15"
+declareDarwinVersion "19.6.0"  "Catalina"        "December  14, 2020"       "OS X v10.15.7"                          "build 19H114"
+declareDarwinVersion "19.6.0"  "Catalina"        "February  1,  2021"       "OS X v10.15.7"                          "build 19H512"
+declareDarwinVersion "19.6.0"  "Catalina"        "February  9,  2021"       "OS X v10.15.7"                          "build 19H524"
+declareDarwinVersion "19.6.0"  "Catalina"        "April     26, 2021"       "OS X v10.15.7"                          "build 19H1030"
+declareDarwinVersion "19.6.0"  "Catalina"        "May       25, 2021"       "OS X v10.15.7"                          "build 19H1217"
+
+# https://en.wikipedia.org/wiki/MacOS_Big_Sur#Release_history
+
+declareDarwinVersion "20.1.0"  "Big Sur"        "November 17, 2020"       "OS X v11.0"                              "build 20A2411"
+
+declareDarwinVersion "20.1.0"  "Big Sur"        "November 12, 2020"       "OS X v11.0.1"                            "build 20B29"
+declareDarwinVersion "20.1.0"  "Big Sur"        "November 19, 2020"       "OS X v11.0.1"                            "build 20B50"
+
+declareDarwinVersion "20.2.0"  "Big Sur"        "December 14, 2020"       "OS X v11.1"                              "build 20C69"
+
+declareDarwinVersion "20.3.0"  "Big Sur"        "February 1,  2021"       "OS X v11.2"                              "build 20D64"
+declareDarwinVersion "20.3.0"  "Big Sur"        "February 15, 2021"       "OS X v11.2.1"                            "build 20D75"
+declareDarwinVersion "20.3.0"  "Big Sur"        "February 25, 2021"       "OS X v11.2.2"                            "build 20D80"
+declareDarwinVersion "20.3.0"  "Big Sur"        "March    8,  2021"       "OS X v11.2.3"                            "build 20D91"
+
+declareDarwinVersion "20.4.0"  "Big Sur"        "April    26, 2021"       "OS X v11.3"                              "build 20E32"
+declareDarwinVersion "20.4.0"  "Big Sur"        "May      3,  2021"       "OS X v11.3.1"                            "build 20E241"
+
+declareDarwinVersion "20.5.0"  "Big Sur"        "May      24, 2021"       "OS X v11.4"                              "build 20F71"
+
+declareDarwinVersion "20.5.0"  "Big Sur"        "May      19, 2021"       "OS X v11.5beta"                          "build 20G5023d"
+
 
 # http://en.wikipedia.org/wiki/Darwin_%28operating_system%29#Release_history
 
