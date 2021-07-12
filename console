@@ -1,0 +1,8 @@
+#!/bin/bash
+device=/dev/ttyUSB0
+if [ ! -r "$device" ] ; then
+    printf 'Changing access rights on %s\n' "$device"
+    sudo chmod a+rw "$device"
+fi
+exec minicom -m z -8 -b 115200 -D "$device"
+
