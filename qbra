@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# This displays a table all the current branches of the current
+# directory and all the git submodules.
+# The star indicates whether the branch is the current checkout
+# otherwise, the current checkout is a detached HEAD commit.
+
+find . -name .git -print \
+    | sort \
+    | while read git ; do
+    dir="${git/\/.git/}"
+    ( cd "$dir"
+      printf "%-40s " "$dir"
+      branch=$(git branch --list|grep -e '^\*')
+      if [[ "$branch" =~ HEAD\ detached\ at\ ([0-9a-f]+) ]] ; then
+          printf '%s\n' "$(git branch --list -a --contains "${BASH_REMATCH[1]}" \
+              | grep -v 'HEAD detached' \
+              | head -n 1 \
+              | sed -e 's-remotes/--')"
+      else
+          printf '%s\n' "$branch"
+      fi
+    )
+done
+
