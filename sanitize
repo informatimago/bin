@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# https://termbin.com/683a
 
 sanitize_ld=(
     -fsanitize=leak
@@ -56,6 +55,5 @@ export CFLAGS=$(trim_spaces "${CFLAGS:-} ${sanitize_cc[*]} -g -g3 -ggdb -O0")
 export LDFLAGS=$(trim_spaces "${LDFLAGS:-} ${sanitize_ld[*]}")
 
 
-gcc ${CFLAGS} ${LDFLAGS} $@
-
+echo gcc ${CFLAGS} ${LDFLAGS} $@
 
