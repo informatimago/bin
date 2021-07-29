@@ -15,4 +15,11 @@ for ec in /Applications/Emacs.app/Contents/MacOS/bin/emacsclient emacsclient ; d
     fi
 done
 echo "No emacsclient."
-( echo "Trying $VISUAL" ; "$VISUAL" "$@" ) || ( echo "Trying $EDITOR" ; "$EDITOR" "$@" )
+if [ "$VISUAL" != "ec" ] ; then
+    echo "Trying $VISUAL"
+    "$VISUAL" "$@" 
+fi || \
+    if [ "$EDITOR" != "ec" ] ; then
+        echo "Trying $EDITOR"
+        "$EDITOR" "$@"
+    fi
