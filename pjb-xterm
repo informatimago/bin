@@ -31,7 +31,6 @@ green_3_fo=(-fn $conso_16_font )
 green_4_fo=(-fn $conso_17_font )
 green_5_fo=(-fn $intl_font )
 green_6_fo=(-fn $led_font )
-selected_font="$default_font"
 
 green_1_fo=(-fn '-bitstream-Bitstream Vera Sans Mono-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1')
 green_2_fo=(-fn '-bitstream-Bitstream Vera Sans Mono-normal-normal-normal-*-19-*-*-*-m-0-iso10646-1')
@@ -39,11 +38,8 @@ green_3_fo=(-fn '-Bitstream-Terminal-normal-normal-normal-*-18-*-*-*-c-110-iso10
 green_4_fo=(-fn '-B&H-LucidaTypewriter-normal-normal-normal-Sans-19-*-*-*-m-110-iso10646-1')
 green_5_fo=(-fn '-B&H-LucidaTypewriter-normal-normal-normal-Sans-25-*-*-*-m-180-iso10646-1')
 green_6_fo=(-fn '-B&H-LucidaTypewriter-normal-normal-normal-Sans-34-*-*-*-m-200-iso10646-1')
-selected_font="$green_3_fo"
 
-# '-*-luxi mono-medium-r-normal-*-*-*-*-*-*-*-*-*'
-# '-*-nimbus\ mono-regular-r-*-*-*-*-*-*-*-*-*-*'
-# '-*-courier-regular-r-*-*-*-*-100-100-p-*-*-*'
+selected_font='-bitstream-menlo-medium-r-normal--0-0-0-0-m-0-iso10646-1'
 
 
 # # coding=UTF-8
