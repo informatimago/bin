@@ -1,5 +1,19 @@
-#!/bin/csh -f -b
+#!/bin/bash
 
-	ls -1 | sort -t. +1n | tail -20
+# time=A  # Access
+# time=C  # Change
+time=T  # modificaTion
 
+function lslast(){
+	local args
+	if [ "$#" -eq 0 ] ; then
+		dirs=(.)
+	else
+		dirs=("$@")
+	fi	
+	find "${dirs[@]}" -printf "%${time}Y%${time}m%${time}dT%${time}T %p\n" \
+	| sort -r \
+	| head -20
+}
 
+lslast "$@"
