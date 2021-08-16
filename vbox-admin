@@ -1,4 +1,0 @@
-
-vm modifyvm osx --name sata1 --add sata
-vm storagectl osx --name sata1 --add sata
-vm storageattach osx --storagectl sata1 --port 0 --device 0 --type hdd --medium "$(pwd)/disks/galatea.vdi" --mtype multiattach
