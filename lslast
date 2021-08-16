@@ -1,11 +1,16 @@
 #!/bin/bash
 
+pname="$(basename "$0")"
+
 # time=A  # Access
 # time=C  # Change
 time=T  # modificaTion
 
+
 function lslast(){
-	local args
+    local n=$1
+    shift
+	local dirs=()
 	if [ "$#" -eq 0 ] ; then
 		dirs=(.)
 	else
@@ -13,7 +18,76 @@ function lslast(){
 	fi	
 	find "${dirs[@]}" -printf "%${time}Y%${time}m%${time}dT%${time}T %p\n" \
 	| sort -r \
-	| head -20
+	| if [ $n = all ] ; then cat ; else head -n $n ; fi
 }
 
-lslast "$@"
+
+function usage(){
+    printf '%s usage:\n\n' "$pname"
+    printf '    %s [-h|--help]\n' "$pname"
+    printf '    %s [-n $num] [-a|--all] [directory…]\n' "$pname"
+    printf '\n'
+}
+
+function error(){
+    local status=$1
+    shift
+    (
+        printf '%s error: '
+        printf "%@"
+        printf '\n'
+    ) 1>&2
+    usage
+    exit $status
+}
+
+
+function main(){
+    local dirs=()
+    local all=0
+    local n=20
+    local expect_n=0
+    for arg ; do
+        if [ $expect_n -ne 0 ] ; then
+            case "$arg" in
+            (*[^0-9]*)
+                error 1 'Invalid number after -n: %s' "$arg"
+                ;;
+            esac
+            n=$arg
+            expect_n=0
+        else
+            case "$arg" in
+            (-h|--help)
+                usage
+                exit 0
+                ;;
+            (-a|--all)
+                all=1
+                ;;
+            (-n)
+                expect_n=1
+                ;;
+            (-*)
+                error 1 'Invalid option: %s' "$arg"
+                ;;
+            (*)
+                dirs[${#dirs}]="$arg"
+                ;;
+            esac
+        fi
+    done
+    if [ $expect_n -ne 0 ] ; then
+        error 1 'Missing a cardinal after -n'
+    fi
+    if [ ${#dirs} -eq 0 ] ; then
+        dirs=(.)
+    fi
+    if [ $all -eq 0 ] ; then
+        lslast $n "${dirs[@]}"
+    else
+        lslast all "${dirs[@]}"
+    fi
+}
+
+main "$@"
