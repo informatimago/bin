@@ -1,38 +1,95 @@
-#!/bin/csh -f
+#!/bin/bash
+
+pname=$(basename "$0")
+
+function last_date_tar(){
+    n="$1"
+    option="$2"
+    file="$3"
+	tar "$options" "$file" \
+	    |egrep -e '[-dl][-r][-w][-xs][-r][-w][-xs][-r][-w][-xt]' \
+	    |sed -e 's:^.*/[a-zA-Z0-9][a-zA-Z0-9]*  *[0-9][0-9]* \(.................\).*$:\1:' \
+		     -e 's-Jan-01-' -e 's-Feb-02-' -e 's-Mar-03-' -e 's-Apr-04-' \
+		     -e 's-May-05-' -e 's-Jun-06-' -e 's-Jul-07-' -e 's-Aug-08-' \
+		     -e 's-Sep-09-' -e 's-Oct-10-' -e 's-Nov-11-' -e 's-Dec-12-' \
+		     -e 's/-/ /g' \
+		     -e 's-\(..\) \(..\) \(..\):\(..\) \(....\)-\5:\1:\2:\3:\4-' \
+		     -e 's-\(....\) \(..\) \(..\) \(..\):\(..\)-\1:\2:\3:\4:\5-' \
+	    |sort -t: +0nr +1nr +2nr +3nr +4nr \
+	    |head -n "$n" \
+	    |sed -e 's-\(....\):\(..\):\(..\):\(..\):\(..\)-\1/\2/\3 \4:\5-'
+}
+
+function last_date_dir(){
+    n="$1"
+    dir="$2"
+    find "$dir" -type f -printf '%AY%Am%AdT%AT %p\n'|sort -r|head -n "$n"
+}
+
+function usage(){
+    printf '%s usage:\n\n' "$pname"
+    printf '    %s [-h|--help]\n' "$pname"
+    printf '    %s [-n nlines] directory_or_tarball...\n' "$pname"
+    printf '\n'
+}
+
+function main(){
+    local expect='arg'
+    for arg ; do
+        case "$expect" in
+        (n)
+            case "$arg" in
+            (*[^0-9]*)
+                printf '%s error: Expected an integer after option: -%s, not %s\n' "$pname" "$expect" "$ag" 1>&2
+                usage
+                exit 1
+                ;;
+            (*)
+                n="$arg"
+                expect=arg
+                ;;
+            esac
+            ;;
+        (arg) 
+            case "$arg" in
+            (-h|--help)
+                usage
+                exit 0
+                ;;
+            (-n)
+                expect=n
+                ;;            
+            (-*)
+                printf '%s error: Invalid option: %s\n' "$pname" "$arg" 1>&2
+                usage
+                exit 1
+                ;;
+            (*.tar)
+                last_date_tar "$n" tvf "$arg"
+                ;;
+            (*.tar.gz|*.tgz)
+                last_date_tar "$n" ztvf "$arg"
+                ;;
+            (*.tar.bz2)
+                last_date_tar "$n" jtvf "$arg"
+                ;;
+            (*)
+                if [ -d "$arg" ] ; then
+                    last_date_dir "$n" "$arg"
+                else
+                    ls -l "$arg"
+                fi
+                ;;
+            esac
+            ;;
+        esac
+    done
+    if [ $expect != arg ] ; then
+        printf '%s error: Missing argument for option -%s\n' "$pname" "$expect" 1>&2
+        usage
+        exit 1
+    fi
+}
 	
-if ( $#argv == 0 ) then
-	echo usage:
-	echo "`basename $0` file.tar|file.tar.gz ..."
-	exit 1
-endif
 
-foreach file ( $* )
-	switch ( $file )
-	case *.tar:
-		set options=tvf
-		breaksw
-	case *.tar.gz:
-	case *.tgz:
-		set options=ztvf
-		breaksw
-	default:
-		echo "$file skipped. Is it really a tar file?"
-		continue
-	endsw
-
-	tar $options $file \
-	|egrep -e '[-dl][-r][-w][-xs][-r][-w][-xs][-r][-w][-xt]' \
-	|sed -e 's:^.*/[a-zA-Z0-9][a-zA-Z0-9]*  *[0-9][0-9]* \(.................\).*$:\1:' \
-		-e 's-Jan-01-' -e 's-Feb-02-' -e 's-Mar-03-' -e 's-Apr-04-' \
-		-e 's-May-05-' -e 's-Jun-06-' -e 's-Jul-07-' -e 's-Aug-08-' \
-		-e 's-Sep-09-' -e 's-Oct-10-' -e 's-Nov-11-' -e 's-Dec-12-' \
-		-e 's/-/ /g' \
-		-e 's-\(..\) \(..\) \(..\):\(..\) \(....\)-\5:\1:\2:\3:\4-' \
-		-e 's-\(....\) \(..\) \(..\) \(..\):\(..\)-\1:\2:\3:\4:\5-' \
-	|sort -t: +0nr +1nr +2nr +3nr +4nr \
-	|head -1 \
-	|sed -e 's-\(....\):\(..\):\(..\):\(..\):\(..\)-\1/\2/\3 \4:\5-'
-end
-
-
-	
+main "$@"
