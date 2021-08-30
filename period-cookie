@@ -1,34 +1,85 @@
 #!/bin/bash
-if [ "$(uname)" = Darwin ] ; then
-    if [ -w /dev/tty ] ; then
-        # From 10.4:
-        output=/dev/tty
-    else
-        # Before 10.4:
+
+function period_cookie(){
+    local use_color="${COLOR_PROMPT:-false}"
+    local escape=''
+    local bold="${escape}"'[1m'
+    local underline="${escape}"'[4m'
+    local blink="${escape}"'[5m'
+    local invert="${escape}"'[7m'
+    local no_bold="${escape}"'[22m'
+    local no_underline="${escape}"'[24m'
+    local no_blink="${escape}"'[25m'
+    local no_invert="${escape}"'[27m'
+    local black="${escape}"'[30m'
+    local red="${escape}"'[31m'
+    local green="${escape}"'[32m'
+    local yellow="${escape}"'[33m'
+    local blue="${escape}"'[34m'
+    local magenta="${escape}"'[35m'
+    local cyan="${escape}"'[36m'
+    local white="${escape}"'[37m'
+    local black_back="${escape}"'[40m'
+    local red_back="${escape}"'[41m'
+    local green_back="${escape}"'[42m'
+    local yellow_back="${escape}"'[43m'
+    local blue_back="${escape}"'[44m'
+    local magenta_back="${escape}"'[45m'
+    local cyan_back="${escape}"'[46m'
+    local white_back="${escape}"'[47m'
+    local normal="${escape}"'[0m'
+
+    local output
+    local line
+    local text
+    local period
+    local last
+    local now
+    
+    if [ "$(uname)" = Darwin ] ; then
+        if [ -w /dev/tty ] ; then
+            # From 10.4:
+            output=/dev/tty
+        else
+            # Before 10.4:
+            output=/dev/stdout
+        fi
+        # in all cases:
         output=/dev/stdout
+    else
+        output=/dev/tty
     fi
-    # in all cases:
-    output=/dev/stdout
-else
-    output=/dev/tty
-fi
-COOKIE=$(type -path fortune || type -path cookie || type -path /usr/local/bin/cookie)
-if [ -n "$COOKIE" ] ; then
-    period=$(( 5 * 60 ))
-    last=$(cat ~/.period-cookie 2>/dev/null)
-    [ -z "$last" ] && last=0
-    now=$(date +%s)
-    if [ 0 -ne $(( now - last > period )) ] ; then
-        echo "$now" > ~/.period-cookie
-        text="$("$COOKIE" 2>/dev/null)"
-        if [ -n "$text" ] ; then
-            line=+-----------------------------------------------------------------------
-            (
-                printf '\n%s\n' "$line";
-                printf '%s\n'   "$text" | sed -e '/^$/d' -e 's/^/|  /' ;
-                printf '%s\n'   "$line";
-            ) > $output
+    COOKIE=$(type -path fortune || type -path cookie || type -path /usr/local/bin/cookie)
+    if [ -n "$COOKIE" ] ; then
+        period=$(( 5 * 60 ))
+        last=$(cat ~/.period-cookie 2>/dev/null)
+        [ -z "$last" ] && last=0
+        now=$(date +%s)
+        if [ 0 -ne $(( now - last > period )) ] ; then
+            echo "$now" > ~/.period-cookie
+            text="$("$COOKIE" 2>/dev/null)"
+            if [ -n "$text" ] ; then
+                (
+                    if ${COLOR_PROMPT:-false} ; then
+                        local back="${black_back}"
+                        local fore="${cyan}"
+                        local width=$(( ${COLUMNS:-80} - 3 ))
+                        printf '\n'
+                        printf '\n%s\n\n'   "$text"|while read line ; do
+                            printf "%s%s %-${width}s %s \n" "${back}" "${fore}" "${line}" "${normal}" 
+                        done
+                    else
+                        line=+-----------------------------------------------------------------------                
+                        printf '\n%s\n' "$line"
+                        printf '%s\n'   "$text" | sed -e '/^$/d' -e 's/^/|  /' 
+                        printf '%s\n'   "$line"
+                    fi;
+                ) > $output
+            fi
         fi
     fi
-fi
+}
+
+period_cookie
+
 #### THE END ####
