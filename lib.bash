@@ -9,6 +9,7 @@ unset BASH_ENV # .bash_env might reset the environment in subshells, which we do
 # shellcheck disable=SC2034
 {
     pname="$(basename "$0")"
+    version='lib.bash:2.0'
     verbose=0
     dry_run=0
 
@@ -84,7 +85,9 @@ function run(){
     fi
 }
 
+#
 # Tests
+#
 
 success=0
 failure=0
@@ -172,8 +175,9 @@ function test_results(){
     fi
 }
 
-
+#
 # Messages
+#
 
 function error(){
     local dry=''
@@ -264,6 +268,99 @@ function test_log_messages(){
     warn  "Testing Log Messages"
     error "Testing Log Messages"
 }
+
+
+#
+# Options & arguments
+#
+
+
+options_flags=()
+options_command=()
+options_help=()
+
+function define_option(){
+    local flags="$1"
+    local command
+    local help
+    shift
+    while [ "$1" != "--" ] ; do
+        flags="${flags}|$1"
+        shift
+    done
+    shift
+    command="$1"
+    help="$2"
+    options_flags[${#options_flags[@]}]="$flags"
+    options_command[${#options_command[@]}]="$command" 
+    options_help[${#options_help[@]}]="$help"
+}
+
+arguments_name=()
+arguments_command=()
+arguments_help=()
+
+# define_arguments file set_file 'Input file'
+
+function define_arguments(){
+    local name="$1"
+    local command="$2"
+    local help="$3"
+    arguments_name[${#arguments_name[@]}]="${name}"
+    arguments_command[${#arguments_command[@]}]="${command}"
+    arguments_help[${#arguments_help[@]}]="${help}"
+}
+
+function usage(){
+    printf '%s usage:\n\n' "${pname}"
+    local blank=" \\"$'\n'"    ${pname//?/ }"
+    local prefix="    ${pname}"
+    for flags in "${options_flags[@]}" ; do
+        printf '%s [%s]' "${prefix}" "${flags}"
+        prefix="${blank}"
+    done
+    if [ "${#options_arguments[@]}" -ne 0 ] ; then
+        printf '%s' "${prefix}"
+        for argument in "${options_arguments[@]}" ; do
+            printf '%s ' "${argument}"
+        done
+        printf '\n'
+    fi
+    printf '\n\n'
+    local i=0
+    while [ $i -lt ${#options_flags[@]} ] ; do
+        printf '    %-32s %s\n' "${options_flags[i]}" "${options_help[i]}"
+        i=$(( i + 1 ))
+    done
+}
+
+function help(){
+    usage
+    # TODO: protect exit from interactive shells.
+    exit $EX_USAGE
+}
+
+function set_verbose(){
+    verbose=1
+}
+
+function set_dry_run(){
+    dry_run=1
+}
+
+function print_version(){
+    printf '%s version %s\n' "${pname}" "${version}"
+}
+
+define_option -h --help help -- help           'Print this help.'
+define_option -v --verbose   -- set_verbose    'Print more messages.'
+define_option -n --dry-run   -- set_dry_run    'Print the commands, do not run them.'
+define_option -V --version   -- print_version  'Print the version.'
+
+function parse_options(){
+    true
+}
+
 
 #
 # === END lib.bash ===
