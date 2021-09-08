@@ -1,19 +1,47 @@
-#!/bin/csh -f
+#!/bin/bash
 
-if ( $#argv != 2 ) then
-	echo usage: $0 file command
-	exit 1
-endif
+source "$(dirname "$0")/lib.bash"
+
+function watch_file(){
+    local file="$1"
+    shift
+    local command=("$@")
+    local oldls="$(/bin/ls -l "${file}")"
+    local newls="$(/bin/ls -l "${file}")"
+    while [ "$newls" = "$oldls" ] ; do
+	    sleep 60
+        newls="$(/bin/ls -l "${file}")"
+    done
+    if [ ${#command[@]} -gt 0 ] ; then
+        "${command[@]}"
+    fi
+}
 
 
-set file="$1"
-set command="$2"
-set oldls="`/bin/ls -l $file`"
-set newls="`/bin/ls -l $file`"
-while ( "$newls" == "$oldls" )
-	sleep 60
-	set newls="`/bin/ls -l $file`"
-end
-$command
+function usage(){
+    printf '%s usage:\n\n' "${pname}"
+    printf '    %s -h|--help|help   # print this help.\n' "${pname}"
+    printf '    %s file [command]   # watch the file and execute the command when it does not change anymore.\n' "${pname}"
+    printf '\n'
+}
 
-#END
+function main(){
+
+    if [ $# -eq 0 ] ; then
+        usage
+        exit $EX_USAGE
+    fi
+
+    case "$1" in
+    (-h|--help|help)
+        usage
+        exit $EX_OK
+        ;;
+    esac
+
+    watch_file "$@"
+}
+
+
+main "$@"
+
