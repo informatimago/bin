@@ -1,0 +1,9 @@
+#!/bin/bash
+nc termbin.com 9999 | tr -d '\000'
+
+    # | xclip -i
+# xclip -o
+
+
+
+

@@ -1,0 +1,2 @@
+#!/bin/bash
+exec wget --no-check-certificate "$@"

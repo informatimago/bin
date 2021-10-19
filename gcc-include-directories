@@ -1,0 +1,2 @@
+#!/bin/bash
+echo | gcc -Wp,-v -x c++ - -fsyntax-only

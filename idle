@@ -1,0 +1,13 @@
+#!/bin/bash
+delay=20
+touch ~/.idle.pid
+kill $(cat ~/.idle.pid) > /dev/null 2>&1 || true
+(
+    sleep $delay
+    printf ' -l ' > ~/.idle.pid
+    #
+    printf '\n'
+    banner "$(hostname)"
+    printf '\n'
+    #
+) & echo $! > ~/.idle.pid

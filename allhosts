@@ -3,10 +3,10 @@ pname=$(basename "$0")
 verbose=1
 
 HOSTS=(
+    proteus.sbde.fr
     hubble.informatimago.com
-    proteus.informatimago.com
-    despina.lan.informatimago.com
     kuiper.lan.informatimago.com
+    despina.lan.informatimago.com
     larissa.lan.informatimago.com
     # lassell.lan.informatimago.com
     # galatea.lan.informatimago.com
@@ -50,61 +50,7 @@ function hostheader(){
 }
 
 
-script=""
-command=()
-while [ $# -gt 0 ] ; do
-    case "$1" in
-    -s)
-        verbose=0
-        shift
-        ;;
-    -h)
-        verbose=1
-        shift
-        ;;
-    -v)
-        verbose=2
-        shift
-        ;;
-    -f)
-        shift
-        script="$1"
-        shift
-        ;;
-    -*)
-        usage
-        exit 1
-        ;;
-    *)
-        command[${#command[@]}]="$1"
-        shift
-        ;;
-    esac
-done
-
-if [ -n "$script" ] ; then
-    if [ ${#command[@]} -gt 0 ] ; then
-        printf "%s error: cannot give -f script and command arguments at the same time.\n" "$pname"
-        usage
-        exit 1
-    fi
-    if [ ! -r "$script" ] ; then
-        printf "%s error: cannot read %s.\n" "$pname" "$script"
-        usage
-        exit 1
-    fi
-fi
-
-
-# AHOSTS=
-# for h in $HOSTS ; do
-#     ping -q -c 1 -w 4 $h >/dev/null 2>&1 \
-#         && AHOSTS="$AHOSTS $h"
-# done
-
-AHOSTS=(${HOSTS[@]})
-
-quote(){
+function quote(){
     for arg ; do
         local slash=${arg//\\/\\\\}
         local quote=\'${slash//\'/\'\\\'\'}\' # no "${...}" here! It would break the \'
@@ -113,30 +59,109 @@ quote(){
     printf "\n"
 }
 
-args=$(quote "${command[@]}")
+
+function all_hosts(){
+    local args="$(quote "${@}")"
+
+    # AHOSTS=
+    # for h in $HOSTS ; do
+    #     ping -q -c 1 -w 4 $h >/dev/null 2>&1 \
+        #         && AHOSTS="$AHOSTS $h"
+    # done
+
+    local ahosts=(${HOSTS[@]})
 
 
-# printf "script='%s'\n" "$script"
-# printf "remtemp='%s'\n" "$remtemp"
-# printf "command='%s'\n" "${command[@]}"
-# printf "args=%s\n" "$args"
-# exit 0
+    # printf "script='%s'\n" "$script"
+    # printf "remtemp='%s'\n" "$remtemp"
+    # printf "command='%s'\n" "${command[@]}"
+    # printf "args=%s\n" "$args"
+    # exit 0
 
-for h in ${AHOSTS[@]} ; do
-    hostheader "$h"
-    if [ -n "$script" ] ; then
-        remtemp="${pname}-${script}-$(hostname)-${h}-$$.sh"
-        if [ $verbose -gt 0 ] ; then
-            verbose=2
+    for h in ${ahosts[@]} ; do
+        hostheader "$h"
+        if [ -n "$script" ] ; then
+            remtemp="${pname}-${script}-$(hostname)-${h}-$$.sh"
+            if [ $verbose -gt 0 ] ; then
+                verbose=2
+            fi
+            docmd scp "$script" "${h}:~/${remtemp}"
+            docmd ssh -x "${h}" bash -c "\"( chmod 755 ~/${remtemp} ; ~/${remtemp} > ~/${remtemp}.out 2> ~/${remtemp}.err ; rm ~/${remtemp} )\""
+            docmd scp "${h}:~/${remtemp}.out" "${h}:~/${remtemp}.err" /tmp/
+            docmd ssh -x "${h}" bash -c "\"( rm ~/${remtemp}.out ~/${remtemp}.err )\""
+            docmd cat /tmp/${remtemp}.out /tmp/${remtemp}.err
+        else
+            docmd ssh -x $h bash -c "$(quote "$args")"
         fi
-        docmd scp "$script" "${h}:~/${remtemp}"
-        docmd ssh -x "${h}" bash -c "\"( chmod 755 ~/${remtemp} ; ~/${remtemp} > ~/${remtemp}.out 2> ~/${remtemp}.err ; rm ~/${remtemp} )\""
-        docmd scp "${h}:~/${remtemp}.out" "${h}:~/${remtemp}.err" /tmp/
-        docmd ssh -x "${h}" bash -c "\"( rm ~/${remtemp}.out ~/${remtemp}.err )\""
-        docmd cat /tmp/${remtemp}.out /tmp/${remtemp}.err
-    else
-        docmd ssh -x $h bash -c "$(quote "$args")"
+    done
+}
+
+function main(){
+    expect=none
+    script=""
+    command=()
+    while [ $# -gt 0 ] ; do
+        case $expect in
+        (none)
+            case "$1" in
+            (-s|--short)
+                verbose=0
+                shift
+                ;;
+            (-h|--host)
+                verbose=1
+                shift
+                ;;
+            (-v|--verbose)
+                verbose=2
+                shift
+                ;;
+            (-f|--script)
+                shift
+                script="$1"
+                shift
+                ;;
+            (--)
+                expect=command
+                shift
+                ;;
+            (-*)
+                usage
+                exit 1
+                ;;
+            (*)
+                expect=command
+                command[${#command[@]}]="$1"
+                shift
+                ;;
+            esac
+            ;;
+        (command)
+            command[${#command[@]}]="$1"
+            shift
+            ;;
+        esac
+    done
+
+    if [ -n "$script" ] ; then
+        if [ ${#command[@]} -gt 0 ] ; then
+            printf "%s error: cannot give -f script and command arguments at the same time.\n" "$pname"
+            usage
+            exit 1
+        fi
+        if [ ! -r "$script" ] ; then
+            printf "%s error: cannot read %s.\n" "$pname" "$script"
+            usage
+            exit 1
+        fi
     fi
-done
+
+    all_hosts "${command[@]}"
+}
+
+main "$@"
+
+
+
 
 #### END ####

@@ -1,0 +1,6 @@
+#!/bin/bash
+# https://github.com/albfan/git-find-file
+for branch in $(git for-each-ref --format="%(refname)" refs/heads) ; do
+    echo "${branch}"
+    git ls-tree -r --name-only "${branch}" | grep -e "$1"
+done

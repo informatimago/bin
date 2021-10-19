@@ -1,0 +1,4 @@
+#!/bin/bash
+rm -f ~/Desktop/Patchwork-errors.txt
+touch ~/Desktop/Patchwork-errors.txt
+
