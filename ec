@@ -1,4 +1,5 @@
 #!/bin/bash
+exec emacsclient "$@"
 unset TMPDIR
 socket="/tmp/emacs${UID}/server"
 if [ ! -e "$socket" ] ; then
