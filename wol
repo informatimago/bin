@@ -1,0 +1,67 @@
+#!/bin/bash
+
+pname="$(basename "$0")"
+
+EX_USAGE=64
+
+mac=(
+        
+        wifi  despina    28:F0:76:71:B1:88
+        wifi  halimede   A8:7C:01:93:4C:64
+        wifi  laomedeia  9E:9E:3E:1A:1C:71
+        wifi  larissa    64:76:BA:98:09:C2
+        wifi  naiad      B8:FF:61:23:0E:CE
+        wifi  sao        5E:AD:5D:6A:D0:27
+        wifi  le-verrier 30:CD:A7:11:6A:D9
+        
+        ether dragon     F2:4B:D4:5B:29:8E
+        ether rpi4       DC:A6:32:3F:56:9A
+        ether qorvo      B0:22:7A:89:6C:0A
+        ether despina    38:c9:86:4e:d6:15 
+        ether kuiper     90:e6:ba:07:57:64
+        ether kuiper     90:e6:ba:07:58:69
+)
+
+
+function wol(){
+    local host="$1"
+    local i=0
+    while (( i < ${#mac[@]} )) ; do
+        local name="${mac[$((i + 1))]}"
+        local addr="${mac[$((i + 2))]}"
+        if [ "$name" = "$host" ] ; then
+            wakeonlan "$addr"
+        fi
+        i=$(( i + 3 ))
+    done
+}
+
+function usage(){
+    
+    printf '%s usage:\n' "$pname"
+    printf '\n'
+    printf '    %s [-h|--help]  hostname…\n' "$pname"
+    printf '\n'
+    printf 'Valid hosts: \n'
+    {
+        printf '    '
+        local i=0
+        while (( i < ${#mac[@]} )) ; do
+            echo "${mac[$((i + 1))]}"
+            i=$(( i + 3 ))
+        done | sort -u | tr '\012' ' '
+        printf '\n'
+    } | fmt --prefix='    ' --width=72
+}
+
+function main(){
+    for arg ; do
+        case "$arg" in
+        (-h|--help) usage ; exit 0 ;;
+        (-*)        error 'Unknown option %s' "$arg" ; usage ; exit $EX_USAGE ;;
+        (*)         wol "$arg"
+        esac
+    done
+}
+
+main "$@"
