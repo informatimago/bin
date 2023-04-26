@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Evaluates the commands given on the command line,
+# in turn in the context of each current git commit in the repo.
+# project = pwd = path to the git working directory,
+# commit = commit ID.
+
+function projects(){
+    repo overview | awk '/^project/ {print $2}'
+}
+
+function project_commits(){
+    repo overview | awk '/^project/ {project=$2} /^  *-/ {printf "%s:%s\n", project, $2}'
+}
+
+for project_commit in $(project_commits) 
+do
+    export project=$(echo "$project_commit" | awk -F: '{print $1}')
+    export commit=$(echo "$project_commit" | awk -F: '{print $2}')
+    printf '==== %s\n---- %s\n' "$project" "$commit"
+    cd "$project"
+    eval "$@"
+    cd ..
+done

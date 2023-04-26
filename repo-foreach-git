@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Evaluates the commands given on the command line,
+# in turn in the context of each git in the repo.
+
+function projects(){
+    repo overview | awk '/^project/ {print $2}'
+}
+
+function project_commits(){
+    repo overview | awk '/^project/ {project=$2} /^  *-/ {printf "%s:%s\n", project, $2}'
+}
+# project=$(echo "$project_commit" | awk -F: '{print $1}')
+# commit=$(echo "$project_commit" | awk -F: '{print $2}')
+
+
+repo info \
+    | awk -F: '/Mount path: /{print $2}' \
+    | while read project
+do
+    printf '==== %s\n' "$project"
+    cd "$project"
+    "$@"
+    cd ..
+done
