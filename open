@@ -53,6 +53,8 @@ if [ ${#pdf}   -ne 0 ] ; then
      for f in "${pdf[@]}" ; do
          ( acroread "$f" 2>/dev/null || xpdf "$f" 2>/dev/null || echo "Do not know how to open $f" ) &
      done
+     # TODO: we can use firefox o read pdf when no other is available:
+     # firefox --new-window file://$(pwd)/whitepaper-perforce-what-is-misra.pdf
 fi
 if [ ${#ps}    -ne 0 ] ; then
      for f in "${ps[@]}" ; do

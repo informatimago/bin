@@ -1,7 +1,8 @@
 #!/bin/bash
-exec emacsclient "$@"
+source ~/.bashenv-emacs
+exec emacsclient -s "$EMACS_SERVER_FILE" "$@"
+########################################################################
 unset TMPDIR
-socket="/tmp/emacs${UID}/server"
 if [ ! -e "$socket" ] ; then
     mfod -s 1
 fi
