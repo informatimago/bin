@@ -1,9 +1,16 @@
 #!/bin/bash
 
 # Check if Caps Lock is on
-caps_lock_state=$(xset q | grep "Caps Lock" | awk '{print $4}')
+caps_lock_state=$(xset q | awk '/Caps Lock/{print $4}')
+num_lock_state=$(xset q | awk '/Num Lock/{print $8}')
+
 
 # If Caps Lock is on, simulate a Caps Lock key press to turn it off
 if [ "$caps_lock_state" == "on" ]; then
     xdotool key Caps_Lock
+fi
+
+# 
+if [ "$num_lock_state" == "on" ]; then
+    xdotool key Num_Lock
 fi
