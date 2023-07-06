@@ -3,6 +3,13 @@ set -e
 user_certificate="$1"
 issuer_certificate="$2"
 
+if [ -z "$issuer_certificate" ] ; then
+    echo Missing argument
+    echo Usage
+    echo "$0" user-certificate issuer-certificate
+    exit 1
+fi
+
 umask 177
 
 cert_body="/tmp/cert-body.bin.$$"
