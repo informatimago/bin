@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Shows the git untracked files that are not symlinks or commands or symlink-commands.
+# (for ~/bin/)
+
+git status --short \
+    | awk '/^\?\?/{print $2}' \
+    | while read f ; do
+          stat $f \
+              | grep -q -s 'symbolic link' \
+              || echo $f
+      done \
+          | grep -v -e '^\(commands\|symlink-commands\)$'
