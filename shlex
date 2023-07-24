@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+import sys
+import shlex
+import subprocess
+
+#
+# Scan a shell script, and apply a shell command on each token.
+#
+# This script is a wrapper around the shlex module that allows you to
+# execute a command for each token in the input stream.  The command
+# is specified as a list of strings, with one placeholder for the
+# token.  For example, the following command will print each token
+# on a separate line:
+#
+#   $ echo "foo bar baz" | ./shlex.py echo {}
+#   foo
+#   bar
+#   baz
+#
+
+command_template = sys.argv[1:]
+
+lexer = shlex.shlex(sys.stdin)
+
+# set the wordchars attribute to include additional valid characters
+lexer.wordchars += '_-$'
+
+# set the posix attribute to True for POSIX-compliant parsing
+lexer.posix = True
+
+tokens = []
+for token in lexer:
+    if token is None:
+        break
+    command = [arg.format(token) for arg in command_template]
+    subprocess.run(command)
