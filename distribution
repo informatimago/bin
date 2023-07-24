@@ -38,6 +38,8 @@
 #   59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #******************************************************************************
 
+print_id=0 
+
 function shell-quote(){
     # Synopsis: shell-quote argument…
     # Output:   a textual representation of each argument with all special characters escaped.
@@ -694,7 +696,11 @@ function distribution () {
     esac
 
 
-    echo "$systeme" "$distrib" "$release" "${codename// /_}" "${macosxVersion// /_}"
+	if [ $print_id -ne 0 ] ; then
+		echo "${distrib}-${release}"
+    else
+        echo "$systeme" "$distrib" "$release" "${codename// /_}" "${macosxVersion// /_}"
+    fi
 } #distribution
 
 pname="$(basename "$0")"
@@ -702,6 +708,7 @@ root=
 for arg ; do
     case "$arg" in
     -h|--help) printf "%s usage:\n\n    %s [/root/directory] | read system distribution release rest\n\n" "$pname" "$pname" ; exit 0 ;;
+    -i|--id) print_id=1 ;;
     *)
         if [ "$root" = "" ] ; then
             root="$arg"
