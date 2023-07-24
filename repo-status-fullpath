@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Generated in part by ChatGPT GPT-4.
+
+
+# function projects(){
+#     repo overview | awk '/^project/ {print $2}'
+# }
+# 
+# function project_commits(){
+#     repo overview | awk '/^project/ {project=$2} /^  *-/ {printf "%s:%s\n", project, $2}'
+# }
+
+# Initialize current_project to empty
+current_project=""
+
+while IFS= read -r line
+do
+    # echo "$line"
+    # Check if the line starts with 'project '
+    if [[ "$line" =~ ^project\  ]]
+    then
+        # Extract the project path
+        current_project=$(echo "$line" | awk '{print $2}')
+        # echo "current_project=$current_project"
+    elif [[ "$line" =~ ^\ [-AMDRCTU][-md] ]]
+    then
+	    # echo "line=$line"
+        # Extract the relative file path
+        relative_file_path=$(echo "$line" | awk '{print $2}')
+        
+        # Form the absolute path
+        absolute_path=$(realpath "$current_project/$relative_file_path")
+        # echo "relative_file_path=$relative_file_path"
+        # echo "absolute_path=$absolute_path"
+        
+        # Print the absolute path
+        echo "${absolute_path}:1:1 $(echo "$line" | awk '{print $1}')"
+    fi
+done < <(repo status | grep -v -e '~$')
