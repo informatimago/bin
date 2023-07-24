@@ -1,6 +1,6 @@
 #!/bin/bash
 source ~/.bashenv-emacs
-exec emacsclient -s "$EMACS_SERVER_FILE" "$@"
+unset TMPDIR ; exec emacsclient --socket-name="$EMACS_SERVER_FILE" "$@"
 ########################################################################
 unset TMPDIR
 if [ ! -e "$socket" ] ; then
