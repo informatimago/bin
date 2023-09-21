@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# "https://api.openai.com/v1/chat/completions"
+# screen -d -m
+ssh \
+    -X -Y \
+    -L 9443:api.openai.com:443 \
+    pjb@$(cat ~/hosts/hubble)
+

@@ -1,0 +1,24 @@
+#!/bin/bash
+contents=( $(find . -mindepth 1 -maxdepth 1 -print) )
+if [ ${#contents[@]} != 0 ] ; then
+    printf 'Cannot create a new workspace in non-empty directory.\n'
+    ls -ld "${contents[@]}"
+    exit 1
+fi
+printf 'Creating a new workspace in directory %s\n' $(pwd)
+read -p 'Confirm? ' confirm
+case "$confirm" in
+(y|Y|yes|Yes|YES) true ;;
+(*) printf 'Cancelled.\n' ;  exit 0 ;;
+esac
+
+mkdir scripts
+cd scripts
+repo init -u ssh://gerrit/lasting/mkvlm-repo/manifest.git -b products/trunk/master
+repo sync
+cd ..
+
+./scripts/prepare-workspace devel work
+cd work
+./mkvlm pull hypervisor
+
