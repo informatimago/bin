@@ -1,0 +1,43 @@
+#!/bin/bash -e
+# set -x
+
+targets=(evt1-htf-hyp-config10-flash-images
+         utest-nkernel
+         k2-htf-hyp-config0-flash-images
+
+         evt1-vdte-testmastervm-linux-kernel-tests
+         evt1-vdte-testvmfv-linux-kernel-tests
+         k2-vdte-testmastervm-linux-kernel-tests
+         k2-vdte-testvmfv-linux-kernel-tests)
+
+work="/build/$USER/work"
+scripts="/build/$USER/scripts"
+src="/build/$USER/src.devel"
+
+cd "${work}"
+
+for clang in yes no ; do
+
+    if [ $clang = yes ] ; then
+        w='with'
+        s='s/false/true/g'
+    else
+        w='without'
+        s='s/true/false/g'
+    fi
+    printf '\n'
+    printf '//// Compilation %s clang\n' "${w}"
+    printf '\n'
+
+    sed  -i  "/^NKERNEL_USE_CLANG/ $s" \
+         "${scripts}/components/hypervisor-dk/hypervisor/nkernel_cores_def"
+
+    for target in "${targets[@]}" ; do
+        b="${target/-flash-images}" ; b="${b/-tests}"
+        rm -rf "${work}/build.devel/${b}"*
+        printf '//// Compilation %s clang of %s\n' "${w}" "${target}"
+        time ./mkvlm build "${target}" > "${work}/build.devel/${target}.log" 2>&1 \
+            && printf '//   Success\n' \
+            || cat "${work}/build.devel/${target}.log"
+    done
+done

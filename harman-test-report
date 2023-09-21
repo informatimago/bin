@@ -1,0 +1,15 @@
+#!/bin/bash
+
+awk '
+/test.*report/{title=$0;}
+/RQM-ID:/{id=$2;}
+/TOTAL:/{total=$2;}
+/PASSED:/{passed=$2;}
+/FAILED:/{failed=$2;}
+/IGNORED:/{ignored=$2;}
+/CRASHED:/{crashed=$2;
+           printf "\| %s \| %s \| %s \| %s \| %s \| %s \| %s \|\n",title,id,total,passed,failed,ignored,crashed;}
+BEGIN{printf "\| %s \| %s \| %s \| %s \| %s \| %s \| %s \|\n","TITLE","RQM-ID","TOTAL","PASSED","FAILED","IGNORED","CRASHED";
+      printf "\|-\n";}
+'
+
