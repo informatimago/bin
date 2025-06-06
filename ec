@@ -1,5 +1,7 @@
 #!/bin/bash
-source ~/.bashenv-emacs
+source ~/.bash_env-emacs-$(hostname) || source ~/.bashenv-emacs
+exec /Applications/Emacs.app/Contents/MacOS/bin/emacsclient  -s "$EMACS_SERVER_FILE" "$@"
+exec /Applications/Emacs.app/Contents/MacOS/bin-arm64-11_2/emacsclient -s "$EMACS_SERVER_FILE" "$@"
 exec emacsclient -s "$EMACS_SERVER_FILE" "$@"
 ########################################################################
 unset TMPDIR
