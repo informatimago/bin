@@ -1,0 +1,129 @@
+#!/bin/bash
+#
+# Import videos from vantrue-nexus-4-pro sdcards.
+#
+
+DEFAULT_DST=/Volumes/ES74C/pjb/videos/5008dashcam
+
+function copy(){
+    # count the arguments
+    # the number of source files is number of arguments - 1
+    # for each source file, display the copy count / number of source files ; copy the file ; increment the copy count.
+    local argcount=$#
+    local srccount=$((argcount - 1))
+    # destination is the last argument:
+    local destination="${!argcount}"
+    local copyindex=1
+    while [ $copyindex -lt $argcount ] ; do
+        echo -n "${copyindex}/${srccount}: "
+        cp -v "${!copyindex}" "${destination}"
+        copyindex=$((copyindex + 1))
+    done
+}
+
+function spread_by_date(){
+    local src="$1"
+    local dst="$2"
+    local sub="$3"
+
+    local dirs=( $( cd "${src}/${sub}" ; ls -1 *  | awk -F_ '{print $1;}'|sort -u ) )
+    for d in ${dirs[@]} ; do
+        mkdir -p "${dst}/${sub}/${d}"
+        copy "${src}/${sub}/${d}"* "${dst}/${sub}/${d}/"
+        find "${dst}/${sub}/${d}/" \( -type d -exec chmod 755 {} + \)  -o  \( -type f -exec chmod 444 {} + \) 
+    done
+   
+}
+
+function import_gps_files(){
+    local src="$1"
+    local dst="$2"
+    for f in "${src}/GPS/"* ; do
+        g="$(basename "$f")"
+        cat "$f" >> "${dst}/GPS/${g}"
+    done
+}
+
+function import_normal_files(){
+    local src="$1"
+    local dst="$2"
+    spread_by_date "${src}" "${dst}" Normal
+}
+
+function import_event_files(){
+    local src="$1"
+    local dst="$2"
+    spread_by_date "${src}" "${dst}" Event
+}
+
+function complete_normal_with_event_files(){
+    local src="$1"
+    local dst="$2"
+    local dirs=( $( cd "${src}/Event" ; ls -1 *  | awk -F_ '{print $1;}'|sort -u ) )
+    for d in ${dirs[@]} ; do
+        mkdir -p "${dst}/Normal/${d}"
+        ( cd "${dst}/Normal/${d}/" ; ln -sf "../../Event/${d}"/* . )
+    done
+}
+
+function update_normal_with_event_files(){
+    local dst="$1"
+    local dirs=( $( cd "${dst}/Normal" ; ls -1d * ) )
+    for d in ${dirs[@]} ; do
+        ( cd "${dst}/Normal/${d}/" ; ln -sf "../../Event/${d}"/* . )
+    done
+}
+
+function import_photo_files(){
+    local src="$1"
+    local dst="$2"
+    spread_by_date "${src}" "${dst}" Photo
+}
+
+function check_source(){
+    local src="$1"
+    if test -d "${src}/GPS" && \
+            test -d "${src}/Normal" && \
+            test -d "${src}/Event" && \
+            test -d "${src}/Photo" ; then
+        true
+    else
+        printf 'Given Source directory is missing expected subdirectories (GPS, Normal, Event, Photo).\n' 1>&2
+        exit 1
+    fi
+}
+
+function main(){
+    local src="$1"
+    local dst="$DEFAULT_DST"
+    # dst="$(cd "$(dirname "$0")" ; pwd -P)"
+    check_source "$src"
+    import_gps_files "${src}" "${dst}"
+    import_normal_files "${src}" "${dst}"
+    import_event_files "${src}" "${dst}"
+    import_photo_files "${src}" "${dst}"
+    complete_normal_with_event_files  "${src}" "${dst}"
+}
+
+case "$1" in
+(update|--update|-u)
+    update_normal_with_event_files "$DEFAULT_DST"
+    ;;
+(import-gps|--import-gps|-i)
+    check_source "$2"
+    import_gps_files "$2" "$DEFAULT_DST"
+    ;;
+(--help|-h)
+    printf 'Usage:\n' 1>&2
+    printf '\n' 1>&2
+    printf '  import-video --update\n' 1>&2
+    printf '  import-video --import-gps "$SRCDIR"\n' 1>&2
+    printf '\n' 1>&2
+    printf '  cd "${HOME}/Movies/5008dashcam"\n' 1>&2
+    printf '  # then\n' 1>&2
+    printf '  import-video "$SRCDIR"\n' 1>&2
+    exit 0
+(*)
+    main "$1"
+    ;;
+esac
