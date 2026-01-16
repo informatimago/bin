@@ -1,0 +1,9 @@
+#!/bin/bash
+cntx=users; name=informatimago; page=1
+where="$HOME/github-projects"
+mkdir -p "$where"
+cd "$where"
+curl "https://api.github.com/$cntx/$name/repos?page=$page&per_page=100" \
+    | grep -e 'clone_url*' \
+    | cut -d \" -f 4 \
+    | xargs -L1 git clone

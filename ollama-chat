@@ -1,0 +1,157 @@
+#!/bin/bash
+# llm (local) : client Chat (Ollama) avec contexte Debian, options pratiques et support stdin
+# Dépend : jq, curl, /etc/os-release, ollama en écoute (défaut http://localhost:11434)
+
+VERBOSE=0
+MODEL="mistral"
+MAX_TOKENS=2000
+TEMP=0.7
+WRAP=0
+SAFE=1
+NO_VERIFY=0
+DRY_HINTS=0
+FORCE_STDIN=0
+CONTEXT_FILE="$HOME/.config/ollama-chat-context"
+LANG_OPT=""
+FORMAT_OPT=""
+PROMPT=""
+STDIN_DATA=""
+JSON_OUT=0
+SERVER_URL="${SERVER_URL:-http://localhost:11434}"
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+    -v|--verbose) VERBOSE=1 ; shift ;;
+    -m|--model) MODEL="$2"; shift 2 ;;
+    --max-tokens) MAX_TOKENS="$2"; shift 2 ;;
+    --temperature) TEMP="$2"; shift 2 ;;
+    --context-file) CONTEXT_FILE="$2"; shift 2 ;;
+    --no-context) CONTEXT_FILE="/dev/null"; shift ;;
+    --wrap) WRAP=1; shift ;;
+    --lang) LANG_OPT="$2"; shift 2 ;;
+    --format) FORMAT_OPT="$2"; shift 2 ;;
+    --safe) SAFE=1; shift ;;
+    --no-safe) SAFE=0; shift ;;
+    --no-verify) NO_VERIFY=1; shift ;;
+    --dry-hints) DRY_HINTS=1; shift ;;
+    --stdin) FORCE_STDIN=1; shift ;;
+    --json) JSON_OUT=1; shift ;;
+    --server) SERVER_URL="$2"; shift 2 ;;
+    --) shift; break ;;
+    -*) echo "Option inconnue: $1" >&2; exit 2 ;;
+    *) PROMPT+="$1 "; shift ;;
+  esac
+done
+if [[ $# -gt 0 ]]; then PROMPT+="$*"; fi
+PROMPT="${PROMPT%% }"
+
+# # Lire stdin si forcé ou via pipe/redirection
+# if [[ $FORCE_STDIN -eq 1 || ! -t 0 ]]; then
+#   STDIN_DATA="$(cat)"
+# fi
+
+### # Déterminer version Debian
+### DEBIAN_VERSION="unknown"
+### if [[ -r /etc/os-release ]]; then
+###   # shellcheck disable=SC1091
+###   . /etc/os-release
+###   DEBIAN_VERSION="${VERSION_ID:-${VERSION_CODENAME:-unknown}}"
+### fi
+
+# Contexte (message system)
+build_default_context() {
+###   cat <<EOF
+### Tu es un assistant pour un système Debian ${DEBIAN_VERSION}.
+### Règles :
+### - Réponds pour Debian, syntaxe et chemins Debian.
+### - Limite les lignes à ~80 colonnes si possible.
+### - Si la tâche est procédurale, donne des étapes numérotées courtes.
+### - Propose des blocs shell minimalistes.
+### - $( [[ $SAFE -eq 1 ]] && echo "Évite les actions destructrices ; propose d'abord une simulation ou une sauvegarde." || echo "Tu peux proposer des actions directes si justifiées." )
+### - $( [[ $NO_VERIFY -eq 0 ]] && echo "Termine par une commande de vérification (une ligne)." || echo "Il n'est pas nécessaire de fournir une commande de vérification." )
+### - Cite les pages man / fichiers de conf exacts.
+### EOF
+    cat <<EOF
+Tu es une intelligence artificiellle generale,
+et tu répond aux questions de l'utilisateur.
+EOF
+}
+SYSTEM_MSG=""
+if [[ -f "$CONTEXT_FILE" ]]; then
+  SYSTEM_MSG="$(cat "$CONTEXT_FILE")"
+  # SYSTEM_MSG="${SYSTEM_MSG//\${DEBIAN_VERSION}/$DEBIAN_VERSION}"
+else
+  SYSTEM_MSG="$(build_default_context)"
+fi
+if [[ -n "$LANG_OPT" ]]; then
+  SYSTEM_MSG="$SYSTEM_MSG
+- Réponds en ${LANG_OPT}."
+fi
+case "$FORMAT_OPT" in
+  org) SYSTEM_MSG="$SYSTEM_MSG
+- Si possible, formate la réponse en org-mode (titres, listes, blocs src)." ;;
+  md)  SYSTEM_MSG="$SYSTEM_MSG
+- Si possible, formate la réponse en Markdown (titres, listes, blocs code)." ;;
+  json) SYSTEM_MSG="$SYSTEM_MSG
+- Si possible, fournis une structure JSON stable et documentée." ;;
+esac
+### if [[ $DRY_HINTS -eq 1 ]]; then
+###   SYSTEM_MSG="$SYSTEM_MSG
+### - Propose des commandes de simulation/dry-run quand c'est pertinent."
+### fi
+
+# Concaténer prompt + stdin si fourni (avec balise explicite)
+FULL_PROMPT="$PROMPT"
+if [[ -n "$STDIN_DATA" ]]; then
+  FULL_PROMPT="${FULL_PROMPT}"$'\n\n'"[Contenu fourni via stdin]\n${STDIN_DATA}"
+fi
+
+# Construire charge utile (Ollama /api/chat) : options.num_predict = MAX_TOKENS ; temperature
+PAYLOAD="$(jq -n \
+  --arg model "$MODEL" \
+  --arg sys "$SYSTEM_MSG" \
+  --arg user "$FULL_PROMPT" \
+  --argjson num_predict $MAX_TOKENS \
+  --argjson temperature "$TEMP" '{
+  model: $model,
+  messages: [
+    {role:"system", content:$sys},
+    {role:"user", content:$user}
+  ],
+  stream: false,
+  options: { num_predict: $num_predict, temperature: $temperature }
+}')"
+
+if [ $VERBOSE -ne 0 ] ; then
+    printf "PAYLOAD=${PAYLOAD}\n"
+fi
+
+RESPONSE="$(curl -s "$SERVER_URL/api/chat" \
+  -H "Content-Type: application/json" \
+  -d "$PAYLOAD")"
+
+if [ $VERBOSE -ne 0 ] ; then
+    printf "RESPONSE=${RESPONSE}\n"
+fi
+
+# Vérifier erreurs (Ollama renvoie .error pour certains cas ; sinon absence de .message.content)
+if echo "$RESPONSE" | jq -e '.error' >/dev/null 2>&1; then
+  ERR_MSG=$(echo "$RESPONSE" | jq -r '.error // "Erreur inconnue"')
+  echo "Erreur Ollama : $ERR_MSG" >&2
+  exit 1
+fi
+CONTENT="$(echo "$RESPONSE" | jq -r '.message.content // empty')"
+if [[ -z "$CONTENT" ]]; then
+  echo "Erreur : réponse vide ou inattendue d'Ollama." >&2
+  exit 1
+fi
+
+if [[ $JSON_OUT -eq 1 ]]; then
+  jq -n --arg content "$CONTENT" --arg model "$MODEL" '{model:$model, content:$content}'
+else
+  if [[ $WRAP -eq 1 ]]; then
+    echo "$CONTENT" | fold -s -w 80
+  else
+    echo "$CONTENT"
+  fi
+fi

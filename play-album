@@ -1,0 +1,20 @@
+#!/bin/bash
+
+function play_album(){
+    shopt -s nullglob
+    local album="$1"
+    local cover=( "${album}"/*.{jpg,png,jpeg} )
+    if (( ${#cover[@]} > 0 )) ; then
+        open "${cover[@]}"
+    fi
+    mplayer "${album}"/*.{mp3,ogg,flac,wav,aiff}
+}
+
+function main(){
+    for album ; do
+        play_album "${album}"
+    done
+    exit 0
+}
+
+main "$@"

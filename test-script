@@ -1,0 +1,3 @@
+#!/usr/local/bin/clisp -q -ansi -norc -E utf-8
+(print ext:*args*)
+(terpri)

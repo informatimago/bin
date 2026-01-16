@@ -1,0 +1,2 @@
+#!/bin/bash
+chatgpt --wrap --stdin 'Write a git commit log message for the following diffs. Generate a pure text message, no markup.'

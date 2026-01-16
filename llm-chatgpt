@@ -1,0 +1,139 @@
+#!/bin/bash
+# llm : client Chat Completions (OpenAI) avec contexte Debian et options pratiques
+# Dépend : jq, curl, LLM_API_KEY (via ~/.authinfo), /etc/os-release
+
+MODEL="gpt-4o"
+MAX_TOKENS=2000
+TEMP=0.7
+WRAP=0
+SAFE=1
+NO_VERIFY=0
+DRY_HINTS=0
+CONTEXT_FILE="$HOME/.config/llm-context"
+LANG_OPT=""
+FORMAT_OPT=""
+PROMPT=""
+
+# Parse options
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+    --stdin) FORCE_STDIN=1; shift ;;
+    --redact) REDACT=1; shift ;;
+    -m|--model) MODEL="$2"; shift 2 ;;
+    --max-tokens) MAX_TOKENS="$2"; shift 2 ;;
+    --temperature) TEMP="$2"; shift 2 ;;
+    --context-file) CONTEXT_FILE="$2"; shift 2 ;;
+    --no-context) CONTEXT_FILE="/dev/null"; shift ;;
+    --wrap) WRAP=1; shift ;;
+    --lang) LANG_OPT="$2"; shift 2 ;;
+    --format) FORMAT_OPT="$2"; shift 2 ;;
+    --safe) SAFE=1; shift ;;
+    --no-safe) SAFE=0; shift ;;
+    --no-verify) NO_VERIFY=1; shift ;;
+    --dry-hints) DRY_HINTS=1; shift ;;
+    --json) JSON_OUT=1; shift ;;
+    --) shift; break ;;
+    -*) echo "Option inconnue: $1" >&2; exit 2 ;;
+    *) PROMPT+="$1 "; shift ;;
+    esac
+done
+# Ajouter le reste comme prompt brut
+if [[ $# -gt 0 ]]; then PROMPT+="$*"; fi
+PROMPT="${PROMPT%% }"
+
+# Lecture stdin
+# if [[ $FORCE_STDIN -eq 1 || ! -t 0 ]]; then
+#     STDIN_DATA="$(cat)"
+#     if [[ $REDACT -eq 1 ]]; then
+#         STDIN_DATA="$(printf "%s" "$STDIN_DATA" | redact_pii)"
+#     fi
+# fi
+# PROMPT="${PROMPT}\n\n${STDIN_DATA}"
+
+if [[ -z "$LLM_API_KEY" ]]; then
+    echo "Erreur: LLM_API_KEY non défini. Configurez ~/.authinfo et ~/.bashrc." >&2
+    exit 1
+fi
+
+# Déterminer version Debian
+DEBIAN_VERSION="unknown"
+if [[ -r /etc/os-release ]]; then
+    # shellcheck disable=SC1091
+    . /etc/os-release
+    DEBIAN_VERSION="${VERSION_ID:-${VERSION_CODENAME:-unknown}}"
+fi
+
+# Construire le message system (contexte)
+build_default_context() {
+    cat <<EOF
+  Tu es un assistant pour un système Debian ${DEBIAN_VERSION}.
+  Règles :
+  - Réponds pour Debian, syntaxe et chemins Debian.
+  - Limite les lignes à ~80 colonnes si possible.
+  - Si la tâche est procédurale, donne des étapes numérotées courtes.
+  - Propose des blocs shell minimalistes.
+  - $( [[ $SAFE -eq 1 ]] && echo "Évite les actions destructrices ; propose d'abord une simulation ou une sauvegarde." || echo "Tu peux proposer des actions directes si justifiées." )
+  - $( [[ $NO_VERIFY -eq 0 ]] && echo "Termine par une commande de vérification (une ligne)." || echo "Il n'est pas nécessaire de fournir une commande de vérification." )
+  - Cite les pages man / fichiers de conf exacts.
+EOF
+}
+
+SYSTEM_MSG=""
+if [[ -f "$CONTEXT_FILE" ]]; then
+    SYSTEM_MSG="$(cat "$CONTEXT_FILE")"
+    SYSTEM_MSG="\${SYSTEM_MSG//\${DEBIAN_VERSION}/$DEBIAN_VERSION}"
+    # Remplacement simple sans eval : on fait manuellement
+    SYSTEM_MSG="${SYSTEM_MSG//\${DEBIAN_VERSION}/$DEBIAN_VERSION}"
+else
+    SYSTEM_MSG="$(build_default_context)"
+fi
+
+# Langue et format
+if [[ -n "$LANG_OPT" ]]; then
+    SYSTEM_MSG="$SYSTEM_MSG
+  - Réponds en ${LANG_OPT}."
+fi
+case "$FORMAT_OPT" in
+org) SYSTEM_MSG="$SYSTEM_MSG
+  - Si possible, formate la réponse en org-mode (titres, listes, blocs src)." ;;
+md)  SYSTEM_MSG="$SYSTEM_MSG
+  - Si possible, formate la réponse en Markdown (titres, listes, blocs code)." ;;
+json) SYSTEM_MSG="$SYSTEM_MSG
+  - Si possible, fournis une structure JSON stable et documentée." ;;
+esac
+if [[ $DRY_HINTS -eq 1 ]]; then
+    SYSTEM_MSG="$SYSTEM_MSG
+  - Propose des commandes de simulation/dry-run quand c'est pertinent."
+fi
+
+# Construire la charge utile JSON
+PAYLOAD="$(jq -n   --arg model "$MODEL"   --arg sys "$SYSTEM_MSG"   --arg user "$PROMPT"   --argjson max $MAX_TOKENS   --argjson temp "$TEMP" '{
+    model: $model,
+    messages: [
+      {role:"system", content:$sys},
+      {role:"user", content:$user}
+    ],
+    max_tokens: $max,
+    temperature: $temp
+  }')"
+
+RESPONSE="$(curl -s https://api.openai.com/v1/chat/completions   -H "Content-Type: application/json"   -H "Authorization: Bearer ${LLM_API_KEY}"   -d "$PAYLOAD")"
+
+# Erreur API ?
+if echo "$RESPONSE" | jq -e '.error' >/dev/null 2>&1; then
+    ERR_MSG=$(echo "$RESPONSE" | jq -r '.error.message // "Erreur inconnue"')
+    echo "Erreur API : $ERR_MSG" >&2
+    exit 1
+fi
+
+# Extraire le texte
+CONTENT="$(echo "$RESPONSE" | jq -r '.choices[0].message.content // empty')"
+if [[ -n "$JSON_OUT" ]]; then
+    jq -n --arg content "$CONTENT" --arg model "$MODEL" '{model:$model, content:$content}'
+else
+    if [[ $WRAP -eq 1 ]]; then
+        echo "$CONTENT" | fold -s -w 80
+    else
+        echo "$CONTENT"
+    fi
+fi

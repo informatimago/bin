@@ -1,0 +1,6 @@
+#!/bin/bash
+# echo the extension of each file name provided
+for arg ; do
+    echo "${arg##*.}"
+done
+
