@@ -1,0 +1,20 @@
+#!/bin/bash -e
+cd "$HOME"
+
+source=despina
+
+despina=despina
+despina=192.168.20.56
+despina=despina.local
+
+despina_dirs=( firms persons private quicklisp src src-lisp works )
+larissa_dirs=( firms         private quicklisp src src-lisp works )
+
+
+rsync_options=(-HSWavxE --perms -pogt --progress --force --delete --delete-during --rsh='ssh -x' -z)
+
+eval 'dirs=("${'"${source}_dirs"'[@]}")'
+for dir in ${dirs[@]} ; do
+    printf "==================== %s\n" "$dir"
+    time rsync "${rsync_options[@]}"   "${!source}:${dir}/" "${dir}" 
+done

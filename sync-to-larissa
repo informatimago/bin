@@ -1,0 +1,13 @@
+#!/bin/bash -e
+cd "$HOME"
+
+larissa=larissa
+larissa=192.168.20.247
+larissa=larissa.local
+
+rsync_options=(-HSWavxE --perms -pogt --progress --force --delete --delete-during --rsh='ssh -x' -z)
+
+for dir in works private quicklisp src src-lisp ; do
+    printf "==================== %s\n" "$dir"
+    time rsync "${rsync_options[@]}"   "$dir"/ ${larissa}:~/"$dir"
+done

@@ -1,0 +1,11 @@
+#!/bin/bash
+cd "$HOME"
+
+backup_dir='/Volumes/DESD 1/despina'
+mkdir -p "${backup_dir}/usr/local"
+
+ssh_options=(-e "ssh -x -T -c arcfour -o Compression=no")
+
+# rsync -HSWacvxz --progress  --force --delete --delete-after /Users/      "${backup_dir}/Users"
+rsync -HSWacvxz --progress  --force --delete --delete-after /opt/        "${backup_dir}/opt"
+rsync -HSWacvxz --progress  --force --delete --delete-after /usr/local/  "${backup_dir}/usr/local"

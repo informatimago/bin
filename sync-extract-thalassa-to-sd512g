@@ -1,0 +1,42 @@
+#!/bin/bash
+cd "$HOME"
+
+dirs=(
+      works
+      firms
+      private
+      persons
+      rc
+      bin
+      src
+      src-lisp
+      lispworks
+      emacs
+      quicklisp
+      esp
+      Downloads
+      wikitree
+      public_html
+      'iCloud Drive (Archive)' # todo: move backup to /Volumes/Dropbox
+      'Google Drive'           # todo: move backup to /Volumes/Dropbox
+      Sites
+      Documents
+      Pictures
+      Music
+      Movies
+      AndroidStudioProjects
+     )
+
+function rsynch(){
+    echo "=========== $*"
+    rsync -HSWacvxz --progress --force --delete --delete-after "$@"
+}
+
+function copy_all(){
+    for dir in "${dirs[@]}" ; do
+        rsynch "${dir}/" "/Volumes/SD512G/pjb/${dir}"
+    done
+}
+
+time copy_all
+echo "=========== DONE"

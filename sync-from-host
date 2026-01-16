@@ -1,0 +1,133 @@
+#!/bin/bash -e
+cd "$HOME"
+
+function script_name(){
+    local script
+    local dir
+    local name
+    case "$0" in
+    (/*)
+        script="$0"
+        ;;
+    (*)
+        script="$(pwd -P)/$0"
+        ;;
+    esac
+    dir=$(dirname "$script")
+    name=$(basename "$script")
+    echo "$(cd "$dir" ; pwd -P)/${name}"
+}
+
+function get_volume(){
+    local script="$(script_name)"
+    case "$script" in
+    (/Volumes/*)
+        echo "$script"|sed -e 's-/Volumes/\([^/]*\)/\(.*\)-\1-'
+        ;;
+    (*)
+        printf 'Cannot identify the volume from the path %s of the script.' "$script" 1>&2
+        exit 1
+        ;;
+    esac
+}
+
+function get_name(){
+    local script="$(script_name)"
+    case "$script" in
+    (/Volumes/*)
+        echo "$script"|sed -e 's-/Volumes/\([^/]*\)/\(.*\)-\2-'
+        ;;
+    (*)
+        echo 'Cannot identify the name from the path %s of the script.' "$script" 1>&2
+        exit 1
+        ;;
+    esac
+}
+
+function get_host(){
+    local script="$(script_name)"
+    case "$script" in
+    (/Volumes/*/sync-from-*)
+        echo "$script"|sed -e 's^/Volumes/\([^/]*\)/sync-from-\(.*\)^\2^'
+        ;;
+    (*)
+        echo 'Cannot identify the host from the path %s of the script.' "$script" 1>&2
+        exit 1
+        ;;
+    esac
+}
+
+backup_dir="/Volumes/$(get_volume)/$(get_host)"
+mount_point="/private/tmp/mp-sync-$(get_volume)-from-$(get_host)"
+vol_path='/System/Volumes/Data'
+ssdate=''
+
+# for var in backup_dir mount_point vol_path ; do
+#     echo "$var=${!var}"
+# done
+# exit 0
+
+function check_user(){
+    if [ $UID -ne 0 ] ; then
+        printf 'Please, use sudo %s\n' "$(script_name)" 1>&2
+        exit 1
+    fi
+}
+
+function cleanup(){
+    printf 'Cleaning up\n'
+    cd "$HOME"
+    umount "${mount_point}" || true
+    if [ -n "${ssdate}" ] ; then
+        printf 'Deleting   local snapshot  %s\n' "${ssdate}"
+        tmutil deletelocalsnapshots "${ssdate}"
+    fi
+    printf 'Done\n'
+}
+
+function prepare(){
+    printf 'Preparing backup\n'
+    mkdir -p "${backup_dir}"
+    mkdir -p "${mount_point}"
+    trap cleanup EXIT
+
+    # create snapshot:
+    # out=$(tmutil localsnapshot)
+    out=$(tmutil snapshot "$vol_path")
+    ssdate=$(echo "$out"|sed -n -e '/date:/s/.*date: \([-0-9]*\)/\1/p')
+    printf 'Created    local snapshot  %s\n' "${ssdate}"
+
+    # mount snapshot:
+    printf 'Mounting   local snapshot  %s\n' "${ssdate}"
+    mount_apfs -o rdonly -s "com.apple.TimeMachine.${ssdate}.local" "${vol_path}" "${mount_point}"
+
+}
+
+function backup(){
+    printf 'Backing up local snapshot  %s to %s\n' "${ssdate}" "${backup_dir}"
+
+    rsync_options=(-HSavx -t -AENUXpogt  --progress  --force --delete --delete-during)
+    time rsync "${rsync_options[@]}" "${mount_point}/" "${backup_dir}"
+
+    # cd "${mount_point}/" 
+    # time pax -rw -X . "${backup_dir}"
+
+    # gtar_options=(--selinux --xattrs) # --acls
+    # gtar "${gtar_options[@]}" \
+    #      --one-file-system \
+    #      -C "${mount_point}/" \
+    #      -cpf - . \
+    #     | gtar "${gtar_options[@]}" \
+    #            --keep-newer-files \
+    #            -C "${backup_dir}" \
+    #            -vxpf - > /tmp/sync-from-despina.log
+}
+
+function main(){
+    time check_user
+    time prepare
+    time backup
+    exit 0
+}
+
+main
