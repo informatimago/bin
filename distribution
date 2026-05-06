@@ -408,205 +408,206 @@ function macOSXCodenameFromDarwinVersion(){
     dictionary-get $macosxCodenames "$darwinVersion"
 }
 
-declareDarwinVersion "0.1"     ""                "March 16, 1999"      "Mac OS X DP1"                           "0.1 is contrived (for sorting and identification) as this identified itself simply as Mac OS 10.0"
-declareDarwinVersion "0.2"     ""                "November 10, 1999"   "Mac OS X DP2"                           ""
-declareDarwinVersion "1.0"     ""                "February 2000"       "Mac OS X DP3"                           ""
-declareDarwinVersion "1.1"     ""                "April 5, 2000"       "Mac OS X DP4"                           ""
-declareDarwinVersion "1.2.1"   "Kodiak"          "November 15, 2000"   "Mac OS X Public Beta"                   "Code named \"Kodiak\""
-declareDarwinVersion "1.3.1"   "Cheetah"         "April 13, 2001"      "Mac OS X v10.0"                         "First commercial release of Darwin"
-declareDarwinVersion "1.3.1"   "Cheetah"         "June 21, 2001"       "Mac OS X v10.0.4"                       "All releases of \"Cheetah\" (10.0–10.0.4) had the same version of Darwin"
-declareDarwinVersion "1.4.1"   "Puma"            "October 2, 2001"     "Mac OS X v10.1"                         "Performance improvements to \"boot time, real-time threads, thread management, cache flushing, and preemption handling,\" support for SMB network file system, Wget replaced with cURL.[12]"
-declareDarwinVersion "5.1"     "Puma"            "November 12, 2001"   "Mac OS X v10.1.1"                       "Change in numbering scheme to match Mac OS X build numbering scheme (e.g., Mac OS X v10.1 contains build numbers starting with 5 so Mac OS X v10.1.1 is now based on Darwin 5.1; i.e., 10.1 means 5 so 10.1.1 means 5.1, etc.)"
-declareDarwinVersion "5.5"     "Puma"            "June 5, 2002"        "Mac OS X v10.1.5"                       "Last release of \"Puma\""
-declareDarwinVersion "6.0.1"   "Jaguar"          "September 23, 2002"  "Mac OS X v10.2 (Darwin 6.               0.2)"    "GCC upgraded from 2 to 3.1, IPv6 and IPSec support, mDNSResponder service discovery daemon (Rendezvous), addition of CUPS, Ruby, and Python, journaling support in HFS+ (Darwin 6.2), application profiles (\"pre-heat files\") for faster program launching.[13]"
-declareDarwinVersion "6.8"     "Jaguar"          "October 3, 2003"     "Mac OS X v10.2.8"                       "Last release of \"Jaguar\""
-declareDarwinVersion "7.0"     "Panther"         "October 24, 2003"    "Mac OS X v10.3"                         "BSD layer synchronized with FreeBSD 5, automatic file defragmentation, hot-file clustering, and optional case sensitivity in HFS+, bash instead of tcsh as default shell, read-only NTFS support (Darwin 7.9).[14]"
-declareDarwinVersion "7.9"     "Panther"         "April 15, 2005"      "Mac OS X v10.3.9"                       "Last release of \"Panther\""
-declareDarwinVersion "8.0"     "Tiger"           "April 29, 2005"      "Mac OS X v10.4"                         "Stable kernel programming interface, finer-grained kernel locking, 64-bit BSD layer, launchd service management framework, extended file attributes, access control lists, commands such as cp and mv updated to preserve extended attributes and resource forks.[15]"
-declareDarwinVersion "8.0"     "Tiger"           "April 29, 2005"      "Mac OS X for Apple TV (Darwin 8.8.2)"   "Stable kernel programming interface, finer-grained kernel locking, 64-bit BSD layer, launchd service management framework, extended file attributes, access control lists, commands such as cp and mv updated to preserve extended attributes and resource forks.[15]"
-declareDarwinVersion "8.11"    "Tiger"           "November 14, 2007"   "Mac OS X v10.4.11"                      "Last release of \"Tiger\""
-declareDarwinVersion "9.0"     "Leopard"         "October 26, 2007"    "iPhone OS 1 (Darwin 9.0.0d1)"           "Full POSIX compliance, improved hierarchical process scheduling model, dynamically allocated swap files, dynamic resource limits (for files and processes), process sandboxing, address space layout randomization, DTrace tracing framework, file system events daemon, directory hard links, Apache 1.3 and PHP 4 updated to Apache 2.2 and PHP 5, read-only ZFS support.[16]"
-declareDarwinVersion "9.0"     "Leopard"         "October 26, 2007"    "Mac OS X v10.5"                         "Full POSIX compliance, improved hierarchical process scheduling model, dynamically allocated swap files, dynamic resource limits (for files and processes), process sandboxing, address space layout randomization, DTrace tracing framework, file system events daemon, directory hard links, Apache 1.3 and PHP 4 updated to Apache 2.2 and PHP 5, read-only ZFS support.[16]"
-declareDarwinVersion "9.8"     "Leopard"         "August 5, 2009"      "Mac OS X v10.5.8"                       "Last release of \"Leopard\""
-declareDarwinVersion "10.0"    "Snow Leopard"    "August 28, 2009"     "Mac OS X v10.6"                         "End of official support for PowerPC architecture (although several fat binaries, such as Kernel, still contain PPC images); 64-bit kernel and drivers, libdispatch task parallelization framework, OpenCL heterogeneous computing framework, support for blocks in C, transparent file compression in HFS+.[17]"
-declareDarwinVersion "10.0"    "Snow Leopard"    "August 28, 2009"     "iOS 4"                                  "End of official support for PowerPC architecture (although several fat binaries, such as Kernel, still contain PPC images); 64-bit kernel and drivers, libdispatch task parallelization framework, OpenCL heterogeneous computing framework, support for blocks in C, transparent file compression in HFS+.[17]"
-declareDarwinVersion "10.8"    "Snow Leopard"    "June 23, 2011"       "Mac OS X v10.6.8"                       "Last release of \"Snow Leopard\""
-declareDarwinVersion "11.0.0"  "Lion"            "July 20, 2011"       "Mac OS X v10.7"                         "XNU no longer supports PPC binaries (fat binary only for i386, x86_64). XNU requires an x86_64 processor. Improved sandboxing of applications"
-declareDarwinVersion "11.0.0"  "Lion"            "July 20, 2011"       "iOS 5[18]"                              "XNU no longer supports PPC binaries (fat binary only for i386, x86_64). XNU requires an x86_64 processor. Improved sandboxing of applications"
-declareDarwinVersion "11.4.0"  "Lion"            "February 1, 2012"    "Mac OS X v10.7.4"                       "\"Lion\""
-declareDarwinVersion "11.4.2"  "Lion"            "October 4, 2012"     "Mac OS X v10.7.5"                       "\"Latest version of Lion, supplemental\""
-declareDarwinVersion "12.0.0"  "Mountain Lion"   "February 16, 2012"   "OS X v10.8"                             "Code named \"Mountain Lion\"; the word \"Mac\" has been dropped from the name"
-declareDarwinVersion "12.3.0"  "Mountain Lion"   "January 6, 2013"     "OS X v10.8.2"                           ""
-declareDarwinVersion "12.4.0"  "Mountain Lion"   "June 4, 2013"        "OS X v10.8.4"                           ""
-declareDarwinVersion "12.5.0"  "Mountain Lion"   "September 12, 2013"  "OS X v10.8.5"                           ""
-declareDarwinVersion "13.0.0"  "iOS 6"           "June 11, 2012"       "iOS 6"                                  "Unknown as to why iOS 6 uses Darwin 13 instead of Darwin 12."
-declareDarwinVersion "13.0.0"  "Maverick"        "June 11, 2012"       "OS X v10.9"                             ""
-declareDarwinVersion "13.1.0"  "Maverick"        "January 16 2014"     "OS X v10.9.2"                           ""
-declareDarwinVersion "14.0.0"  "iOS 7"           "September 18, 2013"  "iOS 7"                                  ""
-declareDarwinVersion "14.0.0"  "Yosemite"        "2014"                "OS X v10.10.1"                          ""
-declareDarwinVersion "14.5.0"  "Yosemite"        "2015"                "OS X v10.10.5"                          ""
-declareDarwinVersion "15.0.0"  "El Capitan"      "September 15, 2015"  "OS X v10.11.0"                          ""
-declareDarwinVersion "15.6.0"  "El Capitan"      "July 18, 2016"       "OS X v10.11.6"                          ""
-declareDarwinVersion "16.0.0"  "Sierra"          "September 13, 2016"  "OS X v10.12.0"                          "build 16A323"
-declareDarwinVersion "16.1.0"  "Sierra"          "October 24, 2016"    "OS X v10.12.1"                          "build 16B2555 16B2657"
-declareDarwinVersion "16.3.0"  "Sierra"          "December 13, 2016"   "OS X v10.12.2"                          "build 16C67 16C68"
-declareDarwinVersion "16.4.0"  "Sierra"          "December 20, 2016"   "OS X v10.12.3 Beta 2"                   "build 16D17a"
+function declareDarwinVersionTable(){
+    declareDarwinVersion "0.1"     ""                "March 16, 1999"      "Mac OS X DP1"                           "0.1 is contrived (for sorting and identification) as this identified itself simply as Mac OS 10.0"
+    declareDarwinVersion "0.2"     ""                "November 10, 1999"   "Mac OS X DP2"                           ""
+    declareDarwinVersion "1.0"     ""                "February 2000"       "Mac OS X DP3"                           ""
+    declareDarwinVersion "1.1"     ""                "April 5, 2000"       "Mac OS X DP4"                           ""
+    declareDarwinVersion "1.2.1"   "Kodiak"          "November 15, 2000"   "Mac OS X Public Beta"                   "Code named \"Kodiak\""
+    declareDarwinVersion "1.3.1"   "Cheetah"         "April 13, 2001"      "Mac OS X v10.0"                         "First commercial release of Darwin"
+    declareDarwinVersion "1.3.1"   "Cheetah"         "June 21, 2001"       "Mac OS X v10.0.4"                       "All releases of \"Cheetah\" (10.0–10.0.4) had the same version of Darwin"
+    declareDarwinVersion "1.4.1"   "Puma"            "October 2, 2001"     "Mac OS X v10.1"                         "Performance improvements to \"boot time, real-time threads, thread management, cache flushing, and preemption handling,\" support for SMB network file system, Wget replaced with cURL.[12]"
+    declareDarwinVersion "5.1"     "Puma"            "November 12, 2001"   "Mac OS X v10.1.1"                       "Change in numbering scheme to match Mac OS X build numbering scheme (e.g., Mac OS X v10.1 contains build numbers starting with 5 so Mac OS X v10.1.1 is now based on Darwin 5.1; i.e., 10.1 means 5 so 10.1.1 means 5.1, etc.)"
+    declareDarwinVersion "5.5"     "Puma"            "June 5, 2002"        "Mac OS X v10.1.5"                       "Last release of \"Puma\""
+    declareDarwinVersion "6.0.1"   "Jaguar"          "September 23, 2002"  "Mac OS X v10.2 (Darwin 6.               0.2)"    "GCC upgraded from 2 to 3.1, IPv6 and IPSec support, mDNSResponder service discovery daemon (Rendezvous), addition of CUPS, Ruby, and Python, journaling support in HFS+ (Darwin 6.2), application profiles (\"pre-heat files\") for faster program launching.[13]"
+    declareDarwinVersion "6.8"     "Jaguar"          "October 3, 2003"     "Mac OS X v10.2.8"                       "Last release of \"Jaguar\""
+    declareDarwinVersion "7.0"     "Panther"         "October 24, 2003"    "Mac OS X v10.3"                         "BSD layer synchronized with FreeBSD 5, automatic file defragmentation, hot-file clustering, and optional case sensitivity in HFS+, bash instead of tcsh as default shell, read-only NTFS support (Darwin 7.9).[14]"
+    declareDarwinVersion "7.9"     "Panther"         "April 15, 2005"      "Mac OS X v10.3.9"                       "Last release of \"Panther\""
+    declareDarwinVersion "8.0"     "Tiger"           "April 29, 2005"      "Mac OS X v10.4"                         "Stable kernel programming interface, finer-grained kernel locking, 64-bit BSD layer, launchd service management framework, extended file attributes, access control lists, commands such as cp and mv updated to preserve extended attributes and resource forks.[15]"
+    declareDarwinVersion "8.0"     "Tiger"           "April 29, 2005"      "Mac OS X for Apple TV (Darwin 8.8.2)"   "Stable kernel programming interface, finer-grained kernel locking, 64-bit BSD layer, launchd service management framework, extended file attributes, access control lists, commands such as cp and mv updated to preserve extended attributes and resource forks.[15]"
+    declareDarwinVersion "8.11"    "Tiger"           "November 14, 2007"   "Mac OS X v10.4.11"                      "Last release of \"Tiger\""
+    declareDarwinVersion "9.0"     "Leopard"         "October 26, 2007"    "iPhone OS 1 (Darwin 9.0.0d1)"           "Full POSIX compliance, improved hierarchical process scheduling model, dynamically allocated swap files, dynamic resource limits (for files and processes), process sandboxing, address space layout randomization, DTrace tracing framework, file system events daemon, directory hard links, Apache 1.3 and PHP 4 updated to Apache 2.2 and PHP 5, read-only ZFS support.[16]"
+    declareDarwinVersion "9.0"     "Leopard"         "October 26, 2007"    "Mac OS X v10.5"                         "Full POSIX compliance, improved hierarchical process scheduling model, dynamically allocated swap files, dynamic resource limits (for files and processes), process sandboxing, address space layout randomization, DTrace tracing framework, file system events daemon, directory hard links, Apache 1.3 and PHP 4 updated to Apache 2.2 and PHP 5, read-only ZFS support.[16]"
+    declareDarwinVersion "9.8"     "Leopard"         "August 5, 2009"      "Mac OS X v10.5.8"                       "Last release of \"Leopard\""
+    declareDarwinVersion "10.0"    "Snow Leopard"    "August 28, 2009"     "Mac OS X v10.6"                         "End of official support for PowerPC architecture (although several fat binaries, such as Kernel, still contain PPC images); 64-bit kernel and drivers, libdispatch task parallelization framework, OpenCL heterogeneous computing framework, support for blocks in C, transparent file compression in HFS+.[17]"
+    declareDarwinVersion "10.0"    "Snow Leopard"    "August 28, 2009"     "iOS 4"                                  "End of official support for PowerPC architecture (although several fat binaries, such as Kernel, still contain PPC images); 64-bit kernel and drivers, libdispatch task parallelization framework, OpenCL heterogeneous computing framework, support for blocks in C, transparent file compression in HFS+.[17]"
+    declareDarwinVersion "10.8"    "Snow Leopard"    "June 23, 2011"       "Mac OS X v10.6.8"                       "Last release of \"Snow Leopard\""
+    declareDarwinVersion "11.0.0"  "Lion"            "July 20, 2011"       "Mac OS X v10.7"                         "XNU no longer supports PPC binaries (fat binary only for i386, x86_64). XNU requires an x86_64 processor. Improved sandboxing of applications"
+    declareDarwinVersion "11.0.0"  "Lion"            "July 20, 2011"       "iOS 5[18]"                              "XNU no longer supports PPC binaries (fat binary only for i386, x86_64). XNU requires an x86_64 processor. Improved sandboxing of applications"
+    declareDarwinVersion "11.4.0"  "Lion"            "February 1, 2012"    "Mac OS X v10.7.4"                       "\"Lion\""
+    declareDarwinVersion "11.4.2"  "Lion"            "October 4, 2012"     "Mac OS X v10.7.5"                       "\"Latest version of Lion, supplemental\""
+    declareDarwinVersion "12.0.0"  "Mountain Lion"   "February 16, 2012"   "OS X v10.8"                             "Code named \"Mountain Lion\"; the word \"Mac\" has been dropped from the name"
+    declareDarwinVersion "12.3.0"  "Mountain Lion"   "January 6, 2013"     "OS X v10.8.2"                           ""
+    declareDarwinVersion "12.4.0"  "Mountain Lion"   "June 4, 2013"        "OS X v10.8.4"                           ""
+    declareDarwinVersion "12.5.0"  "Mountain Lion"   "September 12, 2013"  "OS X v10.8.5"                           ""
+    declareDarwinVersion "13.0.0"  "iOS 6"           "June 11, 2012"       "iOS 6"                                  "Unknown as to why iOS 6 uses Darwin 13 instead of Darwin 12."
+    declareDarwinVersion "13.0.0"  "Maverick"        "June 11, 2012"       "OS X v10.9"                             ""
+    declareDarwinVersion "13.1.0"  "Maverick"        "January 16 2014"     "OS X v10.9.2"                           ""
+    declareDarwinVersion "14.0.0"  "iOS 7"           "September 18, 2013"  "iOS 7"                                  ""
+    declareDarwinVersion "14.0.0"  "Yosemite"        "2014"                "OS X v10.10.1"                          ""
+    declareDarwinVersion "14.5.0"  "Yosemite"        "2015"                "OS X v10.10.5"                          ""
+    declareDarwinVersion "15.0.0"  "El Capitan"      "September 15, 2015"  "OS X v10.11.0"                          ""
+    declareDarwinVersion "15.6.0"  "El Capitan"      "July 18, 2016"       "OS X v10.11.6"                          ""
+    declareDarwinVersion "16.0.0"  "Sierra"          "September 13, 2016"  "OS X v10.12.0"                          "build 16A323"
+    declareDarwinVersion "16.1.0"  "Sierra"          "October 24, 2016"    "OS X v10.12.1"                          "build 16B2555 16B2657"
+    declareDarwinVersion "16.3.0"  "Sierra"          "December 13, 2016"   "OS X v10.12.2"                          "build 16C67 16C68"
+    declareDarwinVersion "16.4.0"  "Sierra"          "December 20, 2016"   "OS X v10.12.3 Beta 2"                   "build 16D17a"
 
-declareDarwinVersion "17.0.0"  "High Sierra"     "September 25, 2017"  "OS X v10.13"                            "build 17A365"
-declareDarwinVersion "17.0.0"  "High Sierra"     "October 5, 2017"     "OS X v10.13"                            "build 17A405"
+    declareDarwinVersion "17.0.0"  "High Sierra"     "September 25, 2017"  "OS X v10.13"                            "build 17A365"
+    declareDarwinVersion "17.0.0"  "High Sierra"     "October 5, 2017"     "OS X v10.13"                            "build 17A405"
 
-declareDarwinVersion "17.2.0"  "High Sierra"     "October 31, 2017"    "OS X v10.13.1"                          "build 17B48"
-declareDarwinVersion "17.2.0"  "High Sierra"     "November 29, 2017"   "OS X v10.13.1"                          "build 17B1002"
-declareDarwinVersion "17.2.0"  "High Sierra"     "November 29, 2017"   "OS X v10.13.1"                          "build 17B1003"
+    declareDarwinVersion "17.2.0"  "High Sierra"     "October 31, 2017"    "OS X v10.13.1"                          "build 17B48"
+    declareDarwinVersion "17.2.0"  "High Sierra"     "November 29, 2017"   "OS X v10.13.1"                          "build 17B1002"
+    declareDarwinVersion "17.2.0"  "High Sierra"     "November 29, 2017"   "OS X v10.13.1"                          "build 17B1003"
 
-declareDarwinVersion "17.3.0"  "High Sierra"     "December 6, 2017"    "OS X v10.13.2"                          "build 17C88"
-declareDarwinVersion "17.3.0"  "High Sierra"     "December 6, 2017"    "OS X v10.13.2"                          "build 17C89"
-declareDarwinVersion "17.3.0"  "High Sierra"     "January 8, 2018"     "OS X v10.13.2"                          "build 17C205"
-declareDarwinVersion "17.3.0"  "High Sierra"     "January 8, 2018"     "OS X v10.13.2"                          "build 17C2205"
+    declareDarwinVersion "17.3.0"  "High Sierra"     "December 6, 2017"    "OS X v10.13.2"                          "build 17C88"
+    declareDarwinVersion "17.3.0"  "High Sierra"     "December 6, 2017"    "OS X v10.13.2"                          "build 17C89"
+    declareDarwinVersion "17.3.0"  "High Sierra"     "January 8, 2018"     "OS X v10.13.2"                          "build 17C205"
+    declareDarwinVersion "17.3.0"  "High Sierra"     "January 8, 2018"     "OS X v10.13.2"                          "build 17C2205"
 
-declareDarwinVersion "17.4.0"  "High Sierra"     "January 23, 2018"    "OS X v10.13.3"                          "build 17D47"
-declareDarwinVersion "17.4.0"  "High Sierra"     "January 23, 2018"    "OS X v10.13.3"                          "build 17D2047"
-declareDarwinVersion "17.4.0"  "High Sierra"     "February 19, 2018"   "OS X v10.13.3"                          "build 17D102"
-declareDarwinVersion "17.4.0"  "High Sierra"     "February 19, 2018"   "OS X v10.13.3"                          "build 17D2102"
+    declareDarwinVersion "17.4.0"  "High Sierra"     "January 23, 2018"    "OS X v10.13.3"                          "build 17D47"
+    declareDarwinVersion "17.4.0"  "High Sierra"     "January 23, 2018"    "OS X v10.13.3"                          "build 17D2047"
+    declareDarwinVersion "17.4.0"  "High Sierra"     "February 19, 2018"   "OS X v10.13.3"                          "build 17D102"
+    declareDarwinVersion "17.4.0"  "High Sierra"     "February 19, 2018"   "OS X v10.13.3"                          "build 17D2102"
 
-declareDarwinVersion "17.5.0"  "High Sierra"     "March 29, 2018"      "OS X v10.13.4"                          "build 17E199"
-declareDarwinVersion "17.5.0"  "High Sierra"     "April 24, 2018"      "OS X v10.13.4"                          "build 17E202"
+    declareDarwinVersion "17.5.0"  "High Sierra"     "March 29, 2018"      "OS X v10.13.4"                          "build 17E199"
+    declareDarwinVersion "17.5.0"  "High Sierra"     "April 24, 2018"      "OS X v10.13.4"                          "build 17E202"
 
-declareDarwinVersion "17.6.0"  "High Sierra"     "June 1, 2018"        "OS X v10.13.5"                          "build 17F77"
+    declareDarwinVersion "17.6.0"  "High Sierra"     "June 1, 2018"        "OS X v10.13.5"                          "build 17F77"
 
-declareDarwinVersion "17.7.0"  "High Sierra"     "July 9, 2018"        "OS X v10.13.6"                          "build 17G65"
-declareDarwinVersion "17.7.0"  "High Sierra"     "July 9, 2018"        "OS X v10.13.6"                          "build 17G2208"
-declareDarwinVersion "17.7.7"  "High Sierra"     "August 28, 2018"     "OS X v10.13.6"                          "build 17G23"
+    declareDarwinVersion "17.7.0"  "High Sierra"     "July 9, 2018"        "OS X v10.13.6"                          "build 17G65"
+    declareDarwinVersion "17.7.0"  "High Sierra"     "July 9, 2018"        "OS X v10.13.6"                          "build 17G2208"
+    declareDarwinVersion "17.7.7"  "High Sierra"     "August 28, 2018"     "OS X v10.13.6"                          "build 17G23"
 
-# https://en.wikipedia.org/wiki/MacOS_Mojave
-declareDarwinVersion "18.0.0"  "Mojave"          "September 24, 2018"        "OS X v10.14"                            "build 18A384"
-declareDarwinVersion "18.0.0"  "Mojave"          "September 24, 2018"        "OS X v10.14"                            "build 18A391"
+    # https://en.wikipedia.org/wiki/MacOS_Mojave
+    declareDarwinVersion "18.0.0"  "Mojave"          "September 24, 2018"        "OS X v10.14"                            "build 18A384"
+    declareDarwinVersion "18.0.0"  "Mojave"          "September 24, 2018"        "OS X v10.14"                            "build 18A391"
 
-declareDarwinVersion "18.2.0"  "Mojave"          "October   30, 2018"        "OS X v10.14.1"                          "build 18B75"
-declareDarwinVersion "18.2.0"  "Mojave"          "October   30, 2018"        "OS X v10.14.1"                          "build 18B2107"
-declareDarwinVersion "18.2.0"  "Mojave"          "October   30, 2018"        "OS X v10.14.1"                          "build 18B3094"
+    declareDarwinVersion "18.2.0"  "Mojave"          "October   30, 2018"        "OS X v10.14.1"                          "build 18B75"
+    declareDarwinVersion "18.2.0"  "Mojave"          "October   30, 2018"        "OS X v10.14.1"                          "build 18B2107"
+    declareDarwinVersion "18.2.0"  "Mojave"          "October   30, 2018"        "OS X v10.14.1"                          "build 18B3094"
 
-declareDarwinVersion "18.2.0"  "Mojave"          "December  5,  2018"        "OS X v10.14.2"                          "build 18C54"
+    declareDarwinVersion "18.2.0"  "Mojave"          "December  5,  2018"        "OS X v10.14.2"                          "build 18C54"
 
-declareDarwinVersion "18.2.0"  "Mojave"          "January   22, 2019"        "OS X v10.14.3"                          "build 18D42"
-declareDarwinVersion "18.2.0"  "Mojave"          "January   25, 2019"        "OS X v10.14.3"                          "build 18D43"
-declareDarwinVersion "18.2.0"  "Mojave"          "February  7,  2019"        "OS X v10.14.3"                          "build 18D109"
+    declareDarwinVersion "18.2.0"  "Mojave"          "January   22, 2019"        "OS X v10.14.3"                          "build 18D42"
+    declareDarwinVersion "18.2.0"  "Mojave"          "January   25, 2019"        "OS X v10.14.3"                          "build 18D43"
+    declareDarwinVersion "18.2.0"  "Mojave"          "February  7,  2019"        "OS X v10.14.3"                          "build 18D109"
 
-declareDarwinVersion "18.5.0"  "Mojave"          "March     25, 2019"        "OS X v10.14.4"                          "build 18E226"
-declareDarwinVersion "18.5.0"  "Mojave"          "March     25, 2019"        "OS X v10.14.4"                          "build 18E2227"
+    declareDarwinVersion "18.5.0"  "Mojave"          "March     25, 2019"        "OS X v10.14.4"                          "build 18E226"
+    declareDarwinVersion "18.5.0"  "Mojave"          "March     25, 2019"        "OS X v10.14.4"                          "build 18E2227"
 
-declareDarwinVersion "18.6.0"  "Mojave"          "May       13, 2019"        "OS X v10.14.5"                          "build 18F132"
+    declareDarwinVersion "18.6.0"  "Mojave"          "May       13, 2019"        "OS X v10.14.5"                          "build 18F132"
 
 
-declareDarwinVersion "18.7.0"  "Mojave"          "July      22, 2019"       "OS X v10.14.6"                          "build 18G84"
-declareDarwinVersion "18.7.0"  "Mojave"          "August    1,  2019"       "OS X v10.14.6"                          "build 18G87"
-declareDarwinVersion "18.7.0"  "Mojave"          "August    26, 2019"       "OS X v10.14.6"                          "build 18G95"
-declareDarwinVersion "18.7.0"  "Mojave"          "September 26, 2019"       "OS X v10.14.6"                          "build 18G103"
-declareDarwinVersion "18.7.0"  "Mojave"          "October   29, 2019"       "OS X v10.14.6"                          "build 18G1012"
-declareDarwinVersion "18.7.0"  "Mojave"          "December  10, 2019"       "OS X v10.14.6"                          "build 18G2022"
-declareDarwinVersion "18.7.0"  "Mojave"          "January   28, 2020"       "OS X v10.14.6"                          "build 18G3022"
-declareDarwinVersion "18.7.0"  "Mojave"          "March     24, 2020"       "OS X v10.14.6"                          "build 18G4032"
-declareDarwinVersion "18.7.0"  "Mojave"          "May       26, 2020"       "OS X v10.14.6"                          "build 18G5033"
-declareDarwinVersion "18.7.0"  "Mojave"          "July      15, 2020"       "OS X v10.14.6"                          "build 18G6020"
-declareDarwinVersion "18.7.0"  "Mojave"          "September 24, 2020"       "OS X v10.14.6"                          "build 18G6032"
-declareDarwinVersion "18.7.0"  "Mojave"          "October   1,  2020"       "OS X v10.14.6"                          "build 18G6032"
-declareDarwinVersion "18.7.0"  "Mojave"          "November  12, 2020"       "OS X v10.14.6"                          "build 18G6042"
-declareDarwinVersion "18.7.0"  "Mojave"          "December  15, 2020"       "OS X v10.14.6"                          "build 18G7016"
-declareDarwinVersion "18.7.0"  "Mojave"          "February  1,  2020"       "OS X v10.14.6"                          "build 18G8012"
-declareDarwinVersion "18.7.0"  "Mojave"          "February  9,  2020"       "OS X v10.14.6"                          "build 18G8022"
-declareDarwinVersion "18.7.0"  "Mojave"          "April     26, 2020"       "OS X v10.14.6"                          "build 18G9028"
-declareDarwinVersion "18.7.0"  "Mojave"          "May       25, 2020"       "OS X v10.14.6"                          "build 18G9216"
+    declareDarwinVersion "18.7.0"  "Mojave"          "July      22, 2019"       "OS X v10.14.6"                          "build 18G84"
+    declareDarwinVersion "18.7.0"  "Mojave"          "August    1,  2019"       "OS X v10.14.6"                          "build 18G87"
+    declareDarwinVersion "18.7.0"  "Mojave"          "August    26, 2019"       "OS X v10.14.6"                          "build 18G95"
+    declareDarwinVersion "18.7.0"  "Mojave"          "September 26, 2019"       "OS X v10.14.6"                          "build 18G103"
+    declareDarwinVersion "18.7.0"  "Mojave"          "October   29, 2019"       "OS X v10.14.6"                          "build 18G1012"
+    declareDarwinVersion "18.7.0"  "Mojave"          "December  10, 2019"       "OS X v10.14.6"                          "build 18G2022"
+    declareDarwinVersion "18.7.0"  "Mojave"          "January   28, 2020"       "OS X v10.14.6"                          "build 18G3022"
+    declareDarwinVersion "18.7.0"  "Mojave"          "March     24, 2020"       "OS X v10.14.6"                          "build 18G4032"
+    declareDarwinVersion "18.7.0"  "Mojave"          "May       26, 2020"       "OS X v10.14.6"                          "build 18G5033"
+    declareDarwinVersion "18.7.0"  "Mojave"          "July      15, 2020"       "OS X v10.14.6"                          "build 18G6020"
+    declareDarwinVersion "18.7.0"  "Mojave"          "September 24, 2020"       "OS X v10.14.6"                          "build 18G6032"
+    declareDarwinVersion "18.7.0"  "Mojave"          "October   1,  2020"       "OS X v10.14.6"                          "build 18G6032"
+    declareDarwinVersion "18.7.0"  "Mojave"          "November  12, 2020"       "OS X v10.14.6"                          "build 18G6042"
+    declareDarwinVersion "18.7.0"  "Mojave"          "December  15, 2020"       "OS X v10.14.6"                          "build 18G7016"
+    declareDarwinVersion "18.7.0"  "Mojave"          "February  1,  2020"       "OS X v10.14.6"                          "build 18G8012"
+    declareDarwinVersion "18.7.0"  "Mojave"          "February  9,  2020"       "OS X v10.14.6"                          "build 18G8022"
+    declareDarwinVersion "18.7.0"  "Mojave"          "April     26, 2020"       "OS X v10.14.6"                          "build 18G9028"
+    declareDarwinVersion "18.7.0"  "Mojave"          "May       25, 2020"       "OS X v10.14.6"                          "build 18G9216"
 
-# https://en.wikipedia.org/wiki/MacOS_Catalina
+    # https://en.wikipedia.org/wiki/MacOS_Catalina
 
-declareDarwinVersion "19.0.0"  "Catalina"        "October  7,  2019"       "OS X v10.15"                            "build 19A583"
-declareDarwinVersion "19.0.0"  "Catalina"        "October  15, 2019"       "OS X v10.15"                            "build 19A602"
-declareDarwinVersion "19.0.0"  "Catalina"        "October  21, 2019"       "OS X v10.15"                            "build 19A603"
+    declareDarwinVersion "19.0.0"  "Catalina"        "October  7,  2019"       "OS X v10.15"                            "build 19A583"
+    declareDarwinVersion "19.0.0"  "Catalina"        "October  15, 2019"       "OS X v10.15"                            "build 19A602"
+    declareDarwinVersion "19.0.0"  "Catalina"        "October  21, 2019"       "OS X v10.15"                            "build 19A603"
 
-declareDarwinVersion "19.0.0"  "Catalina"        "October  29, 2019"       "OS X v10.15.1"                          "build 19B88"
+    declareDarwinVersion "19.0.0"  "Catalina"        "October  29, 2019"       "OS X v10.15.1"                          "build 19B88"
 
-declareDarwinVersion "19.2.0"  "Catalina"        "December 10, 2019"       "OS X v10.15.2"                          "build 19C57"
+    declareDarwinVersion "19.2.0"  "Catalina"        "December 10, 2019"       "OS X v10.15.2"                          "build 19C57"
 
-declareDarwinVersion "19.3.0"  "Catalina"        "January  28, 2020"       "OS X v10.15.3"                          "build 19D76"
+    declareDarwinVersion "19.3.0"  "Catalina"        "January  28, 2020"       "OS X v10.15.3"                          "build 19D76"
 
-declareDarwinVersion "19.4.0"  "Catalina"        "Mars     24, 2020"       "OS X v10.15.4"                          "build 19E266"
-declareDarwinVersion "19.4.0"  "Catalina"        "April    8,  2020"       "OS X v10.15.4"                          "build 19E287"
+    declareDarwinVersion "19.4.0"  "Catalina"        "Mars     24, 2020"       "OS X v10.15.4"                          "build 19E266"
+    declareDarwinVersion "19.4.0"  "Catalina"        "April    8,  2020"       "OS X v10.15.4"                          "build 19E287"
 
-declareDarwinVersion "19.5.0"  "Catalina"        "May      26, 2020"       "OS X v10.15.5"                          "build 19F96"
-declareDarwinVersion "19.5.0"  "Catalina"        "June     1,  2020"       "OS X v10.15.5"                          "build 19F101"
+    declareDarwinVersion "19.5.0"  "Catalina"        "May      26, 2020"       "OS X v10.15.5"                          "build 19F96"
+    declareDarwinVersion "19.5.0"  "Catalina"        "June     1,  2020"       "OS X v10.15.5"                          "build 19F101"
 
-declareDarwinVersion "19.6.0"  "Catalina"        "July     15, 2020"       "OS X v10.15.6"                          "build 19G73"
-declareDarwinVersion "19.6.0"  "Catalina"        "August   12, 2020"       "OS X v10.15.6"                          "build 19G2021"
+    declareDarwinVersion "19.6.0"  "Catalina"        "July     15, 2020"       "OS X v10.15.6"                          "build 19G73"
+    declareDarwinVersion "19.6.0"  "Catalina"        "August   12, 2020"       "OS X v10.15.6"                          "build 19G2021"
 
-declareDarwinVersion "19.6.0"  "Catalina"        "September 24, 2020"       "OS X v10.15.7"                          "build 19H2"
-declareDarwinVersion "19.6.0"  "Catalina"        "October   27, 2020"       "OS X v10.15.7"                          "build 19H4"
-declareDarwinVersion "19.6.0"  "Catalina"        "November  5,  2020"       "OS X v10.15.7"                          "build 19H15"
-declareDarwinVersion "19.6.0"  "Catalina"        "December  14, 2020"       "OS X v10.15.7"                          "build 19H114"
-declareDarwinVersion "19.6.0"  "Catalina"        "February  1,  2021"       "OS X v10.15.7"                          "build 19H512"
-declareDarwinVersion "19.6.0"  "Catalina"        "February  9,  2021"       "OS X v10.15.7"                          "build 19H524"
-declareDarwinVersion "19.6.0"  "Catalina"        "April     26, 2021"       "OS X v10.15.7"                          "build 19H1030"
-declareDarwinVersion "19.6.0"  "Catalina"        "May       25, 2021"       "OS X v10.15.7"                          "build 19H1217"
+    declareDarwinVersion "19.6.0"  "Catalina"        "September 24, 2020"       "OS X v10.15.7"                          "build 19H2"
+    declareDarwinVersion "19.6.0"  "Catalina"        "October   27, 2020"       "OS X v10.15.7"                          "build 19H4"
+    declareDarwinVersion "19.6.0"  "Catalina"        "November  5,  2020"       "OS X v10.15.7"                          "build 19H15"
+    declareDarwinVersion "19.6.0"  "Catalina"        "December  14, 2020"       "OS X v10.15.7"                          "build 19H114"
+    declareDarwinVersion "19.6.0"  "Catalina"        "February  1,  2021"       "OS X v10.15.7"                          "build 19H512"
+    declareDarwinVersion "19.6.0"  "Catalina"        "February  9,  2021"       "OS X v10.15.7"                          "build 19H524"
+    declareDarwinVersion "19.6.0"  "Catalina"        "April     26, 2021"       "OS X v10.15.7"                          "build 19H1030"
+    declareDarwinVersion "19.6.0"  "Catalina"        "May       25, 2021"       "OS X v10.15.7"                          "build 19H1217"
 
-# https://en.wikipedia.org/wiki/MacOS_Big_Sur#Release_history
+    # https://en.wikipedia.org/wiki/MacOS_Big_Sur#Release_history
 
-declareDarwinVersion "20.1.0"  "Big Sur"        "November 17, 2020"       "OS X v11.0"                              "build 20A2411"
+    declareDarwinVersion "20.1.0"  "Big Sur"        "November 17, 2020"       "OS X v11.0"                              "build 20A2411"
 
-declareDarwinVersion "20.1.0"  "Big Sur"        "November 12, 2020"       "OS X v11.0.1"                            "build 20B29"
-declareDarwinVersion "20.1.0"  "Big Sur"        "November 19, 2020"       "OS X v11.0.1"                            "build 20B50"
+    declareDarwinVersion "20.1.0"  "Big Sur"        "November 12, 2020"       "OS X v11.0.1"                            "build 20B29"
+    declareDarwinVersion "20.1.0"  "Big Sur"        "November 19, 2020"       "OS X v11.0.1"                            "build 20B50"
 
-declareDarwinVersion "20.2.0"  "Big Sur"        "December 14, 2020"       "OS X v11.1"                              "build 20C69"
+    declareDarwinVersion "20.2.0"  "Big Sur"        "December 14, 2020"       "OS X v11.1"                              "build 20C69"
 
-declareDarwinVersion "20.3.0"  "Big Sur"        "February 1,  2021"       "OS X v11.2"                              "build 20D64"
-declareDarwinVersion "20.3.0"  "Big Sur"        "February 15, 2021"       "OS X v11.2.1"                            "build 20D75"
-declareDarwinVersion "20.3.0"  "Big Sur"        "February 25, 2021"       "OS X v11.2.2"                            "build 20D80"
-declareDarwinVersion "20.3.0"  "Big Sur"        "March    8,  2021"       "OS X v11.2.3"                            "build 20D91"
+    declareDarwinVersion "20.3.0"  "Big Sur"        "February 1,  2021"       "OS X v11.2"                              "build 20D64"
+    declareDarwinVersion "20.3.0"  "Big Sur"        "February 15, 2021"       "OS X v11.2.1"                            "build 20D75"
+    declareDarwinVersion "20.3.0"  "Big Sur"        "February 25, 2021"       "OS X v11.2.2"                            "build 20D80"
+    declareDarwinVersion "20.3.0"  "Big Sur"        "March    8,  2021"       "OS X v11.2.3"                            "build 20D91"
 
-declareDarwinVersion "20.4.0"  "Big Sur"        "April    26, 2021"       "OS X v11.3"                              "build 20E32"
-declareDarwinVersion "20.4.0"  "Big Sur"        "May      3,  2021"       "OS X v11.3.1"                            "build 20E241"
+    declareDarwinVersion "20.4.0"  "Big Sur"        "April    26, 2021"       "OS X v11.3"                              "build 20E32"
+    declareDarwinVersion "20.4.0"  "Big Sur"        "May      3,  2021"       "OS X v11.3.1"                            "build 20E241"
 
-declareDarwinVersion "20.5.0"  "Big Sur"        "May      24, 2021"       "OS X v11.4"                              "build 20F71"
+    declareDarwinVersion "20.5.0"  "Big Sur"        "May      24, 2021"       "OS X v11.4"                              "build 20F71"
 
-declareDarwinVersion "20.5.0"  "Big Sur"        "May      19, 2021"       "OS X v11.5beta"                          "build 20G5023d"
-declareDarwinVersion "20.6.0"  "Big Sur"        "September 11, 2023"      "macOS v11.7.10"                          "build 20G1427"
+    declareDarwinVersion "20.5.0"  "Big Sur"        "May      19, 2021"       "OS X v11.5beta"                          "build 20G5023d"
+    declareDarwinVersion "20.6.0"  "Big Sur"        "September 11, 2023"      "macOS v11.7.10"                          "build 20G1427"
 
-# https://en.wikipedia.org/wiki/MacOS_Monterey#Release_history
-declareDarwinVersion "21.0.1"  "Monterey"       "October   25, 2021"      "macOS v12.0"                             "build 21A344"
-declareDarwinVersion "21.1.0"  "Monterey"       "October   25, 2021"      "macOS v12.0.1"                           "build 21A559"
-declareDarwinVersion "21.2.0"  "Monterey"       "December  13, 2021"      "macOS v12.1"                             "build 21C52"
-declareDarwinVersion "21.3.0"  "Monterey"       "January   26, 2022"      "macOS v12.2"                             "build 21D49"
-declareDarwinVersion "21.4.0"  "Monterey"       "March     31, 2022"      "macOS v12.3.1"                           "build 21E258"
-declareDarwinVersion "21.5.0"  "Monterey"       "May       16, 2022"      "macOS v12.4"                             "build 21F79"
-declareDarwinVersion "21.6.0"  "Monterey"       "July      29, 2024"      "macOS v12.7.6"                           "build 21H1320"
+    # https://en.wikipedia.org/wiki/MacOS_Monterey#Release_history
+    declareDarwinVersion "21.0.1"  "Monterey"       "October   25, 2021"      "macOS v12.0"                             "build 21A344"
+    declareDarwinVersion "21.1.0"  "Monterey"       "October   25, 2021"      "macOS v12.0.1"                           "build 21A559"
+    declareDarwinVersion "21.2.0"  "Monterey"       "December  13, 2021"      "macOS v12.1"                             "build 21C52"
+    declareDarwinVersion "21.3.0"  "Monterey"       "January   26, 2022"      "macOS v12.2"                             "build 21D49"
+    declareDarwinVersion "21.4.0"  "Monterey"       "March     31, 2022"      "macOS v12.3.1"                           "build 21E258"
+    declareDarwinVersion "21.5.0"  "Monterey"       "May       16, 2022"      "macOS v12.4"                             "build 21F79"
+    declareDarwinVersion "21.6.0"  "Monterey"       "July      29, 2024"      "macOS v12.7.6"                           "build 21H1320"
 
-# https://en.wikipedia.org/wiki/MacOS_Ventura#Release_history
-declareDarwinVersion "22.1.0"  "Ventura"        "October   24, 2022"      "macOS v13.0"                             "build 22A380"
-declareDarwinVersion "22.2.0"  "Ventura"        "December  13, 2022"      "macOS v13.1"                             "build 22C65"
-declareDarwinVersion "22.3.0"  "Ventura"        "February  13, 2023"      "macOS v13.2.1"                           "build 22D68"
-declareDarwinVersion "22.4.0"  "Ventura"        "March     27, 2023"      "macOS v13.3"                             "build 22E252"
-declareDarwinVersion "22.5.0"  "Ventura"        "June      21, 2023"      "macOS v13.4.1"                           "build 22F82"
-declareDarwinVersion "22.6.0"  "Ventura"        "July      29, 2025"      "macOS v13.7.7"                           "build 22H722"
+    # https://en.wikipedia.org/wiki/MacOS_Ventura#Release_history
+    declareDarwinVersion "22.1.0"  "Ventura"        "October   24, 2022"      "macOS v13.0"                             "build 22A380"
+    declareDarwinVersion "22.2.0"  "Ventura"        "December  13, 2022"      "macOS v13.1"                             "build 22C65"
+    declareDarwinVersion "22.3.0"  "Ventura"        "February  13, 2023"      "macOS v13.2.1"                           "build 22D68"
+    declareDarwinVersion "22.4.0"  "Ventura"        "March     27, 2023"      "macOS v13.3"                             "build 22E252"
+    declareDarwinVersion "22.5.0"  "Ventura"        "June      21, 2023"      "macOS v13.4.1"                           "build 22F82"
+    declareDarwinVersion "22.6.0"  "Ventura"        "July      29, 2025"      "macOS v13.7.7"                           "build 22H722"
 
-# https://en.wikipedia.org/wiki/MacOS_Sonoma#Release_history
-declareDarwinVersion "23.0.0"  "Sonoma"         "September 26, 2023"      "macOS v14.0"                             "build 23A344"
-declareDarwinVersion "23.1.0"  "Sonoma"         "November  30, 2023"      "macOS v14.1.2"                           "build 23B92"
-declareDarwinVersion "23.2.0"  "Sonoma"         "December  11, 2023"      "macOS v14.2"                             "build 23C64"
-declareDarwinVersion "23.3.0"  "Sonoma"         "February  8,  2024"      "macOS v14.3.1"                           "build 23D60"
-declareDarwinVersion "23.4.0"  "Sonoma"         "March     25, 2024"      "macOS v14.4.1"                           "build 23E224"
-declareDarwinVersion "23.5.0"  "Sonoma"         "May       13, 2024"      "macOS v14.5"                             "build 23F79"
-declareDarwinVersion "23.6.0"  "Sonoma"         "March     24, 2026"      "macOS v14.8.5"                           "build 23J423"
+    # https://en.wikipedia.org/wiki/MacOS_Sonoma#Release_history
+    declareDarwinVersion "23.0.0"  "Sonoma"         "September 26, 2023"      "macOS v14.0"                             "build 23A344"
+    declareDarwinVersion "23.1.0"  "Sonoma"         "November  30, 2023"      "macOS v14.1.2"                           "build 23B92"
+    declareDarwinVersion "23.2.0"  "Sonoma"         "December  11, 2023"      "macOS v14.2"                             "build 23C64"
+    declareDarwinVersion "23.3.0"  "Sonoma"         "February  8,  2024"      "macOS v14.3.1"                           "build 23D60"
+    declareDarwinVersion "23.4.0"  "Sonoma"         "March     25, 2024"      "macOS v14.4.1"                           "build 23E224"
+    declareDarwinVersion "23.5.0"  "Sonoma"         "May       13, 2024"      "macOS v14.5"                             "build 23F79"
+    declareDarwinVersion "23.6.0"  "Sonoma"         "March     24, 2026"      "macOS v14.8.5"                           "build 23J423"
 
-# https://en.wikipedia.org/wiki/MacOS_Sequoia#Release_history
-declareDarwinVersion "24.0.0"  "Sequoia"        "October   3,  2024"      "macOS v15.0.1"                           "build 24A348"
-declareDarwinVersion "24.1.0"  "Sequoia"        "November  19, 2024"      "macOS v15.1.1"                           "build 24B91"
-declareDarwinVersion "24.2.0"  "Sequoia"        "December  11, 2024"      "macOS v15.2"                             "build 24C101"
-declareDarwinVersion "24.3.0"  "Sequoia"        "March     11, 2025"      "macOS v15.3.2"                           "build 24D81"
-declareDarwinVersion "24.4.0"  "Sequoia"        "April     16, 2025"      "macOS v15.4.1"                           "build 24E263"
-declareDarwinVersion "24.5.0"  "Sequoia"        "May       12, 2025"      "macOS v15.5"                             "build 24F74"
-declareDarwinVersion "24.6.0"  "Sequoia"        "March     24, 2026"      "macOS v15.7.5"                           "build 24G624"
+    # https://en.wikipedia.org/wiki/MacOS_Sequoia#Release_history
+    declareDarwinVersion "24.0.0"  "Sequoia"        "October   3,  2024"      "macOS v15.0.1"                           "build 24A348"
+    declareDarwinVersion "24.1.0"  "Sequoia"        "November  19, 2024"      "macOS v15.1.1"                           "build 24B91"
+    declareDarwinVersion "24.2.0"  "Sequoia"        "December  11, 2024"      "macOS v15.2"                             "build 24C101"
+    declareDarwinVersion "24.3.0"  "Sequoia"        "March     11, 2025"      "macOS v15.3.2"                           "build 24D81"
+    declareDarwinVersion "24.4.0"  "Sequoia"        "April     16, 2025"      "macOS v15.4.1"                           "build 24E263"
+    declareDarwinVersion "24.5.0"  "Sequoia"        "May       12, 2025"      "macOS v15.5"                             "build 24F74"
+    declareDarwinVersion "24.6.0"  "Sequoia"        "March     24, 2026"      "macOS v15.7.5"                           "build 24G624"
 
-# http://en.wikipedia.org/wiki/Darwin_%28operating_system%29#Release_history
-declareDarwinVersion "25.0.0"  "Tahoe"          "September 15, 2025"      "macOS v26.0"                             ""
-
+    # http://en.wikipedia.org/wiki/Darwin_%28operating_system%29#Release_history
+    declareDarwinVersion "25.0.0"  "Tahoe"          "September 15, 2025"      "macOS v26.0"                             ""
+}
 
 function get_keys () {
     local file="$1"
@@ -744,25 +745,15 @@ function distribution () {
         ;;
 
     Darwin)
+        declareDarwinVersionTable
         release=$(hostinfo | awk '/Darwin Kernel Version/{printf "%s",substr($4,1,index($4,":")-1);}')
-        if [ -r "$root"/System/Library/Frameworks/AppKit.framework/AppKit ] ; then
+        local appleProbe="$root"/System/Library/Frameworks/AppKit.framework/AppKit
+        if [ -L "$appleProbe" -o -e "$appleProbe" ] ; then
             distrib=apple
             macosxVersion=$(macOSXVersionFromDarwinVersion $release)
             codename=$(macOSXCodenameFromDarwinVersion $release)
         fi
-        # [pascal@localhost:/Users/pascal]$ hostinfo
-        # Mach kernel version:
-        #          Darwin Kernel Version 1.3.7:
-        # Sat Jun  9 11:12:48 PDT 2001; root:xnu/xnu-124.13.obj~1/RELEASE_PPC
-        #
-        #
-        # Kernel configured for up to 2 processors.
-        # 1 processor is physically available.
-        # Processor type: ppc7400 (PowerPC 7400)
-        # Processor active: 0
-        # Primary memory available: 1024.00 megabytes.
-        # Default processor set: 54 tasks, 125 threads, 1 processors
-        # Load average: 0.70, Mach factor: 0.74
+        # TODO: check for GNUstep or others on Darwin?
         ;;
     unknown)
 
