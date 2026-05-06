@@ -1,4 +1,4 @@
-#!/opt/local/bin/bash
+#!/bin/bash
 #******************************************************************************
 #FILE:               distribution
 #LANGUAGE:           bash
@@ -39,6 +39,22 @@
 #   59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #******************************************************************************
 
+if [ -z "${DISTRIBUTION_BASH_REEXEC:-}" ] \
+       && [ "${BASH_VERSINFO[0]:-0}" -le 4 ] \
+       && [ -x /opt/local/bin/bash ] ; then
+    macports_bash_major=$(/opt/local/bin/bash --version 2>/dev/null \
+        | sed -n -e '1s/^.* version \([0-9][0-9]*\)\..*$/\1/p')
+    case "$macports_bash_major" in
+    ''|*[!0-9]*)
+        ;;
+    *)
+        if [ "$macports_bash_major" -gt 4 ] ; then
+            DISTRIBUTION_BASH_REEXEC=1 exec /opt/local/bin/bash "$0" "$@"
+        fi
+        ;;
+    esac
+fi
+
 print_id=0 
 
 function uname(){
@@ -65,6 +81,14 @@ function uname(){
         fi
         ;;
     esac
+}
+
+function hostinfo(){
+    if [ -n "${DISTRIBUTION_TEST_HOSTINFO:-}" ] ; then
+        printf "%s\n" "$DISTRIBUTION_TEST_HOSTINFO"
+    else
+        command hostinfo "$@"
+    fi
 }
 
 function shell-quote(){
@@ -364,7 +388,7 @@ function declareDarwinVersion(){
     local macVersion="$4"
     local notes="$5"
     case "$macVersion" in
-    'OS X'*)
+    'OS X'*|'macOS'*)
         dictionary-set $darwinVersions  "$darwinVersion" "$macVersion"
         dictionary-set $macosxCodenames "$darwinVersion" "$codename"
         ;;
@@ -423,7 +447,6 @@ declareDarwinVersion "14.0.0"  "Yosemite"        "2014"                "OS X v10
 declareDarwinVersion "14.5.0"  "Yosemite"        "2015"                "OS X v10.10.5"                          ""
 declareDarwinVersion "15.0.0"  "El Capitan"      "September 15, 2015"  "OS X v10.11.0"                          ""
 declareDarwinVersion "15.6.0"  "El Capitan"      "July 18, 2016"       "OS X v10.11.6"                          ""
-# We filter on "OS X" so keep "OS X", not "macOS":
 declareDarwinVersion "16.0.0"  "Sierra"          "September 13, 2016"  "OS X v10.12.0"                          "build 16A323"
 declareDarwinVersion "16.1.0"  "Sierra"          "October 24, 2016"    "OS X v10.12.1"                          "build 16B2555 16B2657"
 declareDarwinVersion "16.3.0"  "Sierra"          "December 13, 2016"   "OS X v10.12.2"                          "build 16C67 16C68"
@@ -544,9 +567,45 @@ declareDarwinVersion "20.4.0"  "Big Sur"        "May      3,  2021"       "OS X 
 declareDarwinVersion "20.5.0"  "Big Sur"        "May      24, 2021"       "OS X v11.4"                              "build 20F71"
 
 declareDarwinVersion "20.5.0"  "Big Sur"        "May      19, 2021"       "OS X v11.5beta"                          "build 20G5023d"
+declareDarwinVersion "20.6.0"  "Big Sur"        "September 11, 2023"      "macOS v11.7.10"                          "build 20G1427"
 
+# https://en.wikipedia.org/wiki/MacOS_Monterey#Release_history
+declareDarwinVersion "21.0.1"  "Monterey"       "October   25, 2021"      "macOS v12.0"                             "build 21A344"
+declareDarwinVersion "21.1.0"  "Monterey"       "October   25, 2021"      "macOS v12.0.1"                           "build 21A559"
+declareDarwinVersion "21.2.0"  "Monterey"       "December  13, 2021"      "macOS v12.1"                             "build 21C52"
+declareDarwinVersion "21.3.0"  "Monterey"       "January   26, 2022"      "macOS v12.2"                             "build 21D49"
+declareDarwinVersion "21.4.0"  "Monterey"       "March     31, 2022"      "macOS v12.3.1"                           "build 21E258"
+declareDarwinVersion "21.5.0"  "Monterey"       "May       16, 2022"      "macOS v12.4"                             "build 21F79"
+declareDarwinVersion "21.6.0"  "Monterey"       "July      29, 2024"      "macOS v12.7.6"                           "build 21H1320"
+
+# https://en.wikipedia.org/wiki/MacOS_Ventura#Release_history
+declareDarwinVersion "22.1.0"  "Ventura"        "October   24, 2022"      "macOS v13.0"                             "build 22A380"
+declareDarwinVersion "22.2.0"  "Ventura"        "December  13, 2022"      "macOS v13.1"                             "build 22C65"
+declareDarwinVersion "22.3.0"  "Ventura"        "February  13, 2023"      "macOS v13.2.1"                           "build 22D68"
+declareDarwinVersion "22.4.0"  "Ventura"        "March     27, 2023"      "macOS v13.3"                             "build 22E252"
+declareDarwinVersion "22.5.0"  "Ventura"        "June      21, 2023"      "macOS v13.4.1"                           "build 22F82"
+declareDarwinVersion "22.6.0"  "Ventura"        "July      29, 2025"      "macOS v13.7.7"                           "build 22H722"
+
+# https://en.wikipedia.org/wiki/MacOS_Sonoma#Release_history
+declareDarwinVersion "23.0.0"  "Sonoma"         "September 26, 2023"      "macOS v14.0"                             "build 23A344"
+declareDarwinVersion "23.1.0"  "Sonoma"         "November  30, 2023"      "macOS v14.1.2"                           "build 23B92"
+declareDarwinVersion "23.2.0"  "Sonoma"         "December  11, 2023"      "macOS v14.2"                             "build 23C64"
+declareDarwinVersion "23.3.0"  "Sonoma"         "February  8,  2024"      "macOS v14.3.1"                           "build 23D60"
+declareDarwinVersion "23.4.0"  "Sonoma"         "March     25, 2024"      "macOS v14.4.1"                           "build 23E224"
+declareDarwinVersion "23.5.0"  "Sonoma"         "May       13, 2024"      "macOS v14.5"                             "build 23F79"
+declareDarwinVersion "23.6.0"  "Sonoma"         "March     24, 2026"      "macOS v14.8.5"                           "build 23J423"
+
+# https://en.wikipedia.org/wiki/MacOS_Sequoia#Release_history
+declareDarwinVersion "24.0.0"  "Sequoia"        "October   3,  2024"      "macOS v15.0.1"                           "build 24A348"
+declareDarwinVersion "24.1.0"  "Sequoia"        "November  19, 2024"      "macOS v15.1.1"                           "build 24B91"
+declareDarwinVersion "24.2.0"  "Sequoia"        "December  11, 2024"      "macOS v15.2"                             "build 24C101"
+declareDarwinVersion "24.3.0"  "Sequoia"        "March     11, 2025"      "macOS v15.3.2"                           "build 24D81"
+declareDarwinVersion "24.4.0"  "Sequoia"        "April     16, 2025"      "macOS v15.4.1"                           "build 24E263"
+declareDarwinVersion "24.5.0"  "Sequoia"        "May       12, 2025"      "macOS v15.5"                             "build 24F74"
+declareDarwinVersion "24.6.0"  "Sequoia"        "March     24, 2026"      "macOS v15.7.5"                           "build 24G624"
 
 # http://en.wikipedia.org/wiki/Darwin_%28operating_system%29#Release_history
+declareDarwinVersion "25.0.0"  "Tahoe"          "September 15, 2025"      "macOS v26.0"                             ""
 
 
 function get_keys () {
