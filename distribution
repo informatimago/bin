@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/opt/local/bin/bash
 #******************************************************************************
 #FILE:               distribution
 #LANGUAGE:           bash
@@ -15,6 +15,7 @@
 #AUTHORS
 #    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
 #MODIFICATIONS
+#    2026-05-06 <PJB> Added support for MSYS2 /etc/os-release.
 #    2013-08-10 <PJB> Added support for /etc/os-release (ubuntu).
 #    2011-11-05 <PJB> Added support for MacOSX.
 #    2001-04-29 <PJB> Creation.
@@ -39,6 +40,32 @@
 #******************************************************************************
 
 print_id=0 
+
+function uname(){
+    case "$1" in
+    -o)
+        if [ -n "${DISTRIBUTION_TEST_UNAME_O:-}" ] ; then
+            printf "%s\n" "$DISTRIBUTION_TEST_UNAME_O"
+        else
+            command uname "$@"
+        fi
+        ;;
+    -r)
+        if [ -n "${DISTRIBUTION_TEST_UNAME_R:-}" ] ; then
+            printf "%s\n" "$DISTRIBUTION_TEST_UNAME_R"
+        else
+            command uname "$@"
+        fi
+        ;;
+    *)
+        if [ -n "${DISTRIBUTION_TEST_UNAME:-}" ] ; then
+            printf "%s\n" "$DISTRIBUTION_TEST_UNAME"
+        else
+            command uname "$@"
+        fi
+        ;;
+    esac
+}
 
 function shell-quote(){
     # Synopsis: shell-quote argument…
@@ -121,9 +148,9 @@ function vector-set(){
     local index="$2"
     local value="$3"
     local oldLength=$(vector-length $vectVar)
-    while [[ $oldLength < $index ]] ; do
+    while (( oldLength < index )) ; do
         eval ${vectVar}[${oldLength}]=''
-        oldLength=$(( $oldLength + 1 ))
+        oldLength=$(( oldLength + 1 ))
     done
     eval "${vectVar}[${index}]=$(shell-quote "${value}")"
 }
@@ -140,7 +167,7 @@ function vector-equal(){
     elif [ $(vector-length "$v1") -eq $(vector-length "$v2") ] ; then
         local len=$(vector-length "$v2")
         local i
-        for ((i=0;$i<$len;i++)) ; do
+        for ((i=0; i<len; i++)) ; do
             if [ "$(vector-ref "$v1" $i)" != "$(vector-ref "$v2" $i)"  ] ; then
                 return 1
             fi
@@ -155,7 +182,7 @@ function vector-equal(){
 function vector-elements(){
     local vectVar="$1"
     local len=$(vector-length $vectVar)
-    for ((i=0; $i<$len ;i++)) ; do
+    for ((i=0; i<len; i++)) ; do
         echo "$(shell-quote "$(vector-ref $vectVar $i)")"
     done
 }
@@ -192,7 +219,7 @@ function vector-inspect(){
     local vectVar="$1"
     local i=0
     local size=$(vector-length $vectVar)
-    for ((i=0;i<$size;i++)) ; do
+    for ((i=0; i<size; i++)) ; do
         printf "%s[%s]=%s\n" $vectVar $i "$(shell-quote "$(vector-ref $vectVar $i)")"
     done
 }
@@ -207,7 +234,7 @@ function vector-print(){
     local size=$(vector-length $vectVar)
     local sep=""
     printf "#("
-    for ((i=0;i<$size;i++)) ; do
+    for ((i=0; i<size; i++)) ; do
         printf "%s" "$sep"
         sep=" "
         object-prin1 "$(vector-ref $vectVar $i)"
@@ -269,9 +296,9 @@ function dictionary-keys(){
     if [ "$(vector-ref $dictVar 1)" = dictionary ] ; then
         local i=2
         local len=$(vector-length $dictVar)
-        while [[ $i < $len ]] ; do
+        while (( i < len )) ; do
             echo  "$(vector-ref $dictVar $i)"
-            i=$(( $i + 2 ))
+            i=$(( i + 2 ))
         done
     else
         err "$dictVar is not a dictionary."
@@ -575,12 +602,16 @@ function distribution () {
 
     case "$systeme" in
 
-    GNU/Linux|Linux)
+    GNU/Linux|Linux|Msys|MSYS*|MINGW*|CYGWIN*)
         if [ -e "$root"/etc/os-release ] ; then
             distrib=$(get_value "$root"/etc/os-release ID)
             release=$(get_value "$root"/etc/os-release VERSION_ID)
+            if [ -z "$release" ] ; then
+                release=$(uname -r) || release=unknown
+            fi
             # Checked with Ubuntu 13.04
             # Checked with Debian 7.2
+            # Checked with MSYS2.
 
         elif [ -e "$root"/etc/mandrake-release ] ; then
             distrib=mandrake
