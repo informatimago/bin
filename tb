@@ -1,9 +1,8 @@
 #!/bin/bash
-nc termbin.com 9999 | tr -d '\000'
+trap 'rm -f /tmp/$$.url'  EXIT
 
-    # | xclip -i
-# xclip -o
-
-
-
+nc termbin.com 9999 | tr -d '\000' > /tmp/$$.url
+type -p xclip  >/dev/null && xclip -i < /tmp/$$.url
+type -p pbcopy >/dev/null && pbcopy   < /tmp/$$.url
+cat /tmp/$$.url
 
