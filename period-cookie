@@ -107,8 +107,6 @@ function period_cookie(){
             # Before 10.4:
             output=/dev/stdout
         fi
-        # in all cases:
-        output=/dev/stdout
     else
         output=/dev/tty
     fi
