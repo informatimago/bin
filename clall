@@ -59,13 +59,170 @@ usage(){
     pname="$(basename $0)"
     printf "%s usage:\n\n  %s [-f|--full | -r|--result] expression...\n\n" "$pname" "$pname"
     printf "      -w|--which       shows the pathnames of the available implementations. \n"
+    printf "      -l|--list-implementation\n"
+    printf "                       lists the available implementations by name, with their\n"
+    printf "                       initial.  Note that the initials are attributed amongst\n"
+    printf "                       the implementations available at the time of the call,\n"
+    printf "                       so they may change when one is installed or removed.\n"
+    printf "      -s|--select initials\n"
+    printf "      -s|--select name[,name...]\n"
+    printf "                       runs only the selected implementations; the argument is\n"
+    printf "                       either a string of initials (see --list-implementation),\n"
+    printf "                       or a comma separated list of implementation names.\n"
+    printf "                       The option can be given several times, the selections\n"
+    printf "                       are cumulated.  The default is to run all the available\n"
+    printf "                       implementations.\n"
     printf "      -f|--full        shows detailed results.\n"
-    printf "      -s|--short       which is the default, shows output and results \n"
+    printf "      --short          which is the default, shows output and results \n"
     printf "                       if no error is detected, or full if there's an error.\n"
     printf "      -r|--result      shows only the results, on a single line, for each implementation.\n"
     printf "      -d|--debug       keep the script and output for debugging.\n"
     printf "      -- userargs...   passes further user arguments.\n"
+    printf "\n"
+    printf "  Examples:\n\n"
+    printf "      %s -s sc '(print \"hi\")'\n" "$pname"
+    printf "      %s --select sbcl,ccl,clisp '(print \"hi\")'\n" "$pname"
     printf "\n\n"
+}
+
+
+# All the implementations we know about, in the order in which they're
+# run.  The name is also the name of the command that's searched in the
+# PATH; see run_implementation below for the command line of each one.
+all_implementations=(abcl alisp ccl clisp cmucl lisp ecl sbcl winccl winsbcl)
+
+# Only those that are actually installed are considered: implementations
+# is the subset of all_implementations found in the PATH.
+implementations=()
+compute_implementations(){
+    local implementation
+    for implementation in "${all_implementations[@]}" ; do
+        if type -p "$implementation" >/dev/null ; then
+            implementations[${#implementations[@]}]="$implementation"
+        fi
+    done
+}
+
+# The initial of each available implementation: the first letter of its
+# name, or, when that letter is already taken by a previous available
+# implementation, the next free digit.  Since only the available
+# implementations are taken into account, the initials may change when
+# an implementation is installed or removed.
+implementation_initials=()
+compute_implementation_initials(){
+    local used="" digit=0 i name initial
+    for i in "${!implementations[@]}" ; do
+        name="${implementations[$i]}"
+        initial="${name:0:1}"
+        case "$used" in
+        *"$initial"*)
+            initial=""
+            while [ $digit -le 9 ] ; do
+                case "$used" in
+                *"$digit"*) digit=$(( digit + 1 )) ;;
+                *)          initial="$digit" ; break ;;
+                esac
+            done
+            ;;
+        esac
+        used="${used}${initial}"
+        implementation_initials[$i]="$initial"
+    done
+}
+
+compute_implementations
+compute_implementation_initials
+
+list_implementations(){
+    local i
+    if [ ${#implementations[@]} -eq 0 ] ; then
+        printf "There's no Common Lisp implementation available.\n\n"
+        return 0
+    fi
+    printf "Available implementations:\n\n"
+    for i in "${!implementations[@]}" ; do
+        printf "      %s  %-10s %s\n" "${implementation_initials[$i]:--}" \
+               "${implementations[$i]}" "$(type -p "${implementations[$i]}")"
+    done
+    printf "\n"
+}
+
+# The name of the available implementation with the given initial, or nothing.
+implementation_named_by_initial(){
+    local i
+    for i in "${!implementations[@]}" ; do
+        if [ -n "${implementation_initials[$i]}" -a "${implementation_initials[$i]}" = "$1" ] ; then
+            printf "%s" "${implementations[$i]}"
+            return 0
+        fi
+    done
+    return 1
+}
+
+implementation_named(){
+    local i
+    for i in "${implementations[@]}" ; do
+        if [ "$i" = "$1" ] ; then
+            printf "%s" "$i"
+            return 0
+        fi
+    done
+    return 1
+}
+
+selected_implementations=""
+
+implementation_selected(){
+    case " $selected_implementations " in
+    *" $1 "*) return 0 ;;
+    *)        return 1 ;;
+    esac
+}
+
+add_implementation(){
+    implementation_selected "$1" || selected_implementations="$selected_implementations $1"
+}
+
+# Whether the name is one of the implementations we know about, whether
+# it's installed or not.
+implementation_known(){
+    local i
+    for i in "${all_implementations[@]}" ; do
+        if [ "$i" = "$1" ] ; then return 0 ; fi
+    done
+    return 1
+}
+
+# Parses a --select argument: a comma separated list of items; each item
+# is either an implementation name, or a string of initials.  Only the
+# available implementations can be selected; selecting a known but
+# uninstalled implementation is merely warned about, since --select is
+# also used to write scripts that must run on various hosts.
+select_implementations(){
+    local items item name rest initial
+    items="$(printf '%s' "$1" | tr 'A-Z,' 'a-z ')"
+    for item in $items ; do
+        if name="$(implementation_named "$item")" ; then
+            add_implementation "$name"
+        elif implementation_known "$item" ; then
+            printf "%s warning: The implementation %s is not available here; ignored.\n" \
+                   "$(basename $0)" "$item" >&2
+        else
+            rest="$item"
+            while [ -n "$rest" ] ; do
+                initial="${rest:0:1}"
+                rest="${rest:1}"
+                if name="$(implementation_named_by_initial "$initial")" ; then
+                    add_implementation "$name"
+                else
+                    printf "%s error: There's no available implementation named or with initial: %s\n\n" \
+                           "$(basename $0)" "$initial" >&2
+                    list_implementations >&2
+                    exit 1
+                fi
+            done
+        fi
+    done
 }
 
 
@@ -74,13 +231,23 @@ cygwin="C:\\\\cygwin" # the root of cygwin, where it is installed.
 command=short
 which=0
 keepscript=0
+selection_given=0
 user_args=()
 sexps=()
 while [ $# -ge 1 ] ; do
     case "$1" in
     -w|--which)   which=1        ; shift ;;
+    -l|--list-implementation|--list-implementations)
+                  list_implementations ; exit 0 ;;
+    -s|--select)  shift
+                  if [ $# -lt 1 ] ; then
+                      printf "%s error: The --select option requires an argument.\n" "$(basename $0)" >&2
+                      usage >&2 ; exit 1
+                  fi
+                  selection_given=1
+                  select_implementations "$1" ; shift ;;
     -f|--full)    command=full   ; shift ;;
-    -s|--short)   command=short  ; shift ;;
+    --short)      command=short  ; shift ;;
     -r|--result)  command=result ; shift ;;
     -d|--debug)   keepscript=1   ; shift ;;
     --)           shift ; user_args=(-- "$@") ; shift "$#" ;;
@@ -89,8 +256,13 @@ while [ $# -ge 1 ] ; do
     esac
 done
 
+# No --select option: run all the available implementations.
+if [ $selection_given -eq 0 ] ; then
+    selected_implementations=" ${implementations[*]} "
+fi
+
 if [ $keepscript -eq 0 ] ; then
-    trap 'rm "$epilog" "$script" "$winscript" "$output" "${errors[@]}"' 0
+    trap 'rm -f "$epilog" "$script" "$winscript" "$output" "${errors[@]}"' 0
 fi
 
 clall_lisp='
@@ -317,23 +489,34 @@ abcl_cli_init=(--eval '(setq *load-verbose* nil)')
 lisp_cli_init=( -eval '(setq *load-verbose* nil)')
 sbcl_cli_init=(--eval '(setf sb-impl::*default-external-format* :utf-8)')
 
-runcl abcl     --batch --noinform --noinit              "${abcl_cli_init[@]}"  --load  "$script"
-runcl alisp     -batch -qq                                                      -L     "$script" -kill
-runcl ccl      --batch --no-init                                               --load  "$script"
-runcl clisp     -ansi  -q  -norc                                                       "$script"
-# debian calls cmucl cmucl instead of lisp.
-runcl cmucl     -noinit                                 "${lisp_cli_init[@]}"   -load  "$script"
-runcl lisp      -noinit                                 "${lisp_cli_init[@]}"   -load  "$script"
-runcl ecl                  -norc                                                -load  "$script"
-# we can't run gcl, because it can't handle errors. (ignore-errors, handler-case).
-# runcl gcl       -batch                                                          -load  "$script"
-# runcl mocl       repl --verbose --android /tmp/  < "$script"
-runcl sbcl     --noinform --no-userinit                 "${sbcl_cli_init[@]}"  --load  "$script"
+function run_implementation(){
+    case "$1" in
+    abcl)    runcl abcl     --batch --noinform --noinit              "${abcl_cli_init[@]}"  --load  "$script" ;;
+    alisp)   runcl alisp     -batch -qq                                                      -L     "$script" -kill ;;
+    ccl)     runcl ccl      --batch --no-init                                               --load  "$script" ;;
+    clisp)   runcl clisp     -ansi  -q  -norc                                                       "$script" ;;
+    # debian calls cmucl cmucl instead of lisp.
+    cmucl)   runcl cmucl     -noinit                                 "${lisp_cli_init[@]}"   -load  "$script" ;;
+    lisp)    runcl lisp      -noinit                                 "${lisp_cli_init[@]}"   -load  "$script" ;;
+    ecl)     runcl ecl                  -norc                                                -load  "$script" ;;
+    # we can't run gcl, because it can't handle errors. (ignore-errors, handler-case).
+    # gcl)     runcl gcl       -batch                                                          -load  "$script" ;;
+    # mocl)    runcl mocl       repl --verbose --android /tmp/  < "$script" ;;
+    sbcl)    runcl sbcl     --noinform --no-userinit                 "${sbcl_cli_init[@]}"  --load  "$script" ;;
 
-runcl winccl   --batch --no-init                                               --load  $(winquote $winscript)
-runcl winsbcl  --noinform --no-userinit                                        --load  $(winquote $winscript)
+    winccl)  runcl winccl   --batch --no-init                                               --load  $(winquote $winscript) ;;
+    winsbcl) runcl winsbcl  --noinform --no-userinit                                        --load  $(winquote $winscript) ;;
 
-# runcl maclispw -tty -init - -eval '(setq *load-verbose* nil)' -load "$script"
+    # maclispw) runcl maclispw -tty -init - -eval '(setq *load-verbose* nil)' -load "$script" ;;
+    *)       printf "%s error: No command line known for the implementation: %s\n" "$(basename $0)" "$1" >&2 ;;
+    esac
+}
+
+for implementation in "${implementations[@]}" ; do
+    if implementation_selected "$implementation" ; then
+        run_implementation "$implementation"
+    fi
+done
 
 if [ "$command" != "result" -a ${#sexps[@]} -gt 0 ] ; then
     printf '\n'
