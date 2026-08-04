@@ -1,0 +1,4 @@
+#!/bin/bash
+project_id="$1"
+job_id="$2"
+glab api "projects/${project_id}/jobs/${job_id}" | jq .pipeline.id

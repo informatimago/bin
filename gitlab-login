@@ -1,0 +1,115 @@
+#!/bin/bash
+
+home=/c/msys64/home/PPBN02261
+home=$HOME
+
+usage() {
+  echo "Usage: ${0##*/} REMOTE|REMOTE-URL" >&2
+  exit 2
+}
+
+test "$#" -eq 1 || usage
+selector=$1
+
+git rev-parse --git-dir >/dev/null 2>&1 || {
+  echo "Not in a Git repository" >&2
+  exit 1
+}
+
+if git remote get-url "$selector" >/dev/null 2>&1; then
+  remote=$selector
+  url=$(git remote get-url "$remote")
+else
+  remote=
+  while IFS= read -r candidate; do
+    while IFS= read -r candidate_url; do
+      if test "$candidate_url" = "$selector"; then
+        test -z "$remote" || test "$remote" = "$candidate" || {
+          echo "URL belongs to more than one remote: $selector" >&2
+          exit 1
+        }
+        remote=$candidate
+        url=$candidate_url
+      fi
+    done < <(
+      git remote get-url --all "$candidate"
+      git remote get-url --push --all "$candidate"
+    )
+  done < <(git remote)
+  test -n "$remote" || {
+    echo "Not a URL of any remote in this repository: $selector" >&2
+    exit 1
+  }
+fi
+
+case $url in
+  http://*|https://*|ssh://*)
+    scheme=${url%%://*}
+    authority_and_path=${url#*://}
+    authority=${authority_and_path%%/*}
+    path=${authority_and_path#*/}
+    if test "$authority" != "${authority#*@}"; then
+      user=${authority%@*}
+      authority=${authority#*@}
+    else
+      user=
+    fi
+    server=${authority%%:*}
+    url_port=
+    test "$server" = "$authority" || url_port=${authority#*:}
+    ;;
+  *@*:*)
+    scheme=ssh
+    user=${url%%@*}
+    server_and_path=${url#*@}
+    server=${server_and_path%%:*}
+    path=${server_and_path#*:}
+    url_port=
+    ;;
+  *)
+    echo "Unsupported remote URL: $url" >&2
+    exit 1
+    ;;
+esac
+
+path=${path#/}
+path=${path%.git}
+repo=${path##*/}
+project=${path%/*}
+test -n "$server" && test -n "$project" && test -n "$repo" || {
+  echo "Incomplete remote URL: $url" >&2
+  exit 1
+}
+
+if test -z "$user"; then
+  read -r -p "GitLab user for $server: " user </dev/tty
+  test -n "$user" || {
+    echo "A GitLab user is required" >&2
+    exit 1
+  }
+fi
+
+branch=$(git branch --show-current)
+test -n "$branch" || {
+  echo "Cannot pull while HEAD is detached" >&2
+  exit 1
+}
+
+authinfo_port=gitlab
+credential_host=$server
+test -z "$url_port" || credential_host=$server:$url_port
+
+token=$(source "$home/rc/bash/lib/authinfo.bash" && get_authinfo_password machine "$server" port "$authinfo_port")
+test -n "$token" || {
+  echo "No token returned" >&2
+  exit 1
+}
+
+git remote set-url "$remote" "https://${user}@${credential_host}/${project}/${repo}.git" || exit 1
+printf 'protocol=https\nhost=%s\nusername=%s\n\n'              "$credential_host" "$user"          | git credential reject || exit 1
+printf 'protocol=https\nhost=%s\nusername=%s\npassword=%s\n\n' "$credential_host" "$user" "$token" | git credential approve || exit 1
+git pull "$remote" "$branch" --set-upstream
+
+status=$?
+unset token
+exit "$status"

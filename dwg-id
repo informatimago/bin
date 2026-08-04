@@ -1,0 +1,2 @@
+#!/bin/bash
+dwg-identify "$@" | gsed -E 's/([^[:space:]]+[[:space:]]+){6}/&\n/g'

@@ -1,0 +1,5 @@
+#!/bin/bash
+project_id="$1"
+pipeline_id="$2"
+glab api "projects/${project_id}/pipelines/${pipeline_id}/jobs" --paginate \
+    | jq -r '.[] | select(.artifacts_file != null) | "\(.id)\t\(.stage)\t\(.name)\t\(.web_url)/artifacts/download"'

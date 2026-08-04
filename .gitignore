@@ -8,6 +8,7 @@ ansi-test
 bash2pyengine
 batch-emerge
 bin-to-c-array
+box
 buzzword
 capitalize
 cddb-to-tag
@@ -19,6 +20,7 @@ clean-bd-archive
 clean-name
 columnify
 commands
+commands-*
 cookie
 cookie-diff
 cookie-loop
@@ -51,6 +53,7 @@ merge
 mfod
 new-password
 news-to-mbox
+next-tweet
 nls
 node-old
 ollama-git-log-message

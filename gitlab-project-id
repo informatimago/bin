@@ -1,0 +1,4 @@
+#!/bin/bash
+group_name="$1"
+project_name="$2"
+glab api "projects/${group_name}%2F${project_name}" | jq .id

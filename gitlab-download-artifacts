@@ -1,0 +1,23 @@
+#!/bin/bash
+group_name="$1"
+project_name="$2"
+pipeline_id="$3"
+
+auth_options=()
+if [ -r  "$HOME/rc/bash/lib/authinfo.bash" ] ; then
+    source "$HOME/rc/bash/lib/authinfo.bash"
+    token=$(get_authinfo_password machine gitlab.com port gitlab)
+    auth_options=(-H "PRIVATE-TOKEN: ${token}")
+fi
+
+project_id=$(glab api "projects/${group_name}%2F${project_name}" | jq .id)
+
+glab api "projects/${project_id}/pipelines/${pipeline_id}/jobs" --paginate \
+    | jq -r '.[] | select(.artifacts_file != null) | "\(.id)\t\(.stage)\t\(.name)\t\(.web_url)/artifacts/download"' \
+    | while read job_id stage job_name url ; do
+
+    printf '# downloading %s to %s\n' "${url}" "${zip_name}"
+    zip_name="${pipeline_id}--${stage}--${job_name}.zip"
+    curl -L -o "${zip_name}" "${auth_options[@]}" "${url}"
+done
+
