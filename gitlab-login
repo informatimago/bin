@@ -97,10 +97,14 @@ credential_host=$server
 test -z "$url_port" || credential_host=$server:$url_port
 
 token=$(source "$home/rc/bash/lib/authinfo.bash" && get_authinfo_password machine "$server" port "$authinfo_port")
-test -n "$token" || {
-  echo "No token returned" >&2
-  exit 1
-}
+if test -z "$token"; then
+  read -r -s -p "GitLab token for ${user}@${server}: " token </dev/tty
+  echo >&2
+  test -n "$token" || {
+    echo "A GitLab token is required" >&2
+    exit 1
+  }
+fi
 
 https_url=https://${user}@${credential_host}/${project}/${repo}.git
 
