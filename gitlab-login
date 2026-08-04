@@ -4,43 +4,38 @@ home=/c/msys64/home/PPBN02261
 home=$HOME
 
 usage() {
-  echo "Usage: ${0##*/} REMOTE|REMOTE-URL" >&2
+  echo "Usage: ${0##*/} REMOTE|REPO-URL" >&2
+  echo "  REMOTE:   set credentials and pull an existing remote of the current repository" >&2
+  echo "  REPO-URL: set credentials and clone the repository at that URL" >&2
   exit 2
 }
 
 test "$#" -eq 1 || usage
 selector=$1
 
-git rev-parse --git-dir >/dev/null 2>&1 || {
-  echo "Not in a Git repository" >&2
-  exit 1
-}
+case $selector in
+  http://*|https://*|ssh://*|*@*:*)
+    # A URL designates a new remote repository to clone.
+    mode=clone
+    remote=
+    url=$selector
+    ;;
+  *)
+    mode=pull
 
-if git remote get-url "$selector" >/dev/null 2>&1; then
-  remote=$selector
-  url=$(git remote get-url "$remote")
-else
-  remote=
-  while IFS= read -r candidate; do
-    while IFS= read -r candidate_url; do
-      if test "$candidate_url" = "$selector"; then
-        test -z "$remote" || test "$remote" = "$candidate" || {
-          echo "URL belongs to more than one remote: $selector" >&2
-          exit 1
-        }
-        remote=$candidate
-        url=$candidate_url
-      fi
-    done < <(
-      git remote get-url --all "$candidate"
-      git remote get-url --push --all "$candidate"
-    )
-  done < <(git remote)
-  test -n "$remote" || {
-    echo "Not a URL of any remote in this repository: $selector" >&2
-    exit 1
-  }
-fi
+    git rev-parse --git-dir >/dev/null 2>&1 || {
+      echo "Not in a Git repository" >&2
+      exit 1
+    }
+
+    git remote get-url "$selector" >/dev/null 2>&1 || {
+      echo "Not a remote in this repository: $selector" >&2
+      exit 1
+    }
+    remote=$selector
+    url=$(git remote get-url "$remote")
+    ;;
+esac
 
 case $url in
   http://*|https://*|ssh://*)
@@ -89,11 +84,13 @@ if test -z "$user"; then
   }
 fi
 
-branch=$(git branch --show-current)
-test -n "$branch" || {
-  echo "Cannot pull while HEAD is detached" >&2
-  exit 1
-}
+if test "$mode" = pull; then
+  branch=$(git branch --show-current)
+  test -n "$branch" || {
+    echo "Cannot pull while HEAD is detached" >&2
+    exit 1
+  }
+fi
 
 authinfo_port=gitlab
 credential_host=$server
@@ -105,10 +102,17 @@ test -n "$token" || {
   exit 1
 }
 
-git remote set-url "$remote" "https://${user}@${credential_host}/${project}/${repo}.git" || exit 1
+https_url=https://${user}@${credential_host}/${project}/${repo}.git
+
 printf 'protocol=https\nhost=%s\nusername=%s\n\n'              "$credential_host" "$user"          | git credential reject || exit 1
 printf 'protocol=https\nhost=%s\nusername=%s\npassword=%s\n\n' "$credential_host" "$user" "$token" | git credential approve || exit 1
-git pull "$remote" "$branch" --set-upstream
+
+if test "$mode" = clone; then
+  git clone "$https_url"
+else
+  git remote set-url "$remote" "$https_url" || exit 1
+  git pull "$remote" "$branch" --set-upstream
+fi
 
 status=$?
 unset token
