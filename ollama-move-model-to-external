@@ -1,0 +1,179 @@
+#!/usr/bin/env bash
+#
+# ollama-move-model-to-external    MODEL...   move models   ondisk -> external
+# ollama-copy-model-from-external  MODEL...   copy models   external -> ondisk
+#
+# Both commands are this same script (the second is a symlink to it); the
+# direction and whether the source copy is removed depend on the name it is
+# invoked under.
+#
+# An ollama model store is:
+#   manifests/<host>/<namespace>/<model>/<tag>   JSON: config + layers digests
+#   blobs/sha256-<hex>                           one file per digest
+#   metadata/sha256-<hex>.json                   cached GGUF info, per digest
+# A model is copied blobs and metadata first, manifest last, so an interrupted
+# copy never shows up as a model in the destination.
+
+set -u
+
+ondisk=${OLLAMA_ONDISK:-$HOME/.ollama/models-ondisk}
+external=${OLLAMA_EXTERNAL:-$HOME/.ollama/models}
+
+case "$(basename "$0")" in
+  ollama-copy-model-from-external) src=$external dst=$ondisk   move=false ;;
+  *)                                src=$ondisk   dst=$external move=true  ;;
+esac
+
+dry_run=false
+verify=false
+pname=$(basename "$0")
+
+usage() {
+  cat <<EOF
+Usage: $pname [-n|--dry-run] [--verify] MODEL...
+       $pname            (no MODEL: list the models available to transfer)
+
+ollama-move-model-to-external    moves models from the on-disk store to the
+                                  external store (copy, then remove from on-disk
+                                  the blobs no other on-disk model uses).
+ollama-copy-model-from-external  copies models from the external store to the
+                                  on-disk store.
+
+MODEL is an ollama model name, e.g. qwen3-coder:30b (tag defaults to latest).
+
+  -n, --dry-run   show what would be done, do nothing
+  --verify        check the sha256 of every copied blob (slow on big models)
+
+Stores (override with the environment variables):
+  OLLAMA_ONDISK    $ondisk
+  OLLAMA_EXTERNAL  $external
+EOF
+}
+
+die()  { printf '%s: %s\n' "$pname" "$*" >&2; exit 1; }
+warn() { printf '%s: %s\n' "$pname" "$*" >&2; }
+run()  { if $dry_run; then printf '  would: %s\n' "$*"; else "$@"; fi; }
+
+# Model name -> manifest path relative to manifests/, as ollama resolves it.
+manifest_path() {
+  local name=$1 tag=latest
+  if [[ ${name##*/} == *:* ]]; then tag=${name##*:}; name=${name%:*}; fi
+  case "$name" in
+    */*/*) ;;                                     # host/namespace/model
+    */*)   name=registry.ollama.ai/$name ;;       # namespace/model
+    *)     name=registry.ollama.ai/library/$name ;;
+  esac
+  printf '%s/%s\n' "$name" "$tag"
+}
+
+# Manifest file -> its digests as blob file names (sha256-<hex>), one per line.
+manifest_blobs() {
+  python3 -I -c '
+import json, sys
+m = json.load(open(sys.argv[1]))
+for l in [m["config"]] + m["layers"]:
+    print(l["digest"].replace(":", "-"))' "$1"
+}
+
+# wc -c stats regular files instead of reading them, and behaves the same with
+# BSD and GNU coreutils (stat -f means different things in the two).
+file_size() { wc -c <"$1" | tr -d ' '; }
+
+list_models() {
+  local store=$1
+  [[ -d $store/manifests ]] || return 0
+  (cd "$store/manifests" && find . -type f ! -name '._*' | sed 's|^\./||' | sort) |
+    sed -E 's|^registry\.ollama\.ai/library/||; s|^registry\.ollama\.ai/||; s|/([^/]+)$|:\1|'
+}
+
+# Copy file $1 to $2 through a temporary name, without extended attributes
+# (which would otherwise become ._* files on the exFAT external drive).
+copy_file() {
+  run mkdir -p "$(dirname "$2")"
+  run /bin/cp -X "$1" "$2.ollama-tmp" && run mv -f "$2.ollama-tmp" "$2"
+}
+
+copy_model() {
+  local rel=$1 blob size
+  local sman=$src/manifests/$rel dman=$dst/manifests/$rel
+  for blob in $(manifest_blobs "$sman"); do
+    [[ -e $src/blobs/$blob ]] || { warn "$rel: missing blob $blob in $src"; return 1; }
+    size=$(file_size "$src/blobs/$blob")
+    if [[ -e $dst/blobs/$blob && $(file_size "$dst/blobs/$blob") == "$size" ]]; then
+      printf '  have  %s\n' "$blob"
+    else
+      printf '  copy  %s  (%s bytes)\n' "$blob" "$size"
+      copy_file "$src/blobs/$blob" "$dst/blobs/$blob" || return 1
+    fi
+    if $verify && ! $dry_run; then
+      [[ $(shasum -a 256 "$dst/blobs/$blob" | cut -d' ' -f1) == "${blob#sha256-}" ]] ||
+        { warn "$rel: checksum mismatch on $dst/blobs/$blob"; return 1; }
+    fi
+    if [[ -e $src/metadata/$blob.json && ! -e $dst/metadata/$blob.json ]]; then
+      copy_file "$src/metadata/$blob.json" "$dst/metadata/$blob.json" || return 1
+    fi
+  done
+  copy_file "$sman" "$dman"
+}
+
+# Remove the model's manifest from the source store, then the blobs and
+# metadata of that model no remaining manifest of the source store uses.
+remove_model() {
+  local rel=$1 blob dir
+  local sman=$src/manifests/$rel blobs keep
+  blobs=$(manifest_blobs "$sman") || return 1
+  run rm -f "$sman"
+  dir=$(dirname "$sman")
+  while ! $dry_run && [[ $dir != "$src/manifests" ]] && rmdir "$dir" 2>/dev/null; do
+    dir=$(dirname "$dir")
+  done
+  keep=$(find "$src/manifests" -type f ! -name '._*' ! -path "$sman" -print0 |
+           while IFS= read -r -d '' f; do manifest_blobs "$f"; done | sort -u)
+  for blob in $blobs; do
+    if grep -qx "$blob" <<<"$keep"; then
+      printf '  keep  %s  (used by another model)\n' "$blob"
+    else
+      printf '  rm    %s\n' "$blob"
+      run rm -f "$src/blobs/$blob" "$src/metadata/$blob.json"
+    fi
+  done
+}
+
+models=()
+while (( $# )); do
+  case "$1" in
+    -n|--dry-run) dry_run=true ;;
+    --verify)     verify=true ;;
+    -h|--help)    usage; exit 0 ;;
+    --)           shift; models+=("$@"); break ;;
+    -*)           usage >&2; exit 2 ;;
+    *)            models+=("$1") ;;
+  esac
+  shift
+done
+
+[[ -d $external/manifests ]] ||
+  die "external store not available: $external (is the drive mounted?)"
+$dry_run || mkdir -p "$ondisk"/{blobs,manifests,metadata}
+[[ $(cd "$src" && pwd -P) != "$(cd "$dst" && pwd -P)" ]] ||
+  die "source and destination are the same store: $(cd "$src" && pwd -P)"
+
+if (( ${#models[@]} == 0 )); then
+  echo "Models in $src:"
+  list_models "$src" | sed 's/^/  /'
+  exit 0
+fi
+
+status=0
+for model in "${models[@]}"; do
+  rel=$(manifest_path "$model")
+  if [[ ! -f $src/manifests/$rel ]]; then
+    warn "$model: not found in $src"
+    [[ -e $src/manifests-v2/$rel ]] && warn "$model: only in manifests-v2, which this script does not handle"
+    status=1; continue
+  fi
+  echo "$model: $src -> $dst"
+  if ! copy_model "$rel"; then warn "$model: copy failed, source left untouched"; status=1; continue; fi
+  if $move; then remove_model "$rel" || status=1; fi
+done
+exit $status
