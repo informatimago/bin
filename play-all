@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+
+set -u
+
+playlist=.play-all-playlist
+reset=false
+show_list=false
+player=${PLAY_ALL_PLAYER:-}
+
+usage() {
+  cat <<'EOF'
+Usage: play-all [--reset] [--list] [--player COMMAND]
+
+Play each .mp3, .m4a, .opus, and .flac file in the current directory once,
+in lexicographic order. Progress is stored in .play-all-playlist.
+
+Options:
+  -r, --reset           rebuild the playlist and start it over
+  -l, --list            print the playlist without playing it
+  -p, --player COMMAND  use COMMAND instead of auto-detecting a player
+  -h, --help            show this help
+
+The PLAY_ALL_PLAYER environment variable is another way to choose COMMAND.
+EOF
+}
+
+while (($#)); do
+  case $1 in
+    -r|--reset) reset=true ;;
+    -l|--list) show_list=true ;;
+    -p|--player)
+      shift
+      (($#)) || { echo "play-all: --player needs a command" >&2; exit 2; }
+      player=$1
+      ;;
+    -h|--help) usage; exit 0 ;;
+    --) shift; break ;;
+    *) echo "play-all: unknown option: $1" >&2; usage >&2; exit 2 ;;
+  esac
+  shift
+done
+
+(($# == 0)) || { echo "play-all: unexpected argument: $1" >&2; exit 2; }
+
+build_playlist() {
+  local tmp file
+  tmp="${playlist}.tmp.$$"
+  : > "$tmp" || exit 1
+
+  # This line-oriented file intentionally excludes names containing newlines.
+  while IFS= read -r file; do
+    printf '[ ]\t%s\n' "$file" >> "$tmp"
+  done < <(
+    find . -maxdepth 1 -type f \( \
+      -iname '*.mp3' -o -iname '*.m4a' -o \
+      -iname '*.opus' -o -iname '*.flac' \
+    \) ! -name $'*\n*' -print | sed 's|^\./||' | LC_ALL=C sort
+  )
+
+  mv -f -- "$tmp" "$playlist"
+}
+
+if $reset || [[ ! -f $playlist ]]; then
+  build_playlist
+  $reset && echo "Playlist rebuilt."
+fi
+
+if $show_list; then
+  cat -- "$playlist"
+  exit 0
+fi
+
+if ! grep -q '^\[ \]' "$playlist"; then
+  echo "All files in the playlist have already been played."
+  echo "Run 'play-all --reset' to rebuild it and start again."
+  exit 0
+fi
+
+if [[ -z $player ]]; then
+  for candidate in mplayer mpv cvlc vlc ffplay afplay; do
+    if command -v "$candidate" >/dev/null 2>&1; then
+      player=$candidate
+      break
+    fi
+  done
+fi
+
+if [[ -z $player ]] || ! command -v "$player" >/dev/null 2>&1; then
+  echo "play-all: no supported audio player found." >&2
+  echo "Install mplayer, mpv, VLC, or ffmpeg; or use --player COMMAND." >&2
+  exit 1
+fi
+
+play_file() {
+  case ${player##*/} in
+    # Keep mplayer's invocation deliberately plain.  Some versions interpret
+    # "--" as a filename instead of an end-of-options marker.
+    mplayer) "$player" "$1" ;;
+    mpv)    "$player" --really-quiet --no-video -- "$1" ;;
+    cvlc)   "$player" --play-and-exit --quiet -- "$1" ;;
+    vlc)    "$player" --play-and-exit --quiet -- "$1" ;;
+    ffplay) "$player" -nodisp -autoexit -loglevel error -- "$1" ;;
+    afplay) "$player" "$1" ;;
+    *)      "$player" "$1" ;;
+  esac
+}
+
+mark_played() {
+  local wanted=$1 tmp status file
+  tmp="${playlist}.tmp.$$"
+  : > "$tmp" || exit 1
+  while IFS=$'\t' read -r status file; do
+    if [[ $status == '[ ]' && $file == "$wanted" ]]; then
+      status='[x]'
+    fi
+    printf '%s\t%s\n' "$status" "$file" >> "$tmp"
+  done < "$playlist"
+  mv -f -- "$tmp" "$playlist"
+}
+
+# Read playlist data on fd 3.  stdin must remain attached to the terminal so
+# interactive players such as mplayer can receive keyboard commands.
+while IFS=$'\t' read -r -u 3 status file; do
+  [[ $status == '[ ]' ]] || continue
+
+  if [[ ! -f $file ]]; then
+    echo "Skipping missing file (left unchecked): $file" >&2
+    continue
+  fi
+
+  printf 'Playing: %s\n' "$file"
+  if play_file "$file"; then
+    mark_played "$file"
+  else
+    result=$?
+    echo "Playback did not complete; '$file' remains unchecked (exit $result)." >&2
+    # Continue around the playlist so one bad file does not stop the run.
+    continue
+  fi
+done 3< "$playlist"
+
+if grep -q '^\[ \]' "$playlist"; then
+  echo "No playable unchecked files remain (some playlist files may be missing)."
+else
+  echo "All files in the playlist have been played."
+fi
