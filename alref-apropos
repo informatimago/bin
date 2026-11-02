@@ -2,6 +2,6 @@
 for word ; do
     clautolisp --quiet --no-init \
                -l  "/opt/local/share/autolisp/site-lisp/autolisp-spec/alref.lsp" \
-               -x '(alref-set-root "/opt/local/share/autolisp-spec/")' \
+               -x '(alref-set-root "/opt/local/share/doc/autolisp-spec/")' \
                -x '(alref-apropos "'${word//\"/\\\"}'")'
 done
