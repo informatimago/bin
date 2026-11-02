@@ -2,7 +2,7 @@
 
 set -u
 
-playlist=.play-all-playlist
+old_playlist=.play-all-playlist
 reset=false
 show_list=false
 player=${PLAY_ALL_PLAYER:-}
@@ -12,7 +12,10 @@ usage() {
 Usage: play-all [--reset] [--list] [--player COMMAND]
 
 Play each .mp3, .m4a, .opus, and .flac file in the current directory once,
-in lexicographic order. Progress is stored in .play-all-playlist.
+in lexicographic order. Progress is stored outside the directory, in
+${XDG_CACHE_HOME:-~/.cache}/play-all/<absolute directory path>/playlist,
+so read-only directories work.  A legacy .play-all-playlist found in the
+current directory is imported the first time.
 
 Options:
   -r, --reset           rebuild the playlist and start it over
@@ -41,6 +44,18 @@ while (($#)); do
 done
 
 (($# == 0)) || { echo "play-all: unexpected argument: $1" >&2; exit 2; }
+
+# Keep the state under the cache directory, mirroring the physical path of
+# the current directory, so that the media directory itself is never written.
+here=$(pwd -P) || exit 1
+state_dir="${XDG_CACHE_HOME:-$HOME/.cache}/play-all${here}"
+playlist="$state_dir/playlist"
+mkdir -p -- "$state_dir" || exit 1
+
+if [[ ! -f $playlist && -f $old_playlist ]] && ! $reset; then
+  cp -- "$old_playlist" "$playlist" || exit 1
+  echo "Imported progress from $here/$old_playlist."
+fi
 
 build_playlist() {
   local tmp file
